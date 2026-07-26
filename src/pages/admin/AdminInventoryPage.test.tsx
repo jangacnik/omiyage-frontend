@@ -1,0 +1,112 @@
+import { http, HttpResponse } from 'msw'
+import { screen, waitFor } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
+import { describe, expect, it } from 'vitest'
+import { server } from '../../test/server'
+import { renderWithProviders } from '../../test/renderWithProviders'
+import { AdminInventoryPage } from './AdminInventoryPage'
+import type { InventoryItem, Page } from '../../types/api'
+
+const BASE = 'http://localhost:8081'
+
+function item(overrides: Partial<InventoryItem> = {}): InventoryItem {
+  return {
+    id: 'item-1',
+    title: 'Kit Kat matcha',
+    description: null,
+    condition: 'NEW',
+    priceAmount: 1200,
+    currency: 'JPY',
+    stockQuantity: 3,
+    status: 'ACTIVE',
+    images: [],
+    categories: [],
+    ...overrides,
+  }
+}
+
+function page(content: InventoryItem[]): Page<InventoryItem> {
+  return { content, page: 0, size: 20, totalElements: content.length, totalPages: 1 }
+}
+
+describe('AdminInventoryPage', () => {
+  it('lists existing inventory items', async () => {
+    server.use(
+      http.get(`${BASE}/api/admin/inventory`, () => HttpResponse.json(page([item()]))),
+      http.get(`${BASE}/api/categories`, () => HttpResponse.json([])),
+    )
+
+    renderWithProviders(<AdminInventoryPage />)
+
+    expect(await screen.findByText(/Kit Kat matcha/)).toBeInTheDocument()
+  })
+
+  it('creates an item with the selected category', async () => {
+    const user = userEvent.setup()
+    let capturedBody: unknown = null
+    server.use(
+      http.get(`${BASE}/api/admin/inventory`, () => HttpResponse.json(page([]))),
+      http.get(`${BASE}/api/categories`, () => HttpResponse.json([{ id: 'cat-1', name: 'Snacks', slug: 'snacks' }])),
+      http.post(`${BASE}/api/admin/inventory`, async ({ request }) => {
+        capturedBody = await request.json()
+        return HttpResponse.json(item(), { status: 201 })
+      }),
+    )
+
+    renderWithProviders(<AdminInventoryPage />)
+    await screen.findByText('Snacks')
+
+    await user.type(screen.getByLabelText('Title'), 'Pocky strawberry')
+    await user.type(screen.getByLabelText('Price'), '500')
+    await user.type(screen.getByLabelText('Stock quantity'), '10')
+    await user.click(screen.getByLabelText('Snacks'))
+    await user.click(screen.getByText('Create item'))
+
+    await waitFor(() =>
+      expect(capturedBody).toMatchObject({
+        title: 'Pocky strawberry',
+        priceAmount: 500,
+        stockQuantity: 10,
+        categoryIds: ['cat-1'],
+      }),
+    )
+  })
+
+  it('archives an active item', async () => {
+    const user = userEvent.setup()
+    let capturedStatus: unknown = null
+    server.use(
+      http.get(`${BASE}/api/admin/inventory`, () => HttpResponse.json(page([item()]))),
+      http.get(`${BASE}/api/categories`, () => HttpResponse.json([])),
+      http.patch(`${BASE}/api/admin/inventory/item-1/status`, async ({ request }) => {
+        capturedStatus = await request.json()
+        return HttpResponse.json(item({ status: 'ARCHIVED' }))
+      }),
+    )
+
+    renderWithProviders(<AdminInventoryPage />)
+    await screen.findByText(/Kit Kat matcha/)
+    await user.click(screen.getByText('Archive'))
+
+    await waitFor(() => expect(capturedStatus).toEqual({ status: 'ARCHIVED' }))
+  })
+
+  it('deletes an item', async () => {
+    const user = userEvent.setup()
+    let deleteCalled = false
+    server.use(
+      http.get(`${BASE}/api/admin/inventory`, () => HttpResponse.json(page([item()]))),
+      http.get(`${BASE}/api/categories`, () => HttpResponse.json([])),
+      http.delete(`${BASE}/api/admin/inventory/item-1`, () => {
+        deleteCalled = true
+        return new HttpResponse(null, { status: 204 })
+      }),
+    )
+
+    renderWithProviders(<AdminInventoryPage />)
+    await screen.findByText(/Kit Kat matcha/)
+    await user.click(screen.getByText('Delete'))
+
+    await waitFor(() => expect(deleteCalled).toBe(true))
+  })
+})
