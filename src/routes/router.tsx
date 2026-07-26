@@ -1,0 +1,42 @@
+import { createBrowserRouter, Navigate } from 'react-router-dom'
+import { Layout } from '../components/Layout'
+import { RequireAdmin, RequireAuth } from './guards'
+import { LoginPage } from '../pages/LoginPage'
+import { InventoryPage } from '../pages/InventoryPage'
+import { InventoryDetailPage } from '../pages/InventoryDetailPage'
+import { OrdersNewPage } from '../pages/OrdersNewPage'
+import { OrdersListPage } from '../pages/OrdersListPage'
+import { OrderDetailPage } from '../pages/OrderDetailPage'
+import { ProfilePage } from '../pages/ProfilePage'
+import { AdminInventoryPage } from '../pages/admin/AdminInventoryPage'
+import { AdminCategoriesPage } from '../pages/admin/AdminCategoriesPage'
+import { AdminOrdersPage } from '../pages/admin/AdminOrdersPage'
+
+export const router = createBrowserRouter([
+  { path: '/login', element: <LoginPage /> },
+  {
+    element: <RequireAuth />,
+    children: [
+      {
+        element: <Layout />,
+        children: [
+          { path: '/', element: <Navigate to="/inventory" replace /> },
+          { path: '/inventory', element: <InventoryPage /> },
+          { path: '/inventory/:id', element: <InventoryDetailPage /> },
+          { path: '/orders/new', element: <OrdersNewPage /> },
+          { path: '/orders', element: <OrdersListPage /> },
+          { path: '/orders/:id', element: <OrderDetailPage /> },
+          { path: '/profile', element: <ProfilePage /> },
+          {
+            element: <RequireAdmin />,
+            children: [
+              { path: '/admin/inventory', element: <AdminInventoryPage /> },
+              { path: '/admin/categories', element: <AdminCategoriesPage /> },
+              { path: '/admin/orders', element: <AdminOrdersPage /> },
+            ],
+          },
+        ],
+      },
+    ],
+  },
+])

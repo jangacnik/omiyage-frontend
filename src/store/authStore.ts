@@ -1,0 +1,39 @@
+import { create } from 'zustand'
+import { decodeJwt, isExpired, type JwtClaims } from '../lib/jwt'
+
+const TOKEN_KEY = 'omiyage.token'
+
+interface AuthState {
+  token: string | null
+  claims: JwtClaims | null
+  login: (token: string) => void
+  logout: () => void
+}
+
+function loadInitialState(): Pick<AuthState, 'token' | 'claims'> {
+  const token = localStorage.getItem(TOKEN_KEY)
+  if (!token) return { token: null, claims: null }
+  try {
+    const claims = decodeJwt(token)
+    if (isExpired(claims)) {
+      localStorage.removeItem(TOKEN_KEY)
+      return { token: null, claims: null }
+    }
+    return { token, claims }
+  } catch {
+    localStorage.removeItem(TOKEN_KEY)
+    return { token: null, claims: null }
+  }
+}
+
+export const useAuthStore = create<AuthState>((set) => ({
+  ...loadInitialState(),
+  login: (token: string) => {
+    localStorage.setItem(TOKEN_KEY, token)
+    set({ token, claims: decodeJwt(token) })
+  },
+  logout: () => {
+    localStorage.removeItem(TOKEN_KEY)
+    set({ token: null, claims: null })
+  },
+}))
