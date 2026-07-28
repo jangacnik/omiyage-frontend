@@ -6,6 +6,7 @@ import { z } from 'zod'
 import { useInventoryItem } from '../api/inventory'
 import { useCreateOrder, type CreateOrderItemInput } from '../api/orders'
 import { api } from '../lib/apiClient'
+import { ButtonSpinner } from '../components/Spinner'
 
 const customItemSchema = z.object({
   title: z.string().min(1, 'Title is required'),
@@ -46,22 +47,35 @@ function CustomItemForm({ onAdd }: { onAdd: (item: CreateOrderItemInput) => void
   }
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-2 border border-gray-200 p-3">
-      <input placeholder="Title" {...register('title')} aria-label="Title" />
-      {errors.title && <p>{errors.title.message}</p>}
-      <textarea placeholder="Description (optional)" {...register('description')} aria-label="Description" />
-      <select {...register('condition')} aria-label="Condition">
-        <option value="NEW">New</option>
-        <option value="USED">Used</option>
-      </select>
-      <select {...register('currency')} aria-label="Currency">
-        <option value="JPY">JPY</option>
-        <option value="EUR">EUR</option>
-      </select>
-      <input type="number" step="0.01" placeholder="Max price (optional)" {...register('maxPrice')} aria-label="Max price" />
-      <input type="file" accept="image/*" onChange={handleImageChange} aria-label="Photo" />
-      {uploading && <p>Uploading...</p>}
-      <button type="submit" disabled={uploading}>
+    <form onSubmit={handleSubmit(onSubmit)} className="card flex flex-col gap-2">
+      <input placeholder="Title" className="field-input" {...register('title')} aria-label="Title" />
+      {errors.title && <p className="error-text">{errors.title.message}</p>}
+      <textarea placeholder="Description (optional)" className="field-input" {...register('description')} aria-label="Description" />
+      <div className="flex gap-2">
+        <select {...register('condition')} aria-label="Condition" className="field-input">
+          <option value="NEW">New</option>
+          <option value="USED">Used</option>
+        </select>
+        <select {...register('currency')} aria-label="Currency" className="field-input">
+          <option value="JPY">JPY</option>
+          <option value="EUR">EUR</option>
+        </select>
+      </div>
+      <input
+        type="number"
+        step="0.01"
+        placeholder="Max price (optional)"
+        className="field-input"
+        {...register('maxPrice')}
+        aria-label="Max price"
+      />
+      <input type="file" accept="image/*" onChange={handleImageChange} aria-label="Photo" className="text-sm text-slate-600" />
+      {uploading && (
+        <p className="flex items-center gap-2 text-sm text-slate-500">
+          <ButtonSpinner /> Uploading...
+        </p>
+      )}
+      <button type="submit" className="btn-secondary self-start" disabled={uploading}>
         Add item
       </button>
     </form>
@@ -95,28 +109,43 @@ export function OrdersNewPage() {
   }
 
   return (
-    <div>
-      <h1>New request</h1>
+    <div className="max-w-xl">
+      <h1 className="page-title mb-4">New request</h1>
 
-      <ul>
-        {items.map((item, index) => (
-          <li key={index}>
-            {item.inventoryItemId ? `Inventory item: ${preselectedItem?.title ?? item.inventoryItemId}` : item.title}
-            {' — '}
-            {item.currency}
-            <button type="button" onClick={() => removeItem(index)}>
-              Remove
-            </button>
-          </li>
-        ))}
-      </ul>
+      {items.length > 0 && (
+        <ul className="mb-4 flex flex-col gap-2">
+          {items.map((item, index) => (
+            <li key={index} className="card flex items-center justify-between py-2">
+              <span className="text-sm text-slate-700">
+                {item.inventoryItemId ? `Inventory item: ${preselectedItem?.title ?? item.inventoryItemId}` : item.title}
+                {' — '}
+                {item.currency}
+              </span>
+              <button type="button" className="btn-danger px-2 py-1 text-xs" onClick={() => removeItem(index)}>
+                Remove
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
 
       <CustomItemForm onAdd={(item) => setItems((current) => [...current, item])} />
 
-      <button type="button" disabled={items.length === 0 || createOrder.isPending} onClick={submit}>
-        Submit request
+      <button
+        type="button"
+        className="btn-primary mt-4"
+        disabled={items.length === 0 || createOrder.isPending}
+        onClick={submit}
+      >
+        {createOrder.isPending ? (
+          <>
+            <ButtonSpinner /> Submitting
+          </>
+        ) : (
+          'Submit request'
+        )}
       </button>
-      {createOrder.isError && <p>Could not submit request.</p>}
+      {createOrder.isError && <p className="error-text mt-2">Could not submit request.</p>}
     </div>
   )
 }

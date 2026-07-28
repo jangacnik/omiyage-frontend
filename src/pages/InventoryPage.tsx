@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useCategories, useInventory } from '../api/inventory'
 import { Pagination } from '../components/Pagination'
+import { Spinner } from '../components/Spinner'
 import { mediaUrl } from '../lib/media'
 
 export function InventoryPage() {
@@ -23,15 +24,16 @@ export function InventoryPage() {
 
   return (
     <div>
-      <h1>Inventory</h1>
+      <h1 className="page-title mb-4">Inventory</h1>
 
-      <div className="flex gap-3 py-3">
+      <div className="mb-4 flex flex-col gap-3 sm:flex-row">
         <input
           type="search"
           placeholder="Search by title"
           value={titleInput}
           onChange={(e) => setTitleInput(e.target.value)}
           aria-label="Search by title"
+          className="field-input sm:max-w-xs"
         />
         <select
           value={categoryId}
@@ -40,6 +42,7 @@ export function InventoryPage() {
             setPage(0)
           }}
           aria-label="Filter by category"
+          className="field-input sm:max-w-xs"
         >
           <option value="">All categories</option>
           {categories?.map((c) => (
@@ -50,18 +53,26 @@ export function InventoryPage() {
         </select>
       </div>
 
-      {isLoading && <p>Loading...</p>}
-      {isError && <p>Could not load inventory.</p>}
-      {data && data.content.length === 0 && <p>No items found.</p>}
+      {isLoading && <Spinner label="Fetching inventory" />}
+      {isError && <p className="error-text">Could not load inventory.</p>}
+      {data && data.content.length === 0 && <p className="text-slate-500">No items found.</p>}
 
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4">
         {data?.content.map((item) => (
-          <Link to={`/inventory/${item.id}`} key={item.id} className="border border-gray-200 p-2">
-            {item.images[0] && <img src={mediaUrl(item.images[0])} alt={item.title} className="aspect-square w-full object-cover" />}
-            <p>{item.title}</p>
-            <p>
-              {item.priceAmount} {item.currency}
-            </p>
+          <Link
+            to={`/inventory/${item.id}`}
+            key={item.id}
+            className="card overflow-hidden p-0 transition hover:-translate-y-0.5 hover:shadow-md"
+          >
+            <div className="aspect-square w-full bg-slate-100">
+              {item.images[0] && <img src={mediaUrl(item.images[0])} alt={item.title} className="h-full w-full object-cover" />}
+            </div>
+            <div className="p-3">
+              <p className="truncate font-medium text-slate-900">{item.title}</p>
+              <p className="text-sm text-slate-500">
+                {item.priceAmount} {item.currency}
+              </p>
+            </div>
           </Link>
         ))}
       </div>

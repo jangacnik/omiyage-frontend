@@ -11,6 +11,7 @@ import {
 } from '../../api/adminInventory'
 import { api } from '../../lib/apiClient'
 import { Pagination } from '../../components/Pagination'
+import { Spinner, ButtonSpinner } from '../../components/Spinner'
 
 const itemSchema = z.object({
   title: z.string().min(1, 'Title is required'),
@@ -76,57 +77,72 @@ export function AdminInventoryPage() {
 
   return (
     <div>
-      <h1>Admin: Inventory</h1>
+      <h1 className="page-title mb-4">Admin: Inventory</h1>
 
-      <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-2 border border-gray-200 p-3">
-        <input placeholder="Title" {...register('title')} aria-label="Title" />
-        {errors.title && <p>{errors.title.message}</p>}
-        <textarea placeholder="Description" {...register('description')} aria-label="Description" />
-        <select {...register('condition')} aria-label="Condition">
-          <option value="NEW">New</option>
-          <option value="USED">Used</option>
-        </select>
-        <select {...register('currency')} aria-label="Currency">
-          <option value="JPY">JPY</option>
-          <option value="EUR">EUR</option>
-        </select>
-        <input placeholder="Price" {...register('priceAmount')} aria-label="Price" />
-        {errors.priceAmount && <p>{errors.priceAmount.message}</p>}
-        <input placeholder="Stock quantity" {...register('stockQuantity')} aria-label="Stock quantity" />
-        {errors.stockQuantity && <p>{errors.stockQuantity.message}</p>}
-        <input type="file" accept="image/*" onChange={handleImageChange} aria-label="Photo" />
-        {uploading && <p>Uploading...</p>}
+      <form onSubmit={handleSubmit(onSubmit)} className="card mb-6 flex flex-col gap-2">
+        <input placeholder="Title" className="field-input" {...register('title')} aria-label="Title" />
+        {errors.title && <p className="error-text">{errors.title.message}</p>}
+        <textarea placeholder="Description" className="field-input" {...register('description')} aria-label="Description" />
+        <div className="flex gap-2">
+          <select {...register('condition')} aria-label="Condition" className="field-input">
+            <option value="NEW">New</option>
+            <option value="USED">Used</option>
+          </select>
+          <select {...register('currency')} aria-label="Currency" className="field-input">
+            <option value="JPY">JPY</option>
+            <option value="EUR">EUR</option>
+          </select>
+        </div>
+        <div className="flex gap-2">
+          <input placeholder="Price" className="field-input" {...register('priceAmount')} aria-label="Price" />
+          <input placeholder="Stock quantity" className="field-input" {...register('stockQuantity')} aria-label="Stock quantity" />
+        </div>
+        {errors.priceAmount && <p className="error-text">{errors.priceAmount.message}</p>}
+        {errors.stockQuantity && <p className="error-text">{errors.stockQuantity.message}</p>}
+        <input type="file" accept="image/*" onChange={handleImageChange} aria-label="Photo" className="text-sm text-slate-600" />
+        {uploading && (
+          <p className="flex items-center gap-2 text-sm text-slate-500">
+            <ButtonSpinner /> Uploading...
+          </p>
+        )}
 
-        <fieldset>
-          <legend>Categories</legend>
-          {categories?.map((c) => (
-            <label key={c.id}>
-              <input type="checkbox" checked={selectedCategoryIds.includes(c.id)} onChange={() => toggleCategory(c.id)} />
-              {c.name}
-            </label>
-          ))}
+        <fieldset className="flex flex-col gap-1">
+          <legend className="field-label mb-1">Categories</legend>
+          <div className="flex flex-wrap gap-3">
+            {categories?.map((c) => (
+              <label key={c.id} className="flex items-center gap-1.5 text-sm text-slate-700">
+                <input type="checkbox" checked={selectedCategoryIds.includes(c.id)} onChange={() => toggleCategory(c.id)} />
+                {c.name}
+              </label>
+            ))}
+          </div>
         </fieldset>
 
-        <button type="submit" disabled={createItem.isPending || uploading}>
+        <button type="submit" className="btn-primary self-start" disabled={createItem.isPending || uploading}>
           Create item
         </button>
       </form>
 
-      {isLoading && <p>Loading...</p>}
+      {isLoading && <Spinner label="Fetching inventory" />}
 
-      <ul>
+      <ul className="flex flex-col gap-2">
         {data?.content.map((item) => (
-          <li key={item.id}>
-            {item.title} — {item.status} — {item.priceAmount} {item.currency}
-            <button
-              type="button"
-              onClick={() => updateStatus.mutate({ id: item.id, status: item.status === 'ACTIVE' ? 'ARCHIVED' : 'ACTIVE' })}
-            >
-              {item.status === 'ACTIVE' ? 'Archive' : 'Activate'}
-            </button>
-            <button type="button" onClick={() => deleteItem.mutate(item.id)}>
-              Delete
-            </button>
+          <li key={item.id} className="card flex items-center justify-between py-2">
+            <span className="text-sm text-slate-700">
+              {item.title} — {item.status} — {item.priceAmount} {item.currency}
+            </span>
+            <span className="flex gap-2">
+              <button
+                type="button"
+                className="btn-secondary px-2 py-1 text-xs"
+                onClick={() => updateStatus.mutate({ id: item.id, status: item.status === 'ACTIVE' ? 'ARCHIVED' : 'ACTIVE' })}
+              >
+                {item.status === 'ACTIVE' ? 'Archive' : 'Activate'}
+              </button>
+              <button type="button" className="btn-danger px-2 py-1 text-xs" onClick={() => deleteItem.mutate(item.id)}>
+                Delete
+              </button>
+            </span>
           </li>
         ))}
       </ul>

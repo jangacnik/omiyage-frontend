@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useAdminCategories, useCreateCategory, useDeleteCategory } from '../../api/adminInventory'
+import { Spinner } from '../../components/Spinner'
 
 function slugify(name: string): string {
   return name
@@ -23,23 +24,29 @@ export function AdminCategoriesPage() {
   }
 
   return (
-    <div>
-      <h1>Admin: Categories</h1>
+    <div className="max-w-md">
+      <h1 className="page-title mb-4">Admin: Categories</h1>
 
-      <form onSubmit={handleCreate} className="flex gap-2">
-        <input placeholder="Category name" value={name} onChange={(e) => setName(e.target.value)} aria-label="Category name" />
-        <button type="submit" disabled={createCategory.isPending}>
+      <form onSubmit={handleCreate} className="mb-4 flex gap-2">
+        <input
+          placeholder="Category name"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          aria-label="Category name"
+          className="field-input"
+        />
+        <button type="submit" className="btn-primary shrink-0" disabled={createCategory.isPending}>
           Add category
         </button>
       </form>
 
-      {isLoading && <p>Loading...</p>}
+      {isLoading && <Spinner label="Fetching categories" />}
 
-      <ul>
+      <ul className="flex flex-col gap-2">
         {categories?.map((c) => (
-          <li key={c.id}>
-            {c.name}
-            <button type="button" onClick={() => deleteCategory.mutate(c.id)}>
+          <li key={c.id} className="card flex items-center justify-between py-2">
+            <span className="text-sm text-slate-700">{c.name}</span>
+            <button type="button" className="btn-danger px-2 py-1 text-xs" onClick={() => deleteCategory.mutate(c.id)}>
               Delete
             </button>
           </li>

@@ -3,6 +3,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 import { useMyProfile, useUpdateProfile } from '../api/profile'
+import { Spinner } from '../components/Spinner'
 
 const profileSchema = z.object({
   email: z.string().email('Invalid email').optional().or(z.literal('')),
@@ -36,35 +37,41 @@ export function ProfilePage() {
     })
   }
 
-  if (isLoading) return <p>Loading...</p>
+  if (isLoading) return <Spinner fullPage label="Fetching profile" />
 
   return (
-    <div>
-      <h1>Profile</h1>
-      <p>Nickname: {profile?.nickname}</p>
+    <div className="max-w-lg">
+      <h1 className="page-title mb-1">Profile</h1>
+      <p className="mb-4 text-slate-500">Nickname: {profile?.nickname}</p>
 
-      <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-2">
-        <label>
-          Email
-          <input {...register('email')} aria-label="Email" />
-        </label>
-        {errors.email && <p>{errors.email.message}</p>}
+      <form onSubmit={handleSubmit(onSubmit)} className="card flex flex-col gap-3">
+        <div className="flex flex-col gap-1">
+          <label htmlFor="email" className="field-label">
+            Email
+          </label>
+          <input id="email" className="field-input" {...register('email')} aria-label="Email" />
+          {errors.email && <p className="error-text">{errors.email.message}</p>}
+        </div>
 
-        <label>
-          Phone
-          <input {...register('phone')} aria-label="Phone" />
-        </label>
+        <div className="flex flex-col gap-1">
+          <label htmlFor="phone" className="field-label">
+            Phone
+          </label>
+          <input id="phone" className="field-input" {...register('phone')} aria-label="Phone" />
+        </div>
 
-        <label>
-          Shipping address
-          <textarea {...register('shippingAddress')} aria-label="Shipping address" />
-        </label>
+        <div className="flex flex-col gap-1">
+          <label htmlFor="shippingAddress" className="field-label">
+            Shipping address
+          </label>
+          <textarea id="shippingAddress" className="field-input" {...register('shippingAddress')} aria-label="Shipping address" />
+        </div>
 
-        <button type="submit" disabled={updateProfile.isPending}>
+        <button type="submit" className="btn-primary self-start" disabled={updateProfile.isPending}>
           Save
         </button>
-        {updateProfile.isSuccess && <p>Saved.</p>}
-        {updateProfile.isError && <p>Could not save profile.</p>}
+        {updateProfile.isSuccess && <p className="text-sm font-medium text-emerald-600">Saved.</p>}
+        {updateProfile.isError && <p className="error-text">Could not save profile.</p>}
       </form>
     </div>
   )

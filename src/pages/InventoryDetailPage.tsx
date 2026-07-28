@@ -1,30 +1,42 @@
 import { Link, useParams } from 'react-router-dom'
 import { useInventoryItem } from '../api/inventory'
 import { mediaUrl } from '../lib/media'
+import { Spinner } from '../components/Spinner'
 
 export function InventoryDetailPage() {
   const { id } = useParams<{ id: string }>()
   const { data: item, isLoading, isError } = useInventoryItem(id)
 
-  if (isLoading) return <p>Loading...</p>
-  if (isError || !item) return <p>Item not found.</p>
+  if (isLoading) return <Spinner fullPage label="Fetching item" />
+  if (isError || !item) return <p className="error-text">Item not found.</p>
 
   return (
-    <div>
-      <h1>{item.title}</h1>
-      <div className="flex gap-4">
-        {item.images.map((key) => (
-          <img key={key} src={mediaUrl(key)} alt={item.title} className="w-48" />
-        ))}
+    <div className="card flex flex-col gap-4 md:flex-row">
+      {item.images.length > 0 && (
+        <div className="flex gap-3 overflow-x-auto md:w-1/2">
+          {item.images.map((key) => (
+            <img key={key} src={mediaUrl(key)} alt={item.title} className="h-48 w-48 shrink-0 rounded-lg object-cover" />
+          ))}
+        </div>
+      )}
+      <div className="flex flex-1 flex-col gap-2">
+        <h1 className="page-title">{item.title}</h1>
+        {item.description && <p className="text-slate-600">{item.description}</p>}
+        <p className="text-2xl font-semibold text-indigo-600">
+          {item.priceAmount} {item.currency}
+        </p>
+        <dl className="grid grid-cols-2 gap-y-1 text-sm text-slate-600">
+          <dt className="font-medium text-slate-500">Condition</dt>
+          <dd>{item.condition}</dd>
+          <dt className="font-medium text-slate-500">In stock</dt>
+          <dd>{item.stockQuantity}</dd>
+          <dt className="font-medium text-slate-500">Categories</dt>
+          <dd>{item.categories.map((c) => c.name).join(', ') || 'None'}</dd>
+        </dl>
+        <Link to={`/orders/new?inventoryItemId=${item.id}`} className="btn-primary mt-2 self-start">
+          Request this item
+        </Link>
       </div>
-      <p>{item.description}</p>
-      <p>Condition: {item.condition}</p>
-      <p>
-        Price: {item.priceAmount} {item.currency}
-      </p>
-      <p>In stock: {item.stockQuantity}</p>
-      <p>Categories: {item.categories.map((c) => c.name).join(', ') || 'None'}</p>
-      <Link to={`/orders/new?inventoryItemId=${item.id}`}>Request this item</Link>
     </div>
   )
 }
