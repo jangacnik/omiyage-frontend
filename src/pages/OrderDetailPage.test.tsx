@@ -1,5 +1,6 @@
 import { http, HttpResponse } from 'msw'
-import { screen } from '@testing-library/react'
+import { screen, waitFor } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { describe, expect, it } from 'vitest'
 import { Route, Routes } from 'react-router-dom'
 import { server } from '../test/server'
@@ -28,6 +29,7 @@ function order(): OrderDto {
         currency: 'JPY',
         maxPrice: 2000,
         actualPrice: null,
+        weight: null,
         purchased: false,
         purchasedAt: null,
         quantity: 1,
@@ -50,5 +52,31 @@ describe('OrderDetailPage', () => {
     expect(await screen.findByText('Ghibli museum ticket')).toBeInTheDocument()
     expect(screen.getByText('In progress')).toBeInTheDocument()
     expect(screen.getByText('Not purchased yet')).toBeInTheDocument()
+  })
+
+  it('lets the owner edit an item while the order is still editable', async () => {
+    const user = userEvent.setup()
+    let capturedBody: unknown = null
+    server.use(
+      http.get(`${BASE}/api/orders/order-1`, () => HttpResponse.json(order())),
+      http.patch(`${BASE}/api/orders/order-1/items/item-1`, async ({ request }) => {
+        capturedBody = await request.json()
+        return HttpResponse.json(order())
+      }),
+    )
+
+    renderWithProviders(
+      <Routes>
+        <Route path="/orders/:id" element={<OrderDetailPage />} />
+      </Routes>,
+      ['/orders/order-1'],
+    )
+
+    await user.click(await screen.findByText('Edit'))
+    await user.clear(screen.getByLabelText('Title for Ghibli museum ticket'))
+    await user.type(screen.getByLabelText('Title for Ghibli museum ticket'), 'Ghibli museum ticket (2x)')
+    await user.click(screen.getByText('Save'))
+
+    await waitFor(() => expect(capturedBody).toMatchObject({ title: 'Ghibli museum ticket (2x)' }))
   })
 })

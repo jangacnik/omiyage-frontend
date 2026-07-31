@@ -41,3 +41,20 @@ export function useCreateOrder() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['orders'] }),
   })
 }
+
+export interface UpdateMyOrderItemInput {
+  title?: string
+  description?: string
+  imageKey?: string
+  maxPrice?: number
+  quantity?: number
+}
+
+export function useUpdateMyOrderItem() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: ({ orderId, itemId, ...input }: UpdateMyOrderItemInput & { orderId: string; itemId: string }) =>
+      api.patch<OrderDto>(`/api/orders/${orderId}/items/${itemId}`, input),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['orders'] }),
+  })
+}
