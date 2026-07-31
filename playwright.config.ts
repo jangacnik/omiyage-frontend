@@ -1,8 +1,7 @@
 import { defineConfig, devices } from '@playwright/test'
 
-// Assumes docker-compose deps (postgres, minio) and the Omiyage backend are already running,
-// per the "Run e2e tests" section of the root README. Only the frontend dev server is
-// auto-started here.
+// Assumes docker-compose deps (postgres, minio) and the omiyage-api backend are already
+// running (see the omiyage-api repo). Only the frontend dev server is auto-started here.
 export default defineConfig({
   testDir: './e2e',
   fullyParallel: false,
