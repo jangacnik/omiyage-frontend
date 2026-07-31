@@ -22,8 +22,19 @@ export function useUpdateOrderStatus() {
 export function useUpdateOrderItem() {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: ({ orderId, itemId, purchased, actualPrice }: { orderId: string; itemId: string; purchased: boolean; actualPrice?: number }) =>
-      api.patch<OrderDto>(`/api/admin/orders/${orderId}/items/${itemId}`, { purchased, actualPrice }),
+    mutationFn: ({
+      orderId,
+      itemId,
+      purchased,
+      actualPrice,
+      weight,
+    }: {
+      orderId: string
+      itemId: string
+      purchased: boolean
+      actualPrice?: number
+      weight?: number
+    }) => api.patch<OrderDto>(`/api/admin/orders/${orderId}/items/${itemId}`, { purchased, actualPrice, weight }),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['admin', 'orders'] }),
   })
 }

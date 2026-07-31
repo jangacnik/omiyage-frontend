@@ -11,6 +11,7 @@ import { ProfilePage } from '../pages/ProfilePage'
 import { AdminInventoryPage } from '../pages/admin/AdminInventoryPage'
 import { AdminCategoriesPage } from '../pages/admin/AdminCategoriesPage'
 import { AdminOrdersPage } from '../pages/admin/AdminOrdersPage'
+import { AdminOrderDetailPage } from '../pages/admin/AdminOrderDetailPage'
 
 export const router = createBrowserRouter([
   { path: '/login', element: <LoginPage /> },
@@ -33,6 +34,7 @@ export const router = createBrowserRouter([
               { path: '/admin/inventory', element: <AdminInventoryPage /> },
               { path: '/admin/categories', element: <AdminCategoriesPage /> },
               { path: '/admin/orders', element: <AdminOrdersPage /> },
+              { path: '/admin/orders/:id', element: <AdminOrderDetailPage /> },
             ],
           },
         ],
