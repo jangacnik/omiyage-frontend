@@ -9,9 +9,9 @@ import {
   useDeleteInventoryItem,
   useUpdateInventoryStatus,
 } from '../../api/adminInventory'
-import { api } from '../../lib/apiClient'
 import { Pagination } from '../../components/Pagination'
-import { Spinner, ButtonSpinner } from '../../components/Spinner'
+import { Spinner } from '../../components/Spinner'
+import { ImageDropInput } from '../../components/ImageDropInput'
 
 const itemSchema = z.object({
   title: z.string().min(1, 'Title is required'),
@@ -33,7 +33,6 @@ export function AdminInventoryPage() {
   const deleteItem = useDeleteInventoryItem()
 
   const [imageKeys, setImageKeys] = useState<string[]>([])
-  const [uploading, setUploading] = useState(false)
   const [selectedCategoryIds, setSelectedCategoryIds] = useState<string[]>([])
 
   const {
@@ -42,18 +41,6 @@ export function AdminInventoryPage() {
     reset,
     formState: { errors },
   } = useForm<ItemForm>({ resolver: zodResolver(itemSchema), defaultValues: { condition: 'NEW', currency: 'JPY' } })
-
-  async function handleImageChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0]
-    if (!file) return
-    setUploading(true)
-    try {
-      const result = await api.upload<{ key: string }>('/api/images', file)
-      setImageKeys((current) => [...current, result.key])
-    } finally {
-      setUploading(false)
-    }
-  }
 
   function toggleCategory(id: string) {
     setSelectedCategoryIds((current) => (current.includes(id) ? current.filter((c) => c !== id) : [...current, id]))
@@ -99,18 +86,14 @@ export function AdminInventoryPage() {
         </div>
         {errors.priceAmount && <p className="error-text">{errors.priceAmount.message}</p>}
         {errors.stockQuantity && <p className="error-text">{errors.stockQuantity.message}</p>}
-        <input type="file" accept="image/*" onChange={handleImageChange} aria-label="Photo" className="text-sm text-slate-600" />
-        {uploading && (
-          <p className="flex items-center gap-2 text-sm text-slate-500">
-            <ButtonSpinner /> Uploading...
-          </p>
-        )}
+        <ImageDropInput label="Photo" onUploaded={(key) => setImageKeys((current) => [...current, key])} />
+        {imageKeys.length > 0 && <p className="text-xs text-ink/50">{imageKeys.length} photo(s) added.</p>}
 
         <fieldset className="flex flex-col gap-1">
           <legend className="field-label mb-1">Categories</legend>
           <div className="flex flex-wrap gap-3">
             {categories?.map((c) => (
-              <label key={c.id} className="flex items-center gap-1.5 text-sm text-slate-700">
+              <label key={c.id} className="flex items-center gap-1.5 text-sm text-ink/80">
                 <input type="checkbox" checked={selectedCategoryIds.includes(c.id)} onChange={() => toggleCategory(c.id)} />
                 {c.name}
               </label>
@@ -118,7 +101,7 @@ export function AdminInventoryPage() {
           </div>
         </fieldset>
 
-        <button type="submit" className="btn-primary self-start" disabled={createItem.isPending || uploading}>
+        <button type="submit" className="btn-primary self-start" disabled={createItem.isPending}>
           Create item
         </button>
       </form>
@@ -127,8 +110,8 @@ export function AdminInventoryPage() {
 
       <ul className="flex flex-col gap-2">
         {data?.content.map((item) => (
-          <li key={item.id} className="card flex items-center justify-between py-2">
-            <span className="text-sm text-slate-700">
+          <li key={item.id} className="card flex flex-col gap-2 py-2 sm:flex-row sm:items-center sm:justify-between">
+            <span className="text-sm text-ink/80">
               {item.title} — {item.status} — {item.priceAmount} {item.currency}
             </span>
             <span className="flex gap-2">

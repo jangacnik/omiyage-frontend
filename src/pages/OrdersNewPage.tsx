@@ -5,8 +5,8 @@ import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 import { useInventoryItem } from '../api/inventory'
 import { useCreateOrder, type CreateOrderItemInput } from '../api/orders'
-import { api } from '../lib/apiClient'
 import { ButtonSpinner } from '../components/Spinner'
+import { ImageDropInput } from '../components/ImageDropInput'
 
 const customItemSchema = z.object({
   title: z.string().min(1, 'Title is required'),
@@ -27,18 +27,6 @@ function CustomItemForm({ onAdd }: { onAdd: (item: CreateOrderItemInput) => void
     reset,
     formState: { errors },
   } = useForm<CustomItemForm>({ resolver: zodResolver(customItemSchema), defaultValues: { condition: 'NEW', currency: 'JPY' } })
-
-  async function handleImageChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0]
-    if (!file) return
-    setUploading(true)
-    try {
-      const result = await api.upload<{ key: string }>('/api/images', file)
-      setImageKey(result.key)
-    } finally {
-      setUploading(false)
-    }
-  }
 
   function onSubmit(data: CustomItemForm) {
     onAdd({ ...data, maxPrice: data.maxPrice ? Number(data.maxPrice) : undefined, imageKey, quantity: 1 })
@@ -69,12 +57,7 @@ function CustomItemForm({ onAdd }: { onAdd: (item: CreateOrderItemInput) => void
         {...register('maxPrice')}
         aria-label="Max price"
       />
-      <input type="file" accept="image/*" onChange={handleImageChange} aria-label="Photo" className="text-sm text-slate-600" />
-      {uploading && (
-        <p className="flex items-center gap-2 text-sm text-slate-500">
-          <ButtonSpinner /> Uploading...
-        </p>
-      )}
+      <ImageDropInput label="Photo" onUploaded={setImageKey} onUploadingChange={setUploading} />
       <button type="submit" className="btn-secondary self-start" disabled={uploading}>
         Add item
       </button>
@@ -115,8 +98,8 @@ export function OrdersNewPage() {
       {items.length > 0 && (
         <ul className="mb-4 flex flex-col gap-2">
           {items.map((item, index) => (
-            <li key={index} className="card flex items-center justify-between py-2">
-              <span className="text-sm text-slate-700">
+            <li key={index} className="card flex flex-col gap-2 py-2 sm:flex-row sm:items-center sm:justify-between">
+              <span className="text-sm text-ink/80">
                 {item.inventoryItemId ? `Inventory item: ${preselectedItem?.title ?? item.inventoryItemId}` : item.title}
                 {' — '}
                 {item.currency}
