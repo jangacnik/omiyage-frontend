@@ -21,16 +21,16 @@ export function InventoryDetailPage() {
       )}
       <div className="flex flex-1 flex-col gap-2">
         <h1 className="page-title">{item.title}</h1>
-        {item.description && <p className="text-slate-600">{item.description}</p>}
-        <p className="text-2xl font-semibold text-indigo-600">
+        {item.description && <p className="text-ink/70">{item.description}</p>}
+        <p className="text-2xl font-semibold text-persimmon">
           {item.priceAmount} {item.currency}
         </p>
-        <dl className="grid grid-cols-2 gap-y-1 text-sm text-slate-600">
-          <dt className="font-medium text-slate-500">Condition</dt>
+        <dl className="grid grid-cols-2 gap-y-1 text-sm text-ink/70">
+          <dt className="font-medium text-ink/50">Condition</dt>
           <dd>{item.condition}</dd>
-          <dt className="font-medium text-slate-500">In stock</dt>
+          <dt className="font-medium text-ink/50">In stock</dt>
           <dd>{item.stockQuantity}</dd>
-          <dt className="font-medium text-slate-500">Categories</dt>
+          <dt className="font-medium text-ink/50">Categories</dt>
           <dd>{item.categories.map((c) => c.name).join(', ') || 'None'}</dd>
         </dl>
         <Link to={`/orders/new?inventoryItemId=${item.id}`} className="btn-primary mt-2 self-start">

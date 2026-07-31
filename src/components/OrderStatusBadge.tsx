@@ -10,7 +10,7 @@ const LABELS: Record<OrderStatus, string> = {
 }
 
 const COLORS: Record<OrderStatus, string> = {
-  REQUESTED: 'bg-slate-100 text-slate-700',
+  REQUESTED: 'bg-stone-light text-ink',
   IN_PROGRESS: 'bg-amber-100 text-amber-800',
   PURCHASED: 'bg-sky-100 text-sky-800',
   SENT: 'bg-violet-100 text-violet-800',

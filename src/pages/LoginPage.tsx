@@ -36,14 +36,17 @@ export function LoginPage() {
     : null
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-indigo-50 via-slate-50 to-rose-50 px-4">
+    <div className="flex min-h-screen items-center justify-center bg-paper px-4">
       <div className="w-full max-w-sm">
         <div className="mb-6 flex flex-col items-center gap-2 text-center">
-          <span className="text-4xl" aria-hidden="true">
-            🎁
-          </span>
-          <h1 className="text-2xl font-bold tracking-tight text-slate-900">Omiyage</h1>
-          <p className="text-sm text-slate-500">Sign in to browse and request souvenirs.</p>
+          <svg viewBox="0 0 64 64" width="40" height="40" aria-hidden="true">
+            <rect width="64" height="64" rx="14" fill="#262220" />
+            <rect x="14" y="14" width="36" height="36" rx="3" fill="none" stroke="#f7f1e4" strokeWidth="4" strokeLinejoin="round" />
+            <path d="M38 14 L50 14 L50 26 Z" fill="#bd5b3a" />
+            <circle cx="27" cy="38" r="3.4" fill="#bd5b3a" />
+          </svg>
+          <h1 className="page-title">Omiyage</h1>
+          <p className="text-sm text-ink/60">Sign in to browse and request souvenirs.</p>
         </div>
 
         <form onSubmit={handleSubmit(onSubmit)} className="card flex flex-col gap-4">

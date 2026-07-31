@@ -55,21 +55,21 @@ export function InventoryPage() {
 
       {isLoading && <Spinner label="Fetching inventory" />}
       {isError && <p className="error-text">Could not load inventory.</p>}
-      {data && data.content.length === 0 && <p className="text-slate-500">No items found.</p>}
+      {data && data.content.length === 0 && <p className="text-ink/50">No items found.</p>}
 
-      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 md:grid-cols-4">
         {data?.content.map((item) => (
           <Link
             to={`/inventory/${item.id}`}
             key={item.id}
             className="card overflow-hidden p-0 transition hover:-translate-y-0.5 hover:shadow-md"
           >
-            <div className="aspect-square w-full bg-slate-100">
+            <div className="aspect-square w-full bg-stone-light">
               {item.images[0] && <img src={mediaUrl(item.images[0])} alt={item.title} className="h-full w-full object-cover" />}
             </div>
             <div className="p-3">
-              <p className="truncate font-medium text-slate-900">{item.title}</p>
-              <p className="text-sm text-slate-500">
+              <p className="truncate font-medium text-ink">{item.title}</p>
+              <p className="text-sm text-ink/60">
                 {item.priceAmount} {item.currency}
               </p>
             </div>

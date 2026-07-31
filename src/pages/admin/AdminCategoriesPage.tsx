@@ -45,7 +45,7 @@ export function AdminCategoriesPage() {
       <ul className="flex flex-col gap-2">
         {categories?.map((c) => (
           <li key={c.id} className="card flex items-center justify-between py-2">
-            <span className="text-sm text-slate-700">{c.name}</span>
+            <span className="text-sm text-ink/80">{c.name}</span>
             <button type="button" className="btn-danger px-2 py-1 text-xs" onClick={() => deleteCategory.mutate(c.id)}>
               Delete
             </button>

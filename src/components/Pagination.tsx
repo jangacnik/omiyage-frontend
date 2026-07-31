@@ -12,7 +12,7 @@ export function Pagination({ page, totalPages, onPageChange }: PaginationProps) 
       <button type="button" className="btn-secondary" disabled={page <= 0} onClick={() => onPageChange(page - 1)}>
         Previous
       </button>
-      <span className="text-sm text-slate-500">
+      <span className="text-sm text-ink/60">
         Page {page + 1} of {totalPages}
       </span>
       <button type="button" className="btn-secondary" disabled={page >= totalPages - 1} onClick={() => onPageChange(page + 1)}>
