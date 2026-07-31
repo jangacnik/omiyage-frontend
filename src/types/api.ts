@@ -40,6 +40,7 @@ export interface OrderItemDto {
   currency: Currency
   maxPrice: number | null
   actualPrice: number | null
+  weight: number | null
   purchased: boolean
   purchasedAt: string | null
   quantity: number
@@ -60,5 +61,11 @@ export interface UserProfileDto {
   nickname: string
   email: string | null
   phone: string | null
-  shippingAddress: string | null
+  firstName: string | null
+  lastName: string | null
+  addressLine1: string | null
+  addressLine2: string | null
+  postalCode: string | null
+  city: string | null
+  country: string | null
 }

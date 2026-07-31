@@ -10,7 +10,20 @@ import type { UserProfileDto } from '../types/api'
 const BASE = 'http://localhost:8081'
 
 function profile(overrides: Partial<UserProfileDto> = {}): UserProfileDto {
-  return { id: 'user-1', nickname: 'bob', email: null, phone: null, shippingAddress: null, ...overrides }
+  return {
+    id: 'user-1',
+    nickname: 'bob',
+    email: null,
+    phone: null,
+    firstName: null,
+    lastName: null,
+    addressLine1: null,
+    addressLine2: null,
+    postalCode: null,
+    city: null,
+    country: null,
+    ...overrides,
+  }
 }
 
 describe('ProfilePage', () => {
@@ -30,18 +43,19 @@ describe('ProfilePage', () => {
       http.get(`${BASE}/api/users/me`, () => HttpResponse.json(profile())),
       http.patch(`${BASE}/api/users/me`, async ({ request }) => {
         capturedBody = await request.json()
-        return HttpResponse.json(profile({ shippingAddress: '1 Shibuya, Tokyo' }))
+        return HttpResponse.json(profile({ addressLine1: '1 Shibuya', city: 'Tokyo' }))
       }),
     )
 
     renderWithProviders(<ProfilePage />)
     await screen.findByText('Nickname: bob')
 
-    await user.type(screen.getByLabelText('Shipping address'), '1 Shibuya, Tokyo')
+    await user.type(screen.getByLabelText('Address line 1'), '1 Shibuya')
+    await user.type(screen.getByLabelText('City'), 'Tokyo')
     await user.click(screen.getByText('Save'))
 
     await waitFor(() => expect(screen.getByText('Saved.')).toBeInTheDocument())
-    expect(capturedBody).toMatchObject({ shippingAddress: '1 Shibuya, Tokyo' })
+    expect(capturedBody).toMatchObject({ addressLine1: '1 Shibuya', city: 'Tokyo' })
   })
 
   it('rejects an invalid email', async () => {

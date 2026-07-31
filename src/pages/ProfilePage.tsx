@@ -8,7 +8,13 @@ import { Spinner } from '../components/Spinner'
 const profileSchema = z.object({
   email: z.string().email('Invalid email').optional().or(z.literal('')),
   phone: z.string().optional(),
-  shippingAddress: z.string().optional(),
+  firstName: z.string().optional(),
+  lastName: z.string().optional(),
+  addressLine1: z.string().optional(),
+  addressLine2: z.string().optional(),
+  postalCode: z.string().optional(),
+  city: z.string().optional(),
+  country: z.string().optional(),
 })
 
 type ProfileForm = z.infer<typeof profileSchema>
@@ -25,7 +31,17 @@ export function ProfilePage() {
 
   useEffect(() => {
     if (profile) {
-      reset({ email: profile.email ?? '', phone: profile.phone ?? '', shippingAddress: profile.shippingAddress ?? '' })
+      reset({
+        email: profile.email ?? '',
+        phone: profile.phone ?? '',
+        firstName: profile.firstName ?? '',
+        lastName: profile.lastName ?? '',
+        addressLine1: profile.addressLine1 ?? '',
+        addressLine2: profile.addressLine2 ?? '',
+        postalCode: profile.postalCode ?? '',
+        city: profile.city ?? '',
+        country: profile.country ?? '',
+      })
     }
   }, [profile, reset])
 
@@ -33,7 +49,13 @@ export function ProfilePage() {
     updateProfile.mutate({
       email: data.email || undefined,
       phone: data.phone || undefined,
-      shippingAddress: data.shippingAddress || undefined,
+      firstName: data.firstName || undefined,
+      lastName: data.lastName || undefined,
+      addressLine1: data.addressLine1 || undefined,
+      addressLine2: data.addressLine2 || undefined,
+      postalCode: data.postalCode || undefined,
+      city: data.city || undefined,
+      country: data.country || undefined,
     })
   }
 
@@ -42,7 +64,7 @@ export function ProfilePage() {
   return (
     <div className="max-w-lg">
       <h1 className="page-title mb-1">Profile</h1>
-      <p className="mb-4 text-slate-500">Nickname: {profile?.nickname}</p>
+      <p className="mb-4 text-ink/60">Nickname: {profile?.nickname}</p>
 
       <form onSubmit={handleSubmit(onSubmit)} className="card flex flex-col gap-3">
         <div className="flex flex-col gap-1">
@@ -61,16 +83,58 @@ export function ProfilePage() {
         </div>
 
         <div className="flex flex-col gap-1">
-          <label htmlFor="shippingAddress" className="field-label">
-            Shipping address
+          <label htmlFor="firstName" className="field-label">
+            First name
           </label>
-          <textarea id="shippingAddress" className="field-input" {...register('shippingAddress')} aria-label="Shipping address" />
+          <input id="firstName" className="field-input" {...register('firstName')} aria-label="First name" />
+        </div>
+
+        <div className="flex flex-col gap-1">
+          <label htmlFor="lastName" className="field-label">
+            Last name
+          </label>
+          <input id="lastName" className="field-input" {...register('lastName')} aria-label="Last name" />
+        </div>
+
+        <div className="flex flex-col gap-1">
+          <label htmlFor="addressLine1" className="field-label">
+            Address line 1
+          </label>
+          <input id="addressLine1" className="field-input" {...register('addressLine1')} aria-label="Address line 1" />
+        </div>
+
+        <div className="flex flex-col gap-1">
+          <label htmlFor="addressLine2" className="field-label">
+            Address line 2
+          </label>
+          <input id="addressLine2" className="field-input" {...register('addressLine2')} aria-label="Address line 2" />
+        </div>
+
+        <div className="flex flex-col gap-1">
+          <label htmlFor="postalCode" className="field-label">
+            Postal code
+          </label>
+          <input id="postalCode" className="field-input" {...register('postalCode')} aria-label="Postal code" />
+        </div>
+
+        <div className="flex flex-col gap-1">
+          <label htmlFor="city" className="field-label">
+            City
+          </label>
+          <input id="city" className="field-input" {...register('city')} aria-label="City" />
+        </div>
+
+        <div className="flex flex-col gap-1">
+          <label htmlFor="country" className="field-label">
+            Country
+          </label>
+          <input id="country" className="field-input" {...register('country')} aria-label="Country" />
         </div>
 
         <button type="submit" className="btn-primary self-start" disabled={updateProfile.isPending}>
           Save
         </button>
-        {updateProfile.isSuccess && <p className="text-sm font-medium text-emerald-600">Saved.</p>}
+        {updateProfile.isSuccess && <p className="text-sm font-medium text-bottle">Saved.</p>}
         {updateProfile.isError && <p className="error-text">Could not save profile.</p>}
       </form>
     </div>
