@@ -62,11 +62,11 @@ export function ProfilePage() {
   if (isLoading) return <Spinner fullPage label="Fetching profile" />
 
   return (
-    <div className="max-w-lg">
+    <div className="max-w-3xl">
       <h1 className="page-title mb-1">Profile</h1>
       <p className="mb-4 text-ink/60">Nickname: {profile?.nickname}</p>
 
-      <form onSubmit={handleSubmit(onSubmit)} className="card flex flex-col gap-3">
+      <form onSubmit={handleSubmit(onSubmit)} className="card grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div className="flex flex-col gap-1">
           <label htmlFor="email" className="field-label">
             Email
@@ -96,14 +96,14 @@ export function ProfilePage() {
           <input id="lastName" className="field-input" {...register('lastName')} aria-label="Last name" />
         </div>
 
-        <div className="flex flex-col gap-1">
+        <div className="flex flex-col gap-1 sm:col-span-2">
           <label htmlFor="addressLine1" className="field-label">
             Address line 1
           </label>
           <input id="addressLine1" className="field-input" {...register('addressLine1')} aria-label="Address line 1" />
         </div>
 
-        <div className="flex flex-col gap-1">
+        <div className="flex flex-col gap-1 sm:col-span-2">
           <label htmlFor="addressLine2" className="field-label">
             Address line 2
           </label>
@@ -124,18 +124,20 @@ export function ProfilePage() {
           <input id="city" className="field-input" {...register('city')} aria-label="City" />
         </div>
 
-        <div className="flex flex-col gap-1">
+        <div className="flex flex-col gap-1 sm:col-span-2">
           <label htmlFor="country" className="field-label">
             Country
           </label>
           <input id="country" className="field-input" {...register('country')} aria-label="Country" />
         </div>
 
-        <button type="submit" className="btn-primary self-start" disabled={updateProfile.isPending}>
-          Save
-        </button>
-        {updateProfile.isSuccess && <p className="text-sm font-medium text-bottle">Saved.</p>}
-        {updateProfile.isError && <p className="error-text">Could not save profile.</p>}
+        <div className="flex flex-col gap-2 sm:col-span-2 sm:flex-row sm:items-center">
+          <button type="submit" className="btn-primary self-start" disabled={updateProfile.isPending}>
+            Save
+          </button>
+          {updateProfile.isSuccess && <p className="text-sm font-medium text-bottle">Saved.</p>}
+          {updateProfile.isError && <p className="error-text">Could not save profile.</p>}
+        </div>
       </form>
     </div>
   )
