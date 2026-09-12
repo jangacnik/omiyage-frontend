@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { api } from '../lib/apiClient'
-import type { ShipmentDestination, ShippingMethod, ShippingRateDto } from '../types/api'
+import type { ExchangeRateDto, ShipmentDestination, ShippingMethod, ShippingRateDto } from '../types/api'
 
 export interface ShippingRateInput {
   destination: ShipmentDestination
@@ -39,5 +39,25 @@ export function useDeleteShippingRate() {
   return useMutation({
     mutationFn: (id: string) => api.delete<void>(`/api/admin/shipping-rates/${id}`),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['admin', 'shipping-rates'] }),
+  })
+}
+
+export function useAdminExchangeRate() {
+  return useQuery({
+    queryKey: ['admin', 'exchange-rate'],
+    queryFn: () => api.get<ExchangeRateDto>('/api/admin/exchange-rate'),
+  })
+}
+
+export function useSetExchangeRate() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (jpyPerEur: number) => api.put<ExchangeRateDto>('/api/admin/exchange-rate', { jpyPerEur }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin', 'exchange-rate'] })
+      // The public, no-markup rate every page's currency toggle reads from - must reflect
+      // the admin's new value immediately, not just the admin-only view of it.
+      queryClient.invalidateQueries({ queryKey: ['exchange-rate'] })
+    },
   })
 }

@@ -16,6 +16,7 @@ function rate(overrides: Partial<ShippingRateDto> = {}): ShippingRateDto {
     shippingMethod: 'EMS',
     maxWeightGrams: 1000,
     costJpy: 4400,
+    costEur: 32.34,
     estimatedDays: 7,
     ...overrides,
   }
@@ -43,8 +44,8 @@ describe('AdminShippingRatesPage', () => {
 
     expect(await screen.findByText(/up to 1\.00 kg/)).toBeInTheDocument()
     expect(screen.getByText(/up to 500 g/)).toBeInTheDocument()
-    expect(screen.getByRole('heading', { name: 'Slovenia' })).toBeInTheDocument()
-    expect(screen.getByRole('heading', { name: 'Austria' })).toBeInTheDocument()
+    expect(screen.getByText('Slovenia', { selector: 'summary' })).toBeInTheDocument()
+    expect(screen.getByText('Austria', { selector: 'summary' })).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: 'EMS' })).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: 'Small Packet (air, up to 2kg)' })).toBeInTheDocument()
   })
@@ -122,5 +123,59 @@ describe('AdminShippingRatesPage', () => {
     expect(
       await screen.findByText('A rate for this destination, method and weight already exists.'),
     ).toBeInTheDocument()
+  })
+
+  it('starts each destination collapsed and expands it on click', async () => {
+    const user = userEvent.setup()
+    server.use(http.get(`${BASE}/api/admin/shipping-rates`, () => HttpResponse.json([rate()])))
+
+    renderWithProviders(<AdminShippingRatesPage />)
+    const summary = await screen.findByText('Slovenia', { selector: 'summary' })
+    const details = summary.closest('details') as HTMLDetailsElement
+
+    expect(details.open).toBe(false)
+
+    await user.click(summary)
+
+    expect(details.open).toBe(true)
+  })
+
+  it('shows the saved exchange rate and lets an admin update it', async () => {
+    const user = userEvent.setup()
+    let capturedBody: unknown = null
+    server.use(
+      http.get(`${BASE}/api/admin/shipping-rates`, () => HttpResponse.json([])),
+      http.get(`${BASE}/api/admin/exchange-rate`, () => HttpResponse.json({ jpyPerEur: 150 })),
+      http.put(`${BASE}/api/admin/exchange-rate`, async ({ request }) => {
+        capturedBody = await request.json()
+        return HttpResponse.json({ jpyPerEur: 160 })
+      }),
+    )
+
+    renderWithProviders(<AdminShippingRatesPage />)
+
+    const input = await screen.findByLabelText('JPY per 1 EUR')
+    await waitFor(() => expect(input).toHaveValue(150))
+
+    await user.clear(input)
+    await user.type(input, '160')
+    await user.click(screen.getByText('Save rate'))
+
+    await waitFor(() => expect(capturedBody).toEqual({ jpyPerEur: 160 }))
+  })
+
+  it('shows an error when saving the exchange rate fails', async () => {
+    const user = userEvent.setup()
+    server.use(
+      http.get(`${BASE}/api/admin/shipping-rates`, () => HttpResponse.json([])),
+      http.get(`${BASE}/api/admin/exchange-rate`, () => HttpResponse.json({ jpyPerEur: 150 })),
+      http.put(`${BASE}/api/admin/exchange-rate`, () => HttpResponse.json({ message: 'nope' }, { status: 500 })),
+    )
+
+    renderWithProviders(<AdminShippingRatesPage />)
+    await waitFor(async () => expect(await screen.findByLabelText('JPY per 1 EUR')).toHaveValue(150))
+    await user.click(screen.getByText('Save rate'))
+
+    expect(await screen.findByText('Could not save the exchange rate.')).toBeInTheDocument()
   })
 })

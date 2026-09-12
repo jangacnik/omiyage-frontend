@@ -7,7 +7,7 @@ import { useInventoryItem } from '../api/inventory'
 import { useCreateOrder, type CreateOrderItemInput } from '../api/orders'
 import { ButtonSpinner } from '../components/Spinner'
 import { ImageDropInput } from '../components/ImageDropInput'
-import { mediaUrl } from '../lib/media'
+import { ThumbnailImage } from '../components/ThumbnailImage'
 import { TrashIcon } from '../components/icons'
 
 const customItemSchema = z.object({
@@ -130,9 +130,7 @@ export function OrdersNewPage() {
           {items.map((item, index) => (
             <li key={index} className="card flex flex-col gap-2 py-2 sm:flex-row sm:items-center sm:justify-between">
               <span className="flex items-center gap-3">
-                {item.imageKey && (
-                  <img src={mediaUrl(item.imageKey)} alt="" className="h-10 w-10 shrink-0 rounded-lg object-cover" />
-                )}
+                <ThumbnailImage imageKey={item.imageKey} className="h-10 w-10 shrink-0 rounded-lg" />
                 <span className="text-sm text-ink/80">
                   {item.inventoryItemId ? `Inventory item: ${preselectedItem?.title ?? item.inventoryItemId}` : item.title}
                   {' — '}

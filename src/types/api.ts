@@ -77,6 +77,9 @@ export interface OrderDto {
   // than forcing every other OrderDto fixture/call site to spell out "not applicable".
   orderWeightGrams?: number | null
   shippingCostShareJpy?: number | null
+  // EUR display amount already includes the admin-configured conversion rate plus a hidden
+  // shipping markup applied server-side - never derive this on the frontend.
+  shippingCostShareEur?: number | null
 }
 
 export interface ShipmentDto {
@@ -91,6 +94,9 @@ export interface ShipmentDto {
   // Both null until destination and shippingMethod are set and an admin-configured rate covers
   // the total weight - see the shipping-rates admin page.
   shippingCostJpy: number | null
+  // Already includes the admin-configured conversion rate plus a hidden shipping markup - always
+  // show exactly this number, never derive it from shippingCostJpy on the frontend.
+  shippingCostEur: number | null
   estimatedDays: number | null
   createdAt: string
   updatedAt: string
@@ -103,7 +109,14 @@ export interface ShippingRateDto {
   shippingMethod: ShippingMethod
   maxWeightGrams: number
   costJpy: number
+  // Already includes the admin-configured conversion rate plus a hidden shipping markup - the
+  // same figure a real shipment using this tier would show. Never derive this from costJpy.
+  costEur: number
   estimatedDays: number
+}
+
+export interface ExchangeRateDto {
+  jpyPerEur: number
 }
 
 export interface PendingAmountDto {
