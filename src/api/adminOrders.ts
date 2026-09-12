@@ -1,6 +1,15 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { api } from '../lib/apiClient'
-import type { OrderDto, OrderItemStatus, OrderStatus, Page, ShipmentDto, ShipmentStatus } from '../types/api'
+import type {
+  OrderDto,
+  OrderItemStatus,
+  OrderStatus,
+  Page,
+  ShipmentDestination,
+  ShipmentDto,
+  ShipmentStatus,
+  ShippingMethod,
+} from '../types/api'
 
 export function useAdminOrders(status: OrderStatus | '', page: number) {
   return useQuery({
@@ -78,14 +87,25 @@ export function useUpdateShipment() {
     mutationFn: ({
       id,
       status,
+      destination,
+      shippingMethod,
       trackingNumber,
       notes,
     }: {
       id: string
       status?: ShipmentStatus
+      destination?: ShipmentDestination
+      shippingMethod?: ShippingMethod
       trackingNumber?: string
       notes?: string
-    }) => api.patch<ShipmentDto>(`/api/admin/shipments/${id}`, { status, trackingNumber, notes }),
+    }) =>
+      api.patch<ShipmentDto>(`/api/admin/shipments/${id}`, {
+        status,
+        destination,
+        shippingMethod,
+        trackingNumber,
+        notes,
+      }),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['admin', 'shipments'] }),
   })
 }

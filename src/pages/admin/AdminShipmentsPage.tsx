@@ -3,9 +3,24 @@ import { useAdminShipments, useUpdateShipment } from '../../api/adminOrders'
 import { OrderStatusBadge } from '../../components/OrderStatusBadge'
 import { OrderItemStatusBadge } from '../../components/OrderItemStatusBadge'
 import { Spinner, ButtonSpinner } from '../../components/Spinner'
-import type { ShipmentDto, ShipmentStatus } from '../../types/api'
+import type { ShipmentDestination, ShipmentDto, ShipmentStatus, ShippingMethod } from '../../types/api'
 
 const SHIPMENT_STATUSES: ShipmentStatus[] = ['PREPARING', 'SHIPPED', 'DELIVERED']
+const DESTINATIONS: ShipmentDestination[] = ['SLOVENIA', 'AUSTRIA']
+const SHIPPING_METHODS: ShippingMethod[] = ['EMS', 'SMALL_PACKET', 'SURFACE_MAIL']
+const METHOD_LABELS: Record<ShippingMethod, string> = {
+  EMS: 'EMS',
+  SMALL_PACKET: 'Small Packet (air, up to 2kg)',
+  SURFACE_MAIL: 'Surface Mail (up to 2kg)',
+}
+
+function formatGrams(grams: number): string {
+  return grams >= 1000 ? `${(grams / 1000).toFixed(2)} kg` : `${grams} g`
+}
+
+function formatJpy(amount: number): string {
+  return `¥${amount.toLocaleString('en-US')}`
+}
 
 function ShipmentCard({ shipment, expanded }: { shipment: ShipmentDto; expanded: boolean }) {
   const updateShipment = useUpdateShipment()
@@ -34,27 +49,95 @@ function ShipmentCard({ shipment, expanded }: { shipment: ShipmentDto; expanded:
         </div>
       </div>
 
-      <label className="flex flex-col gap-1">
-        <span className="text-xs text-ink/50">Tracking number</span>
-        <input
-          defaultValue={shipment.trackingNumber ?? ''}
-          onBlur={(e) => {
-            if (e.target.value !== (shipment.trackingNumber ?? '')) {
-              updateShipment.mutate({ id: shipment.id, trackingNumber: e.target.value })
+      <div className="flex flex-wrap gap-3">
+        <label className="flex flex-col gap-1">
+          <span className="text-xs text-ink/50">Destination</span>
+          <select
+            value={shipment.destination ?? ''}
+            onChange={(e) =>
+              updateShipment.mutate({ id: shipment.id, destination: e.target.value as ShipmentDestination })
             }
-          }}
-          placeholder="Not set"
-          className="field-input max-w-xs"
-        />
-      </label>
+            aria-label={`Destination for shipment ${shipment.id.slice(0, 8)}`}
+            className="field-input py-1 text-sm"
+          >
+            <option value="" disabled>
+              Not set
+            </option>
+            {DESTINATIONS.map((d) => (
+              <option key={d} value={d}>
+                {d[0] + d.slice(1).toLowerCase()}
+              </option>
+            ))}
+          </select>
+        </label>
+
+        <label className="flex flex-col gap-1">
+          <span className="text-xs text-ink/50">Shipping method</span>
+          <select
+            value={shipment.shippingMethod ?? ''}
+            onChange={(e) =>
+              updateShipment.mutate({ id: shipment.id, shippingMethod: e.target.value as ShippingMethod })
+            }
+            aria-label={`Shipping method for shipment ${shipment.id.slice(0, 8)}`}
+            className="field-input py-1 text-sm"
+          >
+            <option value="" disabled>
+              Not set
+            </option>
+            {SHIPPING_METHODS.map((m) => (
+              <option key={m} value={m}>
+                {METHOD_LABELS[m]}
+              </option>
+            ))}
+          </select>
+        </label>
+
+        <label className="flex flex-col gap-1">
+          <span className="text-xs text-ink/50">Tracking number</span>
+          <input
+            defaultValue={shipment.trackingNumber ?? ''}
+            onBlur={(e) => {
+              if (e.target.value !== (shipment.trackingNumber ?? '')) {
+                updateShipment.mutate({ id: shipment.id, trackingNumber: e.target.value })
+              }
+            }}
+            placeholder="Not set"
+            className="field-input max-w-xs py-1 text-sm"
+          />
+        </label>
+      </div>
+
+      <div className="flex flex-wrap gap-6 text-sm text-ink/80" style={{ fontVariantNumeric: 'tabular-nums' }}>
+        <span>Total weight: {formatGrams(shipment.totalWeightGrams)}</span>
+        <span>
+          Shipping cost:{' '}
+          {shipment.shippingCostJpy != null ? (
+            <strong className="text-ink">{formatJpy(shipment.shippingCostJpy)}</strong>
+          ) : (
+            <span className="text-ink/50">
+              {shipment.destination && shipment.shippingMethod
+                ? 'too heavy for this method'
+                : 'set destination + method'}
+            </span>
+          )}
+        </span>
+      </div>
 
       {expanded && (
         <div className="flex flex-col divide-y divide-stone-light border-t border-stone-light pt-2">
           {shipment.orders.map((order) => (
             <div key={order.id} className="flex flex-col gap-1 py-2">
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2">
                 <span className="font-medium text-ink">Order {order.id.slice(0, 8)}</span>
                 <OrderStatusBadge status={order.status} />
+                {order.orderWeightGrams != null && (
+                  <span className="text-xs text-ink/50">{formatGrams(order.orderWeightGrams)}</span>
+                )}
+                {order.shippingCostShareJpy != null && (
+                  <span className="text-xs font-medium text-ink">
+                    {formatJpy(order.shippingCostShareJpy)} shipping
+                  </span>
+                )}
               </div>
               <ul className="flex flex-wrap gap-2">
                 {order.items.map((item) => (

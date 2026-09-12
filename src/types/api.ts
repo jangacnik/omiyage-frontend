@@ -4,6 +4,8 @@ export type Currency = 'JPY' | 'EUR'
 export type OrderStatus = 'REQUESTED' | 'IN_PROGRESS' | 'PURCHASED' | 'SENT' | 'DELIVERED' | 'CANCELLED'
 export type OrderItemStatus = 'REQUESTED' | 'CONFIRMING' | 'BUYING' | 'BOUGHT' | 'SHIPPED'
 export type ShipmentStatus = 'PREPARING' | 'SHIPPED' | 'DELIVERED'
+export type ShipmentDestination = 'SLOVENIA' | 'AUSTRIA'
+export type ShippingMethod = 'EMS' | 'SMALL_PACKET' | 'SURFACE_MAIL'
 
 export interface Page<T> {
   content: T[]
@@ -57,13 +59,24 @@ export interface OrderDto {
   createdAt: string
   updatedAt: string
   items: OrderItemDto[]
+  // Only set when this order is read as part of a shipment (GET /api/admin/shipments) - absent
+  // (not just null) on every other endpoint that returns an order, so kept optional here rather
+  // than forcing every other OrderDto fixture/call site to spell out "not applicable".
+  orderWeightGrams?: number | null
+  shippingCostShareJpy?: number | null
 }
 
 export interface ShipmentDto {
   id: string
   status: ShipmentStatus
+  destination: ShipmentDestination | null
+  shippingMethod: ShippingMethod | null
   trackingNumber: string | null
   notes: string | null
+  totalWeightGrams: number
+  // Null until both destination and shippingMethod are set, or if the shipment is heavier than
+  // that method covers (Small Packet / Surface Mail cap at 2kg).
+  shippingCostJpy: number | null
   createdAt: string
   updatedAt: string
   orders: OrderDto[]
