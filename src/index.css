@@ -9,8 +9,9 @@
   --color-sage: #7a9e7e;
   --color-mist: #cfdfe1;
   --color-mint: #b3efb2;
-  --color-clay: #9e4034;
-  --color-clay-soft: #f6e4e1;
+  --color-danger: #c92a2a;
+  --color-danger-soft: #fbeaea;
+  --color-danger-deep: #a31f1f;
 
   --font-display: "Zen Old Mincho", serif;
   --font-body: "Zen Kaku Gothic New", sans-serif;
@@ -58,8 +59,13 @@ body > * {
   .btn-secondary {
     @apply inline-flex items-center justify-center gap-2 rounded-lg bg-surface px-4 py-2 text-sm font-medium text-ink ring-1 ring-inset ring-mist transition-all duration-150 hover:bg-mist active:translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-50;
   }
+  /* Outlined for destructive actions sitting in a list; the solid variant is for the
+     one button that actually commits the deletion. */
   .btn-danger {
-    @apply inline-flex items-center justify-center gap-2 rounded-lg bg-surface px-4 py-2 text-sm font-medium text-clay ring-1 ring-inset ring-clay/25 transition-all duration-150 hover:bg-clay-soft active:translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-50;
+    @apply inline-flex items-center justify-center gap-1.5 rounded-lg bg-danger-soft px-4 py-2 text-sm font-medium text-danger ring-1 ring-inset ring-danger/30 transition-all duration-150 hover:bg-danger hover:text-white hover:ring-danger active:translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-50;
+  }
+  .btn-danger-solid {
+    @apply inline-flex items-center justify-center gap-1.5 rounded-lg bg-danger px-4 py-2 text-sm font-medium text-white shadow-[0_2px_0_0_var(--color-danger-deep)] transition-all duration-150 hover:bg-danger-deep active:translate-y-0.5 active:shadow-none disabled:cursor-not-allowed disabled:opacity-50;
   }
 
   .field-input {
@@ -69,7 +75,7 @@ body > * {
     @apply block text-sm font-medium text-ink/70;
   }
   .error-text {
-    @apply text-sm font-medium text-clay;
+    @apply text-sm font-medium text-danger;
   }
 
   .card {

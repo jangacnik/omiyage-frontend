@@ -1,4 +1,5 @@
 import { createContext, useCallback, useContext, useRef, useState } from 'react'
+import { TrashIcon } from './icons'
 
 interface ConfirmOptions {
   title?: string
@@ -60,10 +61,11 @@ export function ConfirmProvider({ children }: { children: React.ReactNode }) {
               </button>
               <button
                 type="button"
-                className={options.danger ? 'btn-danger' : 'btn-primary'}
+                className={options.danger ? 'btn-danger-solid' : 'btn-primary'}
                 onClick={() => close(true)}
                 autoFocus
               >
+                {options.danger && <TrashIcon size={14} />}
                 {options.confirmLabel ?? 'Confirm'}
               </button>
             </div>

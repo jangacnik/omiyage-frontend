@@ -8,6 +8,7 @@ import { OrderItemStatusBadge } from '../components/OrderItemStatusBadge'
 import { Spinner, ButtonSpinner } from '../components/Spinner'
 import { ImageDropInput } from '../components/ImageDropInput'
 import { mediaUrl } from '../lib/media'
+import { TrashIcon } from '../components/icons'
 import type { OrderDto, OrderItemDto } from '../types/api'
 
 function OrderNicknameEditor({ order }: { order: OrderDto }) {
@@ -128,7 +129,13 @@ function EditableItem({ orderId, item }: { orderId: string; item: OrderItemDto }
               onClick={remove}
               disabled={removeItem.isPending}
             >
-              {removeItem.isPending ? <ButtonSpinner /> : 'Remove'}
+              {removeItem.isPending ? (
+                <ButtonSpinner />
+              ) : (
+                <>
+                  <TrashIcon size={13} /> Remove
+                </>
+              )}
             </button>
           </div>
         )}

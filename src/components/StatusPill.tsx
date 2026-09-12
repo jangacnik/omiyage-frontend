@@ -10,7 +10,7 @@ const TONES: Record<StatusTone, { pill: string; dot: string }> = {
   mid: { pill: 'bg-sage/30 text-forest-deep', dot: 'bg-forest' },
   late: { pill: 'bg-forest text-paper', dot: 'bg-mint' },
   done: { pill: 'bg-ink text-mint', dot: 'bg-mint' },
-  stopped: { pill: 'bg-clay-soft text-clay', dot: 'bg-clay' },
+  stopped: { pill: 'bg-danger-soft text-danger', dot: 'bg-danger' },
 }
 
 export function StatusPill({ tone, label, size = 'md' }: { tone: StatusTone; label: string; size?: 'sm' | 'md' }) {

@@ -8,6 +8,7 @@ import { useCreateOrder, type CreateOrderItemInput } from '../api/orders'
 import { ButtonSpinner } from '../components/Spinner'
 import { ImageDropInput } from '../components/ImageDropInput'
 import { mediaUrl } from '../lib/media'
+import { TrashIcon } from '../components/icons'
 
 const customItemSchema = z.object({
   title: z.string().min(1, 'Title is required'),
@@ -111,7 +112,7 @@ export function OrdersNewPage() {
                 </span>
               </span>
               <button type="button" className="btn-danger px-2 py-1 text-xs" onClick={() => removeItem(index)}>
-                Remove
+                <TrashIcon size={13} /> Remove
               </button>
             </li>
           ))}
