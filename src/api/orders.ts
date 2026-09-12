@@ -75,3 +75,16 @@ export function useRemoveMyOrderItem() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['orders'] }),
   })
 }
+
+export function useUpdateOrderNickname() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: ({ orderId, nickname }: { orderId: string; nickname: string | null }) =>
+      api.patch<OrderDto>(`/api/orders/${orderId}/nickname`, { nickname }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['orders'] }),
+  })
+}
+
+export function orderDisplayName(order: Pick<OrderDto, 'id' | 'nickname'>): string {
+  return order.nickname ?? order.id.slice(0, 8)
+}

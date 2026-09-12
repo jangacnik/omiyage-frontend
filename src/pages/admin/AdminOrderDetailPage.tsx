@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useParams } from 'react-router-dom'
-import { useOrder } from '../../api/orders'
+import { orderDisplayName, useOrder } from '../../api/orders'
 import { useAdminShipments, useAssignOrderShipment, useUpdateOrderItem, useUpdateOrderStatus } from '../../api/adminOrders'
 import { OrderStatusBadge } from '../../components/OrderStatusBadge'
 import { ORDER_ITEM_STATUSES, OrderItemStatusBadge } from '../../components/OrderItemStatusBadge'
@@ -105,7 +105,8 @@ export function AdminOrderDetailPage() {
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-wrap items-center gap-3">
-        <h1 className="page-title">Order {order.id.slice(0, 8)}</h1>
+        <h1 className="page-title">Order {orderDisplayName(order)}</h1>
+        {order.nickname && <span className="text-sm text-ink/50">({order.id.slice(0, 8)})</span>}
         <OrderStatusBadge status={order.status} />
         {updateStatus.isPending && <ButtonSpinner />}
       </div>

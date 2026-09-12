@@ -1,13 +1,64 @@
 import { useState } from 'react'
 import { useParams } from 'react-router-dom'
-import { useOrder, useRemoveMyOrderItem, useUpdateMyOrderItem } from '../api/orders'
+import { orderDisplayName, useOrder, useRemoveMyOrderItem, useUpdateMyOrderItem, useUpdateOrderNickname } from '../api/orders'
 import { useConfirm } from '../components/ConfirmDialog'
 import { OrderStatusBadge } from '../components/OrderStatusBadge'
 import { OrderItemStatusBadge } from '../components/OrderItemStatusBadge'
 import { Spinner, ButtonSpinner } from '../components/Spinner'
 import { ImageDropInput } from '../components/ImageDropInput'
 import { mediaUrl } from '../lib/media'
-import type { OrderItemDto } from '../types/api'
+import type { OrderDto, OrderItemDto } from '../types/api'
+
+function OrderNicknameEditor({ order }: { order: OrderDto }) {
+  const [editing, setEditing] = useState(false)
+  const [nickname, setNickname] = useState(order.nickname ?? '')
+  const updateNickname = useUpdateOrderNickname()
+
+  function save() {
+    updateNickname.mutate(
+      { orderId: order.id, nickname: nickname.trim() || null },
+      { onSuccess: () => setEditing(false) },
+    )
+  }
+
+  if (editing) {
+    return (
+      <div className="flex flex-wrap items-center gap-2">
+        <input
+          className="field-input sm:w-64"
+          value={nickname}
+          onChange={(e) => setNickname(e.target.value)}
+          placeholder={order.id.slice(0, 8)}
+          aria-label="Order nickname"
+          autoFocus
+        />
+        <button type="button" className="btn-primary px-3 py-1.5 text-sm" onClick={save} disabled={updateNickname.isPending}>
+          {updateNickname.isPending ? <ButtonSpinner /> : 'Save'}
+        </button>
+        <button
+          type="button"
+          className="btn-secondary px-3 py-1.5 text-sm"
+          onClick={() => {
+            setNickname(order.nickname ?? '')
+            setEditing(false)
+          }}
+        >
+          Cancel
+        </button>
+      </div>
+    )
+  }
+
+  return (
+    <div className="flex flex-wrap items-baseline gap-2">
+      <h1 className="page-title">Order {orderDisplayName(order)}</h1>
+      {order.nickname && <span className="text-sm text-ink/50">({order.id.slice(0, 8)})</span>}
+      <button type="button" className="btn-secondary px-2 py-1 text-xs" onClick={() => setEditing(true)}>
+        Rename
+      </button>
+    </div>
+  )
+}
 
 function EditableItem({ orderId, item }: { orderId: string; item: OrderItemDto }) {
   const [editing, setEditing] = useState(false)
@@ -129,8 +180,8 @@ export function OrderDetailPage() {
 
   return (
     <div className="card flex flex-col gap-3">
-      <div className="flex items-center gap-3">
-        <h1 className="page-title">Order {order.id.slice(0, 8)}</h1>
+      <div className="flex flex-wrap items-center gap-3">
+        <OrderNicknameEditor order={order} />
         <OrderStatusBadge status={order.status} />
       </div>
       {order.notes && <p className="text-ink/70">{order.notes}</p>}

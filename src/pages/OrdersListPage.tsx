@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { useMergeMyOrders, useMyOrders } from '../api/orders'
+import { orderDisplayName, useMergeMyOrders, useMyOrders } from '../api/orders'
 import { useConfirm } from '../components/ConfirmDialog'
 import { OrderStatusBadge } from '../components/OrderStatusBadge'
 import { Pagination } from '../components/Pagination'
@@ -24,7 +24,7 @@ function ShipmentGroup({ orders }: { orders: OrderDto[] }) {
             onClick={() => setActiveId(order.id)}
             className={`nav-link ${order.id === activeId ? 'bg-stone-light text-ink' : ''}`}
           >
-            Order {order.id.slice(0, 8)}
+            Order {orderDisplayName(order)}
           </button>
         ))}
       </div>
@@ -121,7 +121,7 @@ export function OrdersListPage() {
                   aria-label={`Select order ${group[0].id.slice(0, 8)} to merge`}
                 />
                 <Link to={`/orders/${group[0].id}`} className="font-medium text-ink hover:text-persimmon">
-                  Order {group[0].id.slice(0, 8)} — {group[0].items.length} item(s)
+                  Order {orderDisplayName(group[0])} — {group[0].items.length} item(s)
                 </Link>
               </div>
               <OrderStatusBadge status={group[0].status} />

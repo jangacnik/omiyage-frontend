@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAdminOrders, useCreateShipment } from '../../api/adminOrders'
+import { orderDisplayName } from '../../api/orders'
 import { OrderStatusBadge } from '../../components/OrderStatusBadge'
 import { Pagination } from '../../components/Pagination'
 import { Spinner, ButtonSpinner } from '../../components/Spinner'
@@ -68,7 +69,7 @@ export function AdminOrdersPage() {
                 aria-label={`Select order ${order.id.slice(0, 8)}`}
               />
               <Link to={`/admin/orders/${order.id}`} className="flex items-center gap-2 font-medium text-ink hover:text-persimmon">
-                Order {order.id.slice(0, 8)} <OrderStatusBadge status={order.status} />
+                Order {orderDisplayName(order)} <OrderStatusBadge status={order.status} />
                 {order.shipmentId && (
                   <span className="rounded-full bg-stone-light px-2 py-0.5 text-xs text-ink/70">
                     shipment {order.shipmentId.slice(0, 8)}
