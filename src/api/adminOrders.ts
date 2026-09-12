@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { api } from '../lib/apiClient'
-import type { OrderDto, OrderStatus, Page } from '../types/api'
+import type { OrderDto, OrderItemStatus, OrderStatus, Page, ShipmentDto, ShipmentStatus } from '../types/api'
 
 export function useAdminOrders(status: OrderStatus | '', page: number) {
   return useQuery({
@@ -25,16 +25,67 @@ export function useUpdateOrderItem() {
     mutationFn: ({
       orderId,
       itemId,
-      purchased,
+      status,
       actualPrice,
       weight,
     }: {
       orderId: string
       itemId: string
-      purchased: boolean
+      status: OrderItemStatus
       actualPrice?: number
       weight?: number
-    }) => api.patch<OrderDto>(`/api/admin/orders/${orderId}/items/${itemId}`, { purchased, actualPrice, weight }),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['admin', 'orders'] }),
+    }) => api.patch<OrderDto>(`/api/admin/orders/${orderId}/items/${itemId}`, { status, actualPrice, weight }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin', 'orders'] })
+      queryClient.invalidateQueries({ queryKey: ['admin', 'shipments'] })
+    },
+  })
+}
+
+export function useAssignOrderShipment() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: ({ orderId, shipmentId }: { orderId: string; shipmentId: string | null }) =>
+      api.patch<OrderDto>(`/api/admin/orders/${orderId}/shipment`, { shipmentId }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin', 'orders'] })
+      queryClient.invalidateQueries({ queryKey: ['admin', 'shipments'] })
+    },
+  })
+}
+
+export function useAdminShipments() {
+  return useQuery({
+    queryKey: ['admin', 'shipments'],
+    queryFn: () => api.get<ShipmentDto[]>('/api/admin/shipments'),
+  })
+}
+
+export function useCreateShipment() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (orderIds: string[]) => api.post<ShipmentDto>('/api/admin/shipments', { orderIds }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin', 'orders'] })
+      queryClient.invalidateQueries({ queryKey: ['admin', 'shipments'] })
+    },
+  })
+}
+
+export function useUpdateShipment() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: ({
+      id,
+      status,
+      trackingNumber,
+      notes,
+    }: {
+      id: string
+      status?: ShipmentStatus
+      trackingNumber?: string
+      notes?: string
+    }) => api.patch<ShipmentDto>(`/api/admin/shipments/${id}`, { status, trackingNumber, notes }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['admin', 'shipments'] }),
   })
 }

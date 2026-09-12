@@ -12,6 +12,7 @@ import {
 import { Pagination } from '../../components/Pagination'
 import { Spinner } from '../../components/Spinner'
 import { ImageDropInput } from '../../components/ImageDropInput'
+import { useConfirm } from '../../components/ConfirmDialog'
 
 const itemSchema = z.object({
   title: z.string().min(1, 'Title is required'),
@@ -31,6 +32,7 @@ export function AdminInventoryPage() {
   const createItem = useCreateInventoryItem()
   const updateStatus = useUpdateInventoryStatus()
   const deleteItem = useDeleteInventoryItem()
+  const confirm = useConfirm()
 
   const [imageKeys, setImageKeys] = useState<string[]>([])
   const [selectedCategoryIds, setSelectedCategoryIds] = useState<string[]>([])
@@ -62,6 +64,16 @@ export function AdminInventoryPage() {
     setSelectedCategoryIds([])
   }
 
+  async function handleDelete(id: string, title: string) {
+    const ok = await confirm({
+      title: 'Delete item',
+      message: `Delete "${title}" from inventory? This can't be undone.`,
+      confirmLabel: 'Delete',
+      danger: true,
+    })
+    if (ok) deleteItem.mutate(id)
+  }
+
   return (
     <div>
       <h1 className="page-title mb-4">Admin: Inventory</h1>
@@ -70,7 +82,7 @@ export function AdminInventoryPage() {
         <input placeholder="Title" className="field-input" {...register('title')} aria-label="Title" />
         {errors.title && <p className="error-text">{errors.title.message}</p>}
         <textarea placeholder="Description" className="field-input" {...register('description')} aria-label="Description" />
-        <div className="flex gap-2">
+        <div className="flex flex-col gap-2 sm:flex-row">
           <select {...register('condition')} aria-label="Condition" className="field-input">
             <option value="NEW">New</option>
             <option value="USED">Used</option>
@@ -80,13 +92,13 @@ export function AdminInventoryPage() {
             <option value="EUR">EUR</option>
           </select>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-col gap-2 sm:flex-row">
           <input placeholder="Price" className="field-input" {...register('priceAmount')} aria-label="Price" />
           <input placeholder="Stock quantity" className="field-input" {...register('stockQuantity')} aria-label="Stock quantity" />
         </div>
         {errors.priceAmount && <p className="error-text">{errors.priceAmount.message}</p>}
         {errors.stockQuantity && <p className="error-text">{errors.stockQuantity.message}</p>}
-        <ImageDropInput label="Photo" onUploaded={(key) => setImageKeys((current) => [...current, key])} />
+        <ImageDropInput label="Photo" onUploaded={(key) => setImageKeys(key ? (current) => [...current, key] : (current) => current)} />
         {imageKeys.length > 0 && <p className="text-xs text-ink/50">{imageKeys.length} photo(s) added.</p>}
 
         <fieldset className="flex flex-col gap-1">
@@ -122,7 +134,7 @@ export function AdminInventoryPage() {
               >
                 {item.status === 'ACTIVE' ? 'Archive' : 'Activate'}
               </button>
-              <button type="button" className="btn-danger px-2 py-1 text-xs" onClick={() => deleteItem.mutate(item.id)}>
+              <button type="button" className="btn-danger px-2 py-1 text-xs" onClick={() => handleDelete(item.id, item.title)}>
                 Delete
               </button>
             </span>

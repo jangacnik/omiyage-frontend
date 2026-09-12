@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { useOrder, useUpdateMyOrderItem } from '../api/orders'
 import { OrderStatusBadge } from '../components/OrderStatusBadge'
+import { OrderItemStatusBadge } from '../components/OrderItemStatusBadge'
 import { Spinner, ButtonSpinner } from '../components/Spinner'
 import { ImageDropInput } from '../components/ImageDropInput'
 import { mediaUrl } from '../lib/media'
@@ -45,7 +46,9 @@ function EditableItem({ orderId, item, editable }: { orderId: string; item: Orde
             <p className="text-sm text-ink/60">
               {item.currency} {item.maxPrice ?? '—'} max / {item.actualPrice ?? '—'} paid · qty {item.quantity}
             </p>
-            <p className="text-sm text-ink/60">{item.purchased ? 'Purchased' : 'Not purchased yet'}</p>
+            <div className="mt-1">
+              <OrderItemStatusBadge status={item.status} />
+            </div>
           </div>
         </div>
         {editable && (
@@ -66,21 +69,21 @@ function EditableItem({ orderId, item, editable }: { orderId: string; item: Orde
         onChange={(e) => setDescription(e.target.value)}
         aria-label={`Description for ${item.title}`}
       />
-      <div className="flex gap-2">
+      <div className="flex flex-col gap-2 sm:flex-row">
         <input
-          className="field-input w-32"
+          className="field-input sm:w-32"
           value={maxPrice}
           onChange={(e) => setMaxPrice(e.target.value)}
           aria-label={`Max price for ${item.title}`}
         />
         <input
-          className="field-input w-24"
+          className="field-input sm:w-24"
           value={quantity}
           onChange={(e) => setQuantity(e.target.value)}
           aria-label={`Quantity for ${item.title}`}
         />
       </div>
-      <ImageDropInput label="Photo" onUploaded={setImageKey} />
+      <ImageDropInput label="Photo" initialImageKey={item.imageKey ?? undefined} onUploaded={setImageKey} />
       <div className="flex gap-2">
         <button type="button" className="btn-primary px-3 py-1.5 text-sm" onClick={save} disabled={updateItem.isPending}>
           {updateItem.isPending ? <ButtonSpinner /> : 'Save'}

@@ -2,6 +2,8 @@ export type Role = 'USER' | 'ADMIN'
 export type Condition = 'NEW' | 'USED'
 export type Currency = 'JPY' | 'EUR'
 export type OrderStatus = 'REQUESTED' | 'IN_PROGRESS' | 'PURCHASED' | 'SENT' | 'DELIVERED' | 'CANCELLED'
+export type OrderItemStatus = 'REQUESTED' | 'CONFIRMING' | 'BUYING' | 'BOUGHT' | 'SHIPPED'
+export type ShipmentStatus = 'PREPARING' | 'SHIPPED' | 'DELIVERED'
 
 export interface Page<T> {
   content: T[]
@@ -41,7 +43,7 @@ export interface OrderItemDto {
   maxPrice: number | null
   actualPrice: number | null
   weight: number | null
-  purchased: boolean
+  status: OrderItemStatus
   purchasedAt: string | null
   quantity: number
 }
@@ -51,9 +53,20 @@ export interface OrderDto {
   userId: string
   status: OrderStatus
   notes: string | null
+  shipmentId: string | null
   createdAt: string
   updatedAt: string
   items: OrderItemDto[]
+}
+
+export interface ShipmentDto {
+  id: string
+  status: ShipmentStatus
+  trackingNumber: string | null
+  notes: string | null
+  createdAt: string
+  updatedAt: string
+  orders: OrderDto[]
 }
 
 export interface UserProfileDto {

@@ -1,11 +1,12 @@
 import { useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { useOrder } from '../../api/orders'
-import { useUpdateOrderItem, useUpdateOrderStatus } from '../../api/adminOrders'
+import { useAdminShipments, useAssignOrderShipment, useUpdateOrderItem, useUpdateOrderStatus } from '../../api/adminOrders'
 import { OrderStatusBadge } from '../../components/OrderStatusBadge'
+import { ORDER_ITEM_STATUSES, OrderItemStatusBadge } from '../../components/OrderItemStatusBadge'
 import { Spinner, ButtonSpinner } from '../../components/Spinner'
 import { mediaUrl } from '../../lib/media'
-import type { OrderItemDto, OrderStatus } from '../../types/api'
+import type { OrderItemDto, OrderItemStatus, OrderStatus } from '../../types/api'
 
 const STATUSES: OrderStatus[] = ['REQUESTED', 'IN_PROGRESS', 'PURCHASED', 'SENT', 'DELIVERED', 'CANCELLED']
 
@@ -14,11 +15,11 @@ function AdminItemRow({ orderId, item }: { orderId: string; item: OrderItemDto }
   const [weight, setWeight] = useState(item.weight?.toString() ?? '')
   const updateItem = useUpdateOrderItem()
 
-  function save(purchased: boolean) {
+  function save(status: OrderItemStatus) {
     updateItem.mutate({
       orderId,
       itemId: item.id,
-      purchased,
+      status,
       actualPrice: actualPrice ? Number(actualPrice) : undefined,
       weight: weight ? Number(weight) : undefined,
     })
@@ -36,6 +37,9 @@ function AdminItemRow({ orderId, item }: { orderId: string; item: OrderItemDto }
         <p className="mt-1 text-sm text-ink/60">
           {item.currency} {item.maxPrice ?? '—'} max · qty {item.quantity}
         </p>
+        <div className="mt-1">
+          <OrderItemStatusBadge status={item.status} />
+        </div>
       </div>
 
       <div className="flex flex-wrap items-end gap-2 sm:w-auto">
@@ -57,12 +61,28 @@ function AdminItemRow({ orderId, item }: { orderId: string; item: OrderItemDto }
             className="field-input w-24 py-1"
           />
         </label>
-        <label className="flex items-center gap-1.5 pb-2 text-sm text-ink/80">
-          <input type="checkbox" checked={item.purchased} onChange={(e) => save(e.target.checked)} />
-          Bought
+        <label className="flex flex-col gap-1">
+          <span className="text-xs text-ink/50">Status</span>
+          <select
+            value={item.status}
+            onChange={(e) => save(e.target.value as OrderItemStatus)}
+            aria-label={`Status for ${item.title}`}
+            className="field-input w-32 py-1"
+          >
+            {ORDER_ITEM_STATUSES.map((s) => (
+              <option key={s} value={s}>
+                {s}
+              </option>
+            ))}
+          </select>
         </label>
-        <button type="button" className="btn-secondary px-2 py-1 text-xs" onClick={() => save(item.purchased)} disabled={updateItem.isPending}>
-          Save
+        <button
+          type="button"
+          className="btn-secondary px-2 py-1 text-xs"
+          onClick={() => save(item.status)}
+          disabled={updateItem.isPending}
+        >
+          {updateItem.isPending ? <ButtonSpinner /> : 'Save price/weight'}
         </button>
       </div>
     </li>
@@ -73,6 +93,8 @@ export function AdminOrderDetailPage() {
   const { id } = useParams<{ id: string }>()
   const { data: order, isLoading, isError } = useOrder(id)
   const updateStatus = useUpdateOrderStatus()
+  const { data: shipments } = useAdminShipments()
+  const assignShipment = useAssignOrderShipment()
 
   if (isLoading) return <Spinner fullPage label="Fetching order" />
   if (isError || !order) return <p className="error-text">Order not found.</p>
@@ -88,18 +110,40 @@ export function AdminOrderDetailPage() {
         {updateStatus.isPending && <ButtonSpinner />}
       </div>
 
-      <select
-        value={order.status}
-        onChange={(e) => updateStatus.mutate({ id: order.id, status: e.target.value as OrderStatus })}
-        aria-label="Update order status"
-        className="field-input max-w-xs"
-      >
-        {STATUSES.map((s) => (
-          <option key={s} value={s}>
-            {s}
-          </option>
-        ))}
-      </select>
+      <div className="flex flex-wrap items-end gap-3">
+        <label className="flex flex-col gap-1">
+          <span className="field-label">Order status</span>
+          <select
+            value={order.status}
+            onChange={(e) => updateStatus.mutate({ id: order.id, status: e.target.value as OrderStatus })}
+            aria-label="Update order status"
+            className="field-input max-w-xs"
+          >
+            {STATUSES.map((s) => (
+              <option key={s} value={s}>
+                {s}
+              </option>
+            ))}
+          </select>
+        </label>
+
+        <label className="flex flex-col gap-1">
+          <span className="field-label">Shipment</span>
+          <select
+            value={order.shipmentId ?? ''}
+            onChange={(e) => assignShipment.mutate({ orderId: order.id, shipmentId: e.target.value || null })}
+            aria-label="Assign to shipment"
+            className="field-input max-w-xs"
+          >
+            <option value="">Not in a shipment</option>
+            {shipments?.map((s) => (
+              <option key={s.id} value={s.id}>
+                Shipment {s.id.slice(0, 8)} ({s.status})
+              </option>
+            ))}
+          </select>
+        </label>
+      </div>
 
       {order.notes && <p className="text-ink/70">{order.notes}</p>}
 

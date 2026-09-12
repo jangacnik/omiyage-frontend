@@ -16,6 +16,7 @@ function order(): OrderDto {
     userId: 'user-1',
     status: 'IN_PROGRESS',
     notes: null,
+    shipmentId: null,
     createdAt: '2026-01-01T00:00:00Z',
     updatedAt: '2026-01-01T00:00:00Z',
     items: [
@@ -30,7 +31,7 @@ function order(): OrderDto {
         maxPrice: 2000,
         actualPrice: null,
         weight: null,
-        purchased: false,
+        status: 'REQUESTED',
         purchasedAt: null,
         quantity: 1,
       },
@@ -39,7 +40,7 @@ function order(): OrderDto {
 }
 
 describe('OrderDetailPage', () => {
-  it('renders order items and their purchased status', async () => {
+  it('renders order items and their status', async () => {
     server.use(http.get(`${BASE}/api/orders/order-1`, () => HttpResponse.json(order())))
 
     renderWithProviders(
@@ -51,7 +52,7 @@ describe('OrderDetailPage', () => {
 
     expect(await screen.findByText('Ghibli museum ticket')).toBeInTheDocument()
     expect(screen.getByText('In progress')).toBeInTheDocument()
-    expect(screen.getByText('Not purchased yet')).toBeInTheDocument()
+    expect(screen.getByText('Requested')).toBeInTheDocument()
   })
 
   it('lets the owner edit an item while the order is still editable', async () => {

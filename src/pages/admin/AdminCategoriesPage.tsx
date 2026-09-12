@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useAdminCategories, useCreateCategory, useDeleteCategory } from '../../api/adminInventory'
 import { Spinner } from '../../components/Spinner'
+import { useConfirm } from '../../components/ConfirmDialog'
 
 function slugify(name: string): string {
   return name
@@ -14,6 +15,7 @@ export function AdminCategoriesPage() {
   const { data: categories, isLoading } = useAdminCategories()
   const createCategory = useCreateCategory()
   const deleteCategory = useDeleteCategory()
+  const confirm = useConfirm()
   const [name, setName] = useState('')
 
   async function handleCreate(e: React.FormEvent) {
@@ -23,11 +25,21 @@ export function AdminCategoriesPage() {
     setName('')
   }
 
+  async function handleDelete(id: string, categoryName: string) {
+    const ok = await confirm({
+      title: 'Delete category',
+      message: `Delete "${categoryName}"? Items already tagged with it keep their other categories.`,
+      confirmLabel: 'Delete',
+      danger: true,
+    })
+    if (ok) deleteCategory.mutate(id)
+  }
+
   return (
     <div className="max-w-md">
       <h1 className="page-title mb-4">Admin: Categories</h1>
 
-      <form onSubmit={handleCreate} className="mb-4 flex gap-2">
+      <form onSubmit={handleCreate} className="mb-4 flex flex-col gap-2 sm:flex-row">
         <input
           placeholder="Category name"
           value={name}
@@ -46,7 +58,7 @@ export function AdminCategoriesPage() {
         {categories?.map((c) => (
           <li key={c.id} className="card flex items-center justify-between py-2">
             <span className="text-sm text-ink/80">{c.name}</span>
-            <button type="button" className="btn-danger px-2 py-1 text-xs" onClick={() => deleteCategory.mutate(c.id)}>
+            <button type="button" className="btn-danger px-2 py-1 text-xs" onClick={() => handleDelete(c.id, c.name)}>
               Delete
             </button>
           </li>

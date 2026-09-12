@@ -1,9 +1,9 @@
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
-import { useAdminOrders } from '../../api/adminOrders'
+import { Link, useNavigate } from 'react-router-dom'
+import { useAdminOrders, useCreateShipment } from '../../api/adminOrders'
 import { OrderStatusBadge } from '../../components/OrderStatusBadge'
 import { Pagination } from '../../components/Pagination'
-import { Spinner } from '../../components/Spinner'
+import { Spinner, ButtonSpinner } from '../../components/Spinner'
 import type { OrderStatus } from '../../types/api'
 
 const STATUSES: OrderStatus[] = ['REQUESTED', 'IN_PROGRESS', 'PURCHASED', 'SENT', 'DELIVERED', 'CANCELLED']
@@ -11,11 +11,31 @@ const STATUSES: OrderStatus[] = ['REQUESTED', 'IN_PROGRESS', 'PURCHASED', 'SENT'
 export function AdminOrdersPage() {
   const [status, setStatus] = useState<OrderStatus | ''>('')
   const [page, setPage] = useState(0)
+  const [selected, setSelected] = useState<string[]>([])
   const { data, isLoading } = useAdminOrders(status, page)
+  const createShipment = useCreateShipment()
+  const navigate = useNavigate()
+
+  function toggle(id: string) {
+    setSelected((current) => (current.includes(id) ? current.filter((c) => c !== id) : [...current, id]))
+  }
+
+  async function combine() {
+    const shipment = await createShipment.mutateAsync(selected)
+    setSelected([])
+    navigate(`/admin/shipments/${shipment.id}`)
+  }
 
   return (
     <div>
-      <h1 className="page-title mb-4">Admin: Orders</h1>
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+        <h1 className="page-title">Admin: Orders</h1>
+        {selected.length > 0 && (
+          <button type="button" className="btn-primary" onClick={combine} disabled={createShipment.isPending}>
+            {createShipment.isPending ? <ButtonSpinner /> : `Combine ${selected.length} into shipment`}
+          </button>
+        )}
+      </div>
 
       <select
         value={status}
@@ -39,16 +59,24 @@ export function AdminOrdersPage() {
 
       <ul className="flex flex-col gap-2">
         {data?.content.map((order) => (
-          <li key={order.id}>
-            <Link
-              to={`/admin/orders/${order.id}`}
-              className="card flex flex-col gap-2 transition-colors hover:bg-stone-light sm:flex-row sm:items-center sm:justify-between"
-            >
-              <span className="flex items-center gap-2 font-medium text-ink">
+          <li key={order.id} className="card flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+            <label className="flex items-center gap-3">
+              <input
+                type="checkbox"
+                checked={selected.includes(order.id)}
+                onChange={() => toggle(order.id)}
+                aria-label={`Select order ${order.id.slice(0, 8)}`}
+              />
+              <Link to={`/admin/orders/${order.id}`} className="flex items-center gap-2 font-medium text-ink hover:text-persimmon">
                 Order {order.id.slice(0, 8)} <OrderStatusBadge status={order.status} />
-              </span>
-              <span className="text-sm text-ink/60">{order.items.length} item(s)</span>
-            </Link>
+                {order.shipmentId && (
+                  <span className="rounded-full bg-stone-light px-2 py-0.5 text-xs text-ink/70">
+                    shipment {order.shipmentId.slice(0, 8)}
+                  </span>
+                )}
+              </Link>
+            </label>
+            <span className="text-sm text-ink/60">{order.items.length} item(s)</span>
           </li>
         ))}
       </ul>

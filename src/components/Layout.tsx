@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link, NavLink, Outlet } from 'react-router-dom'
 import { useAuthStore } from '../store/authStore'
+import { OnboardingModal } from './OnboardingModal'
 
 function TopNavLink({ to, children, onClick }: { to: string; children: React.ReactNode; onClick?: () => void }) {
   return (
@@ -34,6 +35,7 @@ export function Layout() {
 
   return (
     <div className="min-h-screen bg-paper">
+      {!isAdmin && <OnboardingModal />}
       <nav className="sticky top-0 z-10 border-b border-stone-light bg-surface/90 backdrop-blur">
         <div className="mx-auto flex max-w-6xl items-center gap-2 px-4 py-3">
           <Link to="/inventory" className="mr-2 flex items-center gap-1.5 text-base font-bold text-ink" style={{ fontFamily: 'var(--font-display)' }}>
@@ -54,6 +56,7 @@ export function Layout() {
                 <TopNavLink to="/admin/inventory">Inventory</TopNavLink>
                 <TopNavLink to="/admin/categories">Categories</TopNavLink>
                 <TopNavLink to="/admin/orders">Orders</TopNavLink>
+                <TopNavLink to="/admin/shipments">Shipments</TopNavLink>
               </>
             )}
           </div>
@@ -109,6 +112,9 @@ export function Layout() {
                 </TopNavLink>
                 <TopNavLink to="/admin/orders" onClick={closeMenu}>
                   Orders
+                </TopNavLink>
+                <TopNavLink to="/admin/shipments" onClick={closeMenu}>
+                  Shipments
                 </TopNavLink>
               </>
             )}

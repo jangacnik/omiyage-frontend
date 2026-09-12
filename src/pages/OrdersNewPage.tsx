@@ -7,6 +7,7 @@ import { useInventoryItem } from '../api/inventory'
 import { useCreateOrder, type CreateOrderItemInput } from '../api/orders'
 import { ButtonSpinner } from '../components/Spinner'
 import { ImageDropInput } from '../components/ImageDropInput'
+import { mediaUrl } from '../lib/media'
 
 const customItemSchema = z.object({
   title: z.string().min(1, 'Title is required'),
@@ -39,7 +40,7 @@ function CustomItemForm({ onAdd }: { onAdd: (item: CreateOrderItemInput) => void
       <input placeholder="Title" className="field-input" {...register('title')} aria-label="Title" />
       {errors.title && <p className="error-text">{errors.title.message}</p>}
       <textarea placeholder="Description (optional)" className="field-input" {...register('description')} aria-label="Description" />
-      <div className="flex gap-2">
+      <div className="flex flex-col gap-2 sm:flex-row">
         <select {...register('condition')} aria-label="Condition" className="field-input">
           <option value="NEW">New</option>
           <option value="USED">Used</option>
@@ -99,10 +100,15 @@ export function OrdersNewPage() {
         <ul className="mb-4 flex flex-col gap-2">
           {items.map((item, index) => (
             <li key={index} className="card flex flex-col gap-2 py-2 sm:flex-row sm:items-center sm:justify-between">
-              <span className="text-sm text-ink/80">
-                {item.inventoryItemId ? `Inventory item: ${preselectedItem?.title ?? item.inventoryItemId}` : item.title}
-                {' — '}
-                {item.currency}
+              <span className="flex items-center gap-3">
+                {item.imageKey && (
+                  <img src={mediaUrl(item.imageKey)} alt="" className="h-10 w-10 shrink-0 rounded-lg object-cover" />
+                )}
+                <span className="text-sm text-ink/80">
+                  {item.inventoryItemId ? `Inventory item: ${preselectedItem?.title ?? item.inventoryItemId}` : item.title}
+                  {' — '}
+                  {item.currency}
+                </span>
               </span>
               <button type="button" className="btn-danger px-2 py-1 text-xs" onClick={() => removeItem(index)}>
                 Remove

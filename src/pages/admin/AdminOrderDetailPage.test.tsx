@@ -16,6 +16,7 @@ function order(): OrderDto {
     userId: 'user-1',
     status: 'IN_PROGRESS',
     notes: null,
+    shipmentId: null,
     createdAt: '2026-01-01T00:00:00Z',
     updatedAt: '2026-01-01T00:00:00Z',
     items: [
@@ -30,12 +31,16 @@ function order(): OrderDto {
         maxPrice: 2000,
         actualPrice: null,
         weight: null,
-        purchased: false,
+        status: 'REQUESTED',
         purchasedAt: null,
         quantity: 1,
       },
     ],
   }
+}
+
+function mockShipments() {
+  return http.get(`${BASE}/api/admin/shipments`, () => HttpResponse.json([]))
 }
 
 function renderPage() {
@@ -49,7 +54,7 @@ function renderPage() {
 
 describe('AdminOrderDetailPage', () => {
   it('shows item details and the running totals', async () => {
-    server.use(http.get(`${BASE}/api/orders/order-12345678`, () => HttpResponse.json(order())))
+    server.use(http.get(`${BASE}/api/orders/order-12345678`, () => HttpResponse.json(order())), mockShipments())
 
     renderPage()
 
@@ -58,11 +63,12 @@ describe('AdminOrderDetailPage', () => {
     expect(screen.getByText('Total weight: 0 g')).toBeInTheDocument()
   })
 
-  it('saves buy price, weight and purchased together', async () => {
+  it('saves buy price, weight and status together', async () => {
     const user = userEvent.setup()
     let capturedBody: unknown = null
     server.use(
       http.get(`${BASE}/api/orders/order-12345678`, () => HttpResponse.json(order())),
+      mockShipments(),
       http.patch(`${BASE}/api/admin/orders/order-12345678/items/item-1`, async ({ request }) => {
         capturedBody = await request.json()
         return HttpResponse.json(order())
@@ -74,9 +80,9 @@ describe('AdminOrderDetailPage', () => {
 
     await user.type(screen.getByLabelText('Buy price for Ghibli museum ticket'), '1800')
     await user.type(screen.getByLabelText('Weight for Ghibli museum ticket'), '250')
-    await user.click(screen.getByRole('checkbox'))
+    await user.selectOptions(screen.getByLabelText('Status for Ghibli museum ticket'), 'BOUGHT')
 
-    await waitFor(() => expect(capturedBody).toMatchObject({ purchased: true, actualPrice: 1800, weight: 250 }))
+    await waitFor(() => expect(capturedBody).toMatchObject({ status: 'BOUGHT', actualPrice: 1800, weight: 250 }))
   })
 
   it('advances the order status', async () => {
@@ -84,6 +90,7 @@ describe('AdminOrderDetailPage', () => {
     let capturedBody: unknown = null
     server.use(
       http.get(`${BASE}/api/orders/order-12345678`, () => HttpResponse.json(order())),
+      mockShipments(),
       http.patch(`${BASE}/api/admin/orders/order-12345678`, async ({ request }) => {
         capturedBody = await request.json()
         return HttpResponse.json({ ...order(), status: 'SENT' })
