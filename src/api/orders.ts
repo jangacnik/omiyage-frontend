@@ -24,6 +24,7 @@ export interface CreateOrderItemInput {
 
 export interface CreateOrderInput {
   notes?: string
+  nickname?: string
   items: CreateOrderItemInput[]
 }
 

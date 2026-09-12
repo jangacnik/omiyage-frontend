@@ -102,6 +102,7 @@ export function OrdersNewPage() {
 
   const [items, setItems] = useState<CreateOrderItemInput[]>([])
   const [prefilledAdded, setPrefilledAdded] = useState(false)
+  const [nickname, setNickname] = useState('')
   const createOrder = useCreateOrder()
   const navigate = useNavigate()
 
@@ -117,13 +118,21 @@ export function OrdersNewPage() {
   }
 
   async function submit() {
-    const order = await createOrder.mutateAsync({ items })
+    const order = await createOrder.mutateAsync({ items, nickname: nickname.trim() || undefined })
     navigate(`/orders/${order.id}`)
   }
 
   return (
-    <div className="max-w-xl">
+    <div className="mx-auto max-w-3xl">
       <h1 className="page-title mb-4">New request</h1>
+
+      <input
+        placeholder="Nickname for this order (optional)"
+        className="field-input mb-4"
+        value={nickname}
+        onChange={(e) => setNickname(e.target.value)}
+        aria-label="Order nickname"
+      />
 
       {items.length > 0 && (
         <ul className="mb-4 flex flex-col gap-2">
