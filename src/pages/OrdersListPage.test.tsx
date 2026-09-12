@@ -44,4 +44,15 @@ describe('OrdersListPage', () => {
 
     expect(await screen.findByText('No orders yet.')).toBeInTheDocument()
   })
+
+  it('shows the nickname instead of the id when set, with the id still visible', async () => {
+    server.use(
+      http.get(`${BASE}/api/orders/mine`, () => HttpResponse.json(page([order({ nickname: "Grandma's Gifts" })]))),
+    )
+
+    renderWithProviders(<OrdersListPage />)
+
+    expect(await screen.findByText(/Grandma's Gifts/)).toBeInTheDocument()
+    expect(screen.getByText('(order-12)')).toBeInTheDocument()
+  })
 })

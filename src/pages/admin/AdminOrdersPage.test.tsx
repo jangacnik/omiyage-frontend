@@ -60,4 +60,17 @@ describe('AdminOrdersPage', () => {
 
     expect(await screen.findByText('No orders found.')).toBeInTheDocument()
   })
+
+  it('shows the nickname instead of the id when set, with the id still visible', async () => {
+    server.use(
+      http.get(`${BASE}/api/admin/orders`, () =>
+        HttpResponse.json(page([{ ...order(), nickname: "Grandma's Gifts" }])),
+      ),
+    )
+
+    renderWithProviders(<AdminOrdersPage />)
+
+    expect(await screen.findByText(/Grandma's Gifts/)).toBeInTheDocument()
+    expect(screen.getByText('(order-12)')).toBeInTheDocument()
+  })
 })

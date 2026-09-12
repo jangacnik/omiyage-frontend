@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { orderDisplayName, useOrder, useRemoveMyOrderItem, useUpdateMyOrderItem, useUpdateOrderNickname } from '../api/orders'
 import { useConfirm } from '../components/ConfirmDialog'
+import { OrderIdHint } from '../components/OrderIdHint'
 import { OrderStatusBadge } from '../components/OrderStatusBadge'
 import { OrderItemStatusBadge } from '../components/OrderItemStatusBadge'
 import { Spinner, ButtonSpinner } from '../components/Spinner'
@@ -51,8 +52,10 @@ function OrderNicknameEditor({ order }: { order: OrderDto }) {
 
   return (
     <div className="flex flex-wrap items-baseline gap-2">
-      <h1 className="page-title">Order {orderDisplayName(order)}</h1>
-      {order.nickname && <span className="text-sm text-ink/50">({order.id.slice(0, 8)})</span>}
+      <h1 className="page-title">
+        Order {orderDisplayName(order)}
+        <OrderIdHint id={order.id} nickname={order.nickname} />
+      </h1>
       <button type="button" className="btn-secondary px-2 py-1 text-xs" onClick={() => setEditing(true)}>
         Rename
       </button>
