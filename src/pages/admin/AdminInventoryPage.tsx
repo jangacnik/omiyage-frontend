@@ -7,17 +7,20 @@ import {
   useAdminInventory,
   useCreateInventoryItem,
   useDeleteInventoryItem,
+  useUpdateInventoryItem,
   useUpdateInventoryStatus,
 } from '../../api/adminInventory'
 import { Pagination } from '../../components/Pagination'
-import { Spinner } from '../../components/Spinner'
+import { Spinner, ButtonSpinner } from '../../components/Spinner'
 import { ImageDropInput } from '../../components/ImageDropInput'
 import { useConfirm } from '../../components/ConfirmDialog'
 import { TrashIcon } from '../../components/icons'
+import type { InventoryItem } from '../../types/api'
 
 const itemSchema = z.object({
   title: z.string().min(1, 'Title is required'),
   description: z.string().optional(),
+  link: z.string().optional(),
   condition: z.enum(['NEW', 'USED']),
   currency: z.enum(['JPY', 'EUR']),
   priceAmount: z.string().min(1, 'Price is required'),
@@ -25,6 +28,79 @@ const itemSchema = z.object({
 })
 
 type ItemForm = z.infer<typeof itemSchema>
+
+function EditItemForm({ item, onDone }: { item: InventoryItem; onDone: () => void }) {
+  const updateItem = useUpdateInventoryItem()
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<ItemForm>({
+    resolver: zodResolver(itemSchema),
+    defaultValues: {
+      title: item.title,
+      description: item.description ?? '',
+      link: item.link ?? '',
+      condition: item.condition,
+      currency: item.currency,
+      priceAmount: item.priceAmount.toString(),
+      stockQuantity: item.stockQuantity.toString(),
+    },
+  })
+
+  async function onSubmit(data: ItemForm) {
+    await updateItem.mutateAsync({
+      id: item.id,
+      title: data.title,
+      description: data.description,
+      link: data.link || undefined,
+      condition: data.condition,
+      currency: data.currency,
+      priceAmount: Number(data.priceAmount),
+      stockQuantity: Number(data.stockQuantity),
+      imageKeys: item.images,
+      categoryIds: item.categories.map((c) => c.id),
+    })
+    onDone()
+  }
+
+  return (
+    <form onSubmit={handleSubmit(onSubmit)} className="card flex flex-col gap-2">
+      <input placeholder="Title" className="field-input" {...register('title')} aria-label={`Title for ${item.title}`} />
+      {errors.title && <p className="error-text">{errors.title.message}</p>}
+      <textarea placeholder="Description" className="field-input" {...register('description')} aria-label={`Description for ${item.title}`} />
+      <div className="flex flex-col gap-2 sm:flex-row">
+        <select {...register('condition')} aria-label={`Condition for ${item.title}`} className="field-input">
+          <option value="NEW">New</option>
+          <option value="USED">Used</option>
+        </select>
+        <select {...register('currency')} aria-label={`Currency for ${item.title}`} className="field-input">
+          <option value="JPY">JPY</option>
+          <option value="EUR">EUR</option>
+        </select>
+      </div>
+      <div className="flex flex-col gap-2 sm:flex-row">
+        <input placeholder="Price" className="field-input" {...register('priceAmount')} aria-label={`Price for ${item.title}`} />
+        <input placeholder="Stock quantity" className="field-input" {...register('stockQuantity')} aria-label={`Stock quantity for ${item.title}`} />
+      </div>
+      <input
+        type="url"
+        placeholder="Link to store page (optional)"
+        className="field-input"
+        {...register('link')}
+        aria-label={`Link for ${item.title}`}
+      />
+      <div className="flex gap-2">
+        <button type="submit" className="btn-primary px-3 py-1.5 text-sm" disabled={updateItem.isPending}>
+          {updateItem.isPending ? <ButtonSpinner /> : 'Save'}
+        </button>
+        <button type="button" className="btn-secondary px-3 py-1.5 text-sm" onClick={onDone}>
+          Cancel
+        </button>
+      </div>
+    </form>
+  )
+}
 
 export function AdminInventoryPage() {
   const [page, setPage] = useState(0)
@@ -53,6 +129,7 @@ export function AdminInventoryPage() {
     await createItem.mutateAsync({
       title: data.title,
       description: data.description,
+      link: data.link || undefined,
       condition: data.condition,
       currency: data.currency,
       priceAmount: Number(data.priceAmount),
@@ -64,6 +141,8 @@ export function AdminInventoryPage() {
     setImageKeys([])
     setSelectedCategoryIds([])
   }
+
+  const [editingId, setEditingId] = useState<string | null>(null)
 
   async function handleDelete(id: string, title: string) {
     const ok = await confirm({
@@ -99,6 +178,7 @@ export function AdminInventoryPage() {
         </div>
         {errors.priceAmount && <p className="error-text">{errors.priceAmount.message}</p>}
         {errors.stockQuantity && <p className="error-text">{errors.stockQuantity.message}</p>}
+        <input type="url" placeholder="Link to store page (optional)" className="field-input" {...register('link')} aria-label="Link to store page" />
         <ImageDropInput label="Photo" onUploaded={(key) => setImageKeys(key ? (current) => [...current, key] : (current) => current)} />
         {imageKeys.length > 0 && <p className="text-xs text-ink/50">{imageKeys.length} photo(s) added.</p>}
 
@@ -122,25 +202,34 @@ export function AdminInventoryPage() {
       {isLoading && <Spinner label="Fetching inventory" />}
 
       <ul className="flex flex-col gap-2">
-        {data?.content.map((item) => (
-          <li key={item.id} className="card flex flex-col gap-2 py-2 sm:flex-row sm:items-center sm:justify-between">
-            <span className="text-sm text-ink/80">
-              {item.title} — {item.status} — {item.priceAmount} {item.currency}
-            </span>
-            <span className="flex gap-2">
-              <button
-                type="button"
-                className="btn-secondary px-2 py-1 text-xs"
-                onClick={() => updateStatus.mutate({ id: item.id, status: item.status === 'ACTIVE' ? 'ARCHIVED' : 'ACTIVE' })}
-              >
-                {item.status === 'ACTIVE' ? 'Archive' : 'Activate'}
-              </button>
-              <button type="button" className="btn-danger px-2 py-1 text-xs" onClick={() => handleDelete(item.id, item.title)}>
-                <TrashIcon size={13} /> Delete
-              </button>
-            </span>
-          </li>
-        ))}
+        {data?.content.map((item) =>
+          editingId === item.id ? (
+            <li key={item.id}>
+              <EditItemForm item={item} onDone={() => setEditingId(null)} />
+            </li>
+          ) : (
+            <li key={item.id} className="card flex flex-col gap-2 py-2 sm:flex-row sm:items-center sm:justify-between">
+              <span className="text-sm text-ink/80">
+                {item.title} — {item.status} — {item.priceAmount} {item.currency}
+              </span>
+              <span className="flex gap-2">
+                <button type="button" className="btn-secondary px-2 py-1 text-xs" onClick={() => setEditingId(item.id)}>
+                  Edit
+                </button>
+                <button
+                  type="button"
+                  className="btn-secondary px-2 py-1 text-xs"
+                  onClick={() => updateStatus.mutate({ id: item.id, status: item.status === 'ACTIVE' ? 'ARCHIVED' : 'ACTIVE' })}
+                >
+                  {item.status === 'ACTIVE' ? 'Archive' : 'Activate'}
+                </button>
+                <button type="button" className="btn-danger px-2 py-1 text-xs" onClick={() => handleDelete(item.id, item.title)}>
+                  <TrashIcon size={13} /> Delete
+                </button>
+              </span>
+            </li>
+          ),
+        )}
       </ul>
 
       {data && <Pagination page={data.page} totalPages={data.totalPages} onPageChange={setPage} />}

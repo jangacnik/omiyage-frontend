@@ -113,4 +113,27 @@ describe('AdminInventoryPage', () => {
 
     await waitFor(() => expect(deleteCalled).toBe(true))
   })
+
+  it('edits an existing item, including its link', async () => {
+    const user = userEvent.setup()
+    let capturedBody: unknown = null
+    server.use(
+      http.get(`${BASE}/api/admin/inventory`, () => HttpResponse.json(page([item()]))),
+      http.get(`${BASE}/api/categories`, () => HttpResponse.json([])),
+      http.put(`${BASE}/api/admin/inventory/item-1`, async ({ request }) => {
+        capturedBody = await request.json()
+        return HttpResponse.json(item({ link: 'https://example.com/kitkat' }))
+      }),
+    )
+
+    renderWithProviders(<AdminInventoryPage />)
+    await screen.findByText(/Kit Kat matcha/)
+    await user.click(screen.getByText('Edit'))
+
+    const linkInput = screen.getByLabelText('Link for Kit Kat matcha')
+    await user.type(linkInput, 'https://example.com/kitkat')
+    await user.click(screen.getByText('Save'))
+
+    await waitFor(() => expect(capturedBody).toMatchObject({ title: 'Kit Kat matcha', link: 'https://example.com/kitkat' }))
+  })
 })

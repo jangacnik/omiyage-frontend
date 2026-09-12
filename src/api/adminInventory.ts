@@ -5,6 +5,7 @@ import type { Category, Condition, Currency, InventoryItem, Page } from '../type
 export interface InventoryItemInput {
   title: string
   description?: string
+  link?: string
   condition: Condition
   priceAmount: number
   currency: Currency
@@ -25,6 +26,15 @@ export function useCreateInventoryItem() {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: (input: InventoryItemInput) => api.post<InventoryItem>('/api/admin/inventory', input),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['admin', 'inventory'] }),
+  })
+}
+
+export function useUpdateInventoryItem() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: ({ id, ...input }: InventoryItemInput & { id: string }) =>
+      api.put<InventoryItem>(`/api/admin/inventory/${id}`, input),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['admin', 'inventory'] }),
   })
 }
