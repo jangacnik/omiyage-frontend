@@ -16,6 +16,7 @@ function order(): OrderDto {
     userId: 'user-1',
     status: 'IN_PROGRESS',
     notes: null,
+    nickname: null,
     shipmentId: null,
     createdAt: '2026-01-01T00:00:00Z',
     updatedAt: '2026-01-01T00:00:00Z',
@@ -79,5 +80,88 @@ describe('OrderDetailPage', () => {
     await user.click(screen.getByText('Save'))
 
     await waitFor(() => expect(capturedBody).toMatchObject({ title: 'Ghibli museum ticket (2x)' }))
+  })
+
+  it('shows the nickname instead of the id when set, with the id still visible', async () => {
+    server.use(http.get(`${BASE}/api/orders/order-1`, () => HttpResponse.json({ ...order(), nickname: "Grandma's Gifts" })))
+
+    renderWithProviders(
+      <Routes>
+        <Route path="/orders/:id" element={<OrderDetailPage />} />
+      </Routes>,
+      ['/orders/order-1'],
+    )
+
+    expect(await screen.findByText(/Grandma's Gifts/)).toBeInTheDocument()
+    expect(screen.getByText('(order-1)')).toBeInTheDocument()
+  })
+
+  it('renames the order and sends the new nickname', async () => {
+    const user = userEvent.setup()
+    let capturedBody: unknown = null
+    server.use(
+      http.get(`${BASE}/api/orders/order-1`, () => HttpResponse.json(order())),
+      http.patch(`${BASE}/api/orders/order-1/nickname`, async ({ request }) => {
+        capturedBody = await request.json()
+        return HttpResponse.json({ ...order(), nickname: "Grandma's Gifts" })
+      }),
+    )
+
+    renderWithProviders(
+      <Routes>
+        <Route path="/orders/:id" element={<OrderDetailPage />} />
+      </Routes>,
+      ['/orders/order-1'],
+    )
+
+    await user.click(await screen.findByText('Rename'))
+    await user.type(screen.getByLabelText('Order nickname'), "Grandma's Gifts")
+    await user.click(screen.getByText('Save'))
+
+    await waitFor(() => expect(capturedBody).toEqual({ nickname: "Grandma's Gifts" }))
+  })
+
+  it('clearing the nickname sends null, not an empty string', async () => {
+    const user = userEvent.setup()
+    let capturedBody: unknown = null
+    server.use(
+      http.get(`${BASE}/api/orders/order-1`, () => HttpResponse.json({ ...order(), nickname: "Grandma's Gifts" })),
+      http.patch(`${BASE}/api/orders/order-1/nickname`, async ({ request }) => {
+        capturedBody = await request.json()
+        return HttpResponse.json(order())
+      }),
+    )
+
+    renderWithProviders(
+      <Routes>
+        <Route path="/orders/:id" element={<OrderDetailPage />} />
+      </Routes>,
+      ['/orders/order-1'],
+    )
+
+    await user.click(await screen.findByText('Rename'))
+    await user.clear(screen.getByLabelText('Order nickname'))
+    await user.click(screen.getByText('Save'))
+
+    await waitFor(() => expect(capturedBody).toEqual({ nickname: null }))
+  })
+
+  it('cancel reverts to the last-saved nickname without saving', async () => {
+    const user = userEvent.setup()
+    server.use(http.get(`${BASE}/api/orders/order-1`, () => HttpResponse.json({ ...order(), nickname: "Grandma's Gifts" })))
+
+    renderWithProviders(
+      <Routes>
+        <Route path="/orders/:id" element={<OrderDetailPage />} />
+      </Routes>,
+      ['/orders/order-1'],
+    )
+
+    await user.click(await screen.findByText('Rename'))
+    await user.type(screen.getByLabelText('Order nickname'), ' extra text')
+    await user.click(screen.getByText('Cancel'))
+
+    expect(screen.getByText(/Grandma's Gifts/)).toBeInTheDocument()
+    expect(screen.queryByLabelText('Order nickname')).not.toBeInTheDocument()
   })
 })

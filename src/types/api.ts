@@ -55,6 +55,7 @@ export interface OrderDto {
   userId: string
   status: OrderStatus
   notes: string | null
+  nickname: string | null
   shipmentId: string | null
   createdAt: string
   updatedAt: string

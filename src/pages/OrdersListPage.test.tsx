@@ -14,6 +14,7 @@ function order(overrides: Partial<OrderDto> = {}): OrderDto {
     userId: 'user-1',
     status: 'REQUESTED',
     notes: null,
+    nickname: null,
     shipmentId: null,
     createdAt: '2026-01-01T00:00:00Z',
     updatedAt: '2026-01-01T00:00:00Z',
@@ -42,5 +43,16 @@ describe('OrdersListPage', () => {
     renderWithProviders(<OrdersListPage />)
 
     expect(await screen.findByText('No orders yet.')).toBeInTheDocument()
+  })
+
+  it('shows the nickname instead of the id when set, with the id still visible', async () => {
+    server.use(
+      http.get(`${BASE}/api/orders/mine`, () => HttpResponse.json(page([order({ nickname: "Grandma's Gifts" })]))),
+    )
+
+    renderWithProviders(<OrdersListPage />)
+
+    expect(await screen.findByText(/Grandma's Gifts/)).toBeInTheDocument()
+    expect(screen.getByText('(order-12)')).toBeInTheDocument()
   })
 })

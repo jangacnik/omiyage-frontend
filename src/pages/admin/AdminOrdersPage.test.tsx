@@ -14,6 +14,7 @@ function order(): OrderDto {
     userId: 'user-1',
     status: 'IN_PROGRESS',
     notes: null,
+    nickname: null,
     shipmentId: null,
     createdAt: '2026-01-01T00:00:00Z',
     updatedAt: '2026-01-01T00:00:00Z',
@@ -58,5 +59,18 @@ describe('AdminOrdersPage', () => {
     renderWithProviders(<AdminOrdersPage />)
 
     expect(await screen.findByText('No orders found.')).toBeInTheDocument()
+  })
+
+  it('shows the nickname instead of the id when set, with the id still visible', async () => {
+    server.use(
+      http.get(`${BASE}/api/admin/orders`, () =>
+        HttpResponse.json(page([{ ...order(), nickname: "Grandma's Gifts" }])),
+      ),
+    )
+
+    renderWithProviders(<AdminOrdersPage />)
+
+    expect(await screen.findByText(/Grandma's Gifts/)).toBeInTheDocument()
+    expect(screen.getByText('(order-12)')).toBeInTheDocument()
   })
 })

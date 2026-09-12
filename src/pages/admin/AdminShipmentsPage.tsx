@@ -1,5 +1,7 @@
 import { useParams } from 'react-router-dom'
 import { useAdminShipments, useUpdateShipment } from '../../api/adminOrders'
+import { orderDisplayName } from '../../api/orders'
+import { OrderIdHint } from '../../components/OrderIdHint'
 import { OrderStatusBadge } from '../../components/OrderStatusBadge'
 import { OrderItemStatusBadge } from '../../components/OrderItemStatusBadge'
 import { Spinner, ButtonSpinner } from '../../components/Spinner'
@@ -128,7 +130,10 @@ function ShipmentCard({ shipment, expanded }: { shipment: ShipmentDto; expanded:
           {shipment.orders.map((order) => (
             <div key={order.id} className="flex flex-col gap-1 py-2">
               <div className="flex flex-wrap items-center gap-2">
-                <span className="font-medium text-ink">Order {order.id.slice(0, 8)}</span>
+                <span className="font-medium text-ink">
+                  Order {orderDisplayName(order)}
+                  <OrderIdHint id={order.id} nickname={order.nickname} />
+                </span>
                 <OrderStatusBadge status={order.status} />
                 {order.orderWeightGrams != null && (
                   <span className="text-xs text-ink/50">{formatGrams(order.orderWeightGrams)}</span>
