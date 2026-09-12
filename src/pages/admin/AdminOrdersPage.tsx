@@ -1,11 +1,13 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { useAdminOrders, useCreateShipment } from '../../api/adminOrders'
+import { useAdminDeleteOrder, useAdminOrders, useCreateShipment } from '../../api/adminOrders'
 import { orderDisplayName } from '../../api/orders'
+import { useConfirm } from '../../components/ConfirmDialog'
 import { OrderIdHint } from '../../components/OrderIdHint'
 import { OrderStatusBadge } from '../../components/OrderStatusBadge'
 import { Pagination } from '../../components/Pagination'
 import { Spinner, ButtonSpinner } from '../../components/Spinner'
+import { TrashIcon } from '../../components/icons'
 import type { OrderStatus } from '../../types/api'
 
 const STATUSES: OrderStatus[] = ['REQUESTED', 'IN_PROGRESS', 'PURCHASED', 'SENT', 'DELIVERED', 'CANCELLED']
@@ -16,6 +18,8 @@ export function AdminOrdersPage() {
   const [selected, setSelected] = useState<string[]>([])
   const { data, isLoading } = useAdminOrders(status, page)
   const createShipment = useCreateShipment()
+  const deleteOrder = useAdminDeleteOrder()
+  const confirm = useConfirm()
   const navigate = useNavigate()
 
   function toggle(id: string) {
@@ -26,6 +30,16 @@ export function AdminOrdersPage() {
     const shipment = await createShipment.mutateAsync(selected)
     setSelected([])
     navigate(`/admin/shipments/${shipment.id}`)
+  }
+
+  async function handleDelete(orderId: string) {
+    const ok = await confirm({
+      title: 'Delete order',
+      message: 'Delete this order? This cannot be undone.',
+      confirmLabel: 'Delete',
+      danger: true,
+    })
+    if (ok) deleteOrder.mutate(orderId)
   }
 
   return (
@@ -79,10 +93,21 @@ export function AdminOrdersPage() {
                 )}
               </Link>
             </label>
-            <span className="text-sm text-ink/60">{order.items.length} item(s)</span>
+            <span className="flex items-center gap-3">
+              <span className="text-sm text-ink/60">{order.items.length} item(s)</span>
+              <button
+                type="button"
+                className="btn-danger px-2 py-1 text-xs"
+                onClick={() => handleDelete(order.id)}
+                disabled={deleteOrder.isPending}
+              >
+                <TrashIcon size={13} /> Delete
+              </button>
+            </span>
           </li>
         ))}
       </ul>
+      {deleteOrder.isError && <p className="error-text">Could not delete that order.</p>}
 
       {data && <Pagination page={data.page} totalPages={data.totalPages} onPageChange={setPage} />}
     </div>

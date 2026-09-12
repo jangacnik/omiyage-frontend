@@ -70,4 +70,99 @@ describe('ProfilePage', () => {
 
     expect(await screen.findByText('Invalid email')).toBeInTheDocument()
   })
+
+  it('renames the nickname', async () => {
+    const user = userEvent.setup()
+    let capturedBody: unknown = null
+    server.use(
+      http.get(`${BASE}/api/users/me`, () => HttpResponse.json(profile())),
+      http.patch(`${BASE}/api/users/me/nickname`, async ({ request }) => {
+        capturedBody = await request.json()
+        return HttpResponse.json(profile({ nickname: 'bobby' }))
+      }),
+    )
+
+    renderWithProviders(<ProfilePage />)
+    await screen.findByText('Nickname: bob')
+    await user.click(screen.getByText('Rename'))
+
+    const input = screen.getByLabelText('Nickname')
+    await user.clear(input)
+    await user.type(input, 'bobby')
+    await user.click(screen.getAllByText('Save')[0])
+
+    await waitFor(() => expect(capturedBody).toEqual({ nickname: 'bobby' }))
+    expect(await screen.findByText('Nickname: bobby')).toBeInTheDocument()
+  })
+
+  it('shows a conflict message when the new nickname is taken', async () => {
+    const user = userEvent.setup()
+    server.use(
+      http.get(`${BASE}/api/users/me`, () => HttpResponse.json(profile())),
+      http.patch(`${BASE}/api/users/me/nickname`, () => HttpResponse.json({ error: 'nickname taken' }, { status: 409 })),
+    )
+
+    renderWithProviders(<ProfilePage />)
+    await screen.findByText('Nickname: bob')
+    await user.click(screen.getByText('Rename'))
+    await user.click(screen.getAllByText('Save')[0])
+
+    expect(await screen.findByText('That nickname is already taken.')).toBeInTheDocument()
+  })
+
+  it('changes the password when the current password is correct', async () => {
+    const user = userEvent.setup()
+    let capturedBody: unknown = null
+    server.use(
+      http.get(`${BASE}/api/users/me`, () => HttpResponse.json(profile())),
+      http.patch(`${BASE}/api/users/me/password`, async ({ request }) => {
+        capturedBody = await request.json()
+        return new HttpResponse(null, { status: 204 })
+      }),
+    )
+
+    renderWithProviders(<ProfilePage />)
+    await screen.findByText('Nickname: bob')
+
+    await user.type(screen.getByLabelText('Current password'), 'old-pass')
+    await user.type(screen.getByLabelText('New password'), 'new-password-123')
+    await user.type(screen.getByLabelText('Confirm new password'), 'new-password-123')
+    await user.click(screen.getByRole('button', { name: 'Change password' }))
+
+    await waitFor(() => expect(capturedBody).toEqual({ oldPassword: 'old-pass', newPassword: 'new-password-123' }))
+    expect(await screen.findByText('Password changed.')).toBeInTheDocument()
+  })
+
+  it('rejects mismatched password confirmation before submitting', async () => {
+    const user = userEvent.setup()
+    server.use(http.get(`${BASE}/api/users/me`, () => HttpResponse.json(profile())))
+
+    renderWithProviders(<ProfilePage />)
+    await screen.findByText('Nickname: bob')
+
+    await user.type(screen.getByLabelText('Current password'), 'old-pass')
+    await user.type(screen.getByLabelText('New password'), 'new-password-123')
+    await user.type(screen.getByLabelText('Confirm new password'), 'different')
+    await user.click(screen.getByRole('button', { name: 'Change password' }))
+
+    expect(await screen.findByText("Passwords don't match")).toBeInTheDocument()
+  })
+
+  it('shows an error when the current password is wrong', async () => {
+    const user = userEvent.setup()
+    server.use(
+      http.get(`${BASE}/api/users/me`, () => HttpResponse.json(profile())),
+      http.patch(`${BASE}/api/users/me/password`, () => HttpResponse.json({ error: 'incorrect password' }, { status: 401 })),
+    )
+
+    renderWithProviders(<ProfilePage />)
+    await screen.findByText('Nickname: bob')
+
+    await user.type(screen.getByLabelText('Current password'), 'wrong')
+    await user.type(screen.getByLabelText('New password'), 'new-password-123')
+    await user.type(screen.getByLabelText('Confirm new password'), 'new-password-123')
+    await user.click(screen.getByRole('button', { name: 'Change password' }))
+
+    expect(await screen.findByText('Current password is incorrect.')).toBeInTheDocument()
+  })
 })

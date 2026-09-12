@@ -80,7 +80,13 @@ export function ImageDropInput({ label = 'Photo', initialImageKey, onUploaded, o
       <div className="flex flex-wrap items-center gap-3">
         {previewUrl && (
           <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-lg bg-mist">
-            <img src={previewUrl} alt="Selected preview" className="h-full w-full object-cover" />
+            <img
+              src={previewUrl}
+              alt=""
+              aria-hidden="true"
+              className="absolute inset-0 h-full w-full scale-125 object-cover opacity-60 blur-lg"
+            />
+            <img src={previewUrl} alt="Selected preview" className="relative h-full w-full object-contain" />
             {!uploading && (
               <button
                 type="button"

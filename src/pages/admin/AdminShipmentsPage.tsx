@@ -1,13 +1,17 @@
-import { useParams } from 'react-router-dom'
+import { useState } from 'react'
+import { Link, useNavigate, useParams } from 'react-router-dom'
 import { useAdminDeleteShipment, useAdminShipments, useUpdateShipment } from '../../api/adminOrders'
 import { orderDisplayName } from '../../api/orders'
 import { useConfirm } from '../../components/ConfirmDialog'
+import { formatGrams } from '../../lib/currency'
+import { ShippingCostMoney } from '../../components/Money'
 import { OrderIdHint } from '../../components/OrderIdHint'
 import { OrderStatusBadge } from '../../components/OrderStatusBadge'
 import { OrderItemStatusBadge } from '../../components/OrderItemStatusBadge'
 import { Spinner, ButtonSpinner } from '../../components/Spinner'
 import { TrashIcon } from '../../components/icons'
-import type { ShipmentDestination, ShipmentDto, ShipmentStatus, ShippingMethod } from '../../types/api'
+import { AdminOrderEditor } from './AdminOrderEditor'
+import type { OrderDto, ShipmentDestination, ShipmentDto, ShipmentStatus, ShippingMethod } from '../../types/api'
 
 const SHIPMENT_STATUSES: ShipmentStatus[] = ['PREPARING', 'SHIPPED', 'DELIVERED']
 const DESTINATIONS: ShipmentDestination[] = ['SLOVENIA', 'AUSTRIA']
@@ -18,12 +22,42 @@ const METHOD_LABELS: Record<ShippingMethod, string> = {
   SURFACE_MAIL: 'Surface Mail (up to 2kg)',
 }
 
-function formatGrams(grams: number): string {
-  return grams >= 1000 ? `${(grams / 1000).toFixed(2)} kg` : `${grams} g`
-}
+function ShipmentOrderRow({ order }: { order: OrderDto }) {
+  const [editing, setEditing] = useState(false)
 
-function formatJpy(amount: number): string {
-  return `¥${amount.toLocaleString('en-US')}`
+  return (
+    <div className="flex flex-col gap-1 py-2">
+      <div className="flex flex-wrap items-center gap-2">
+        <Link to={`/admin/orders/${order.id}`} className="font-medium text-ink hover:text-forest">
+          Order {orderDisplayName(order)}
+        </Link>
+        <OrderIdHint id={order.id} nickname={order.nickname} />
+        <OrderStatusBadge status={order.status} />
+        {order.orderWeightGrams != null && (
+          <span className="text-xs text-ink/50">{formatGrams(order.orderWeightGrams)}</span>
+        )}
+        {order.shippingCostShareJpy != null && order.shippingCostShareEur != null && (
+          <span className="text-xs font-medium text-ink">
+            <ShippingCostMoney jpy={order.shippingCostShareJpy} eur={order.shippingCostShareEur} /> shipping
+          </span>
+        )}
+        <button type="button" className="btn-secondary ml-auto px-2 py-1 text-xs" onClick={() => setEditing((v) => !v)}>
+          {editing ? 'Done' : 'Edit'}
+        </button>
+      </div>
+      {editing ? (
+        <AdminOrderEditor order={order} />
+      ) : (
+        <ul className="flex flex-wrap gap-2">
+          {order.items.map((item) => (
+            <li key={item.id} className="flex items-center gap-1.5 text-sm text-ink/70">
+              {item.title} <OrderItemStatusBadge status={item.status} />
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  )
 }
 
 function ShipmentCard({ shipment, expanded }: { shipment: ShipmentDto; expanded: boolean }) {
@@ -139,8 +173,10 @@ function ShipmentCard({ shipment, expanded }: { shipment: ShipmentDto; expanded:
         <span>Total weight: {formatGrams(shipment.totalWeightGrams)}</span>
         <span>
           Shipping cost:{' '}
-          {shipment.shippingCostJpy != null ? (
-            <strong className="text-ink">{formatJpy(shipment.shippingCostJpy)}</strong>
+          {shipment.shippingCostJpy != null && shipment.shippingCostEur != null ? (
+            <strong className="text-ink">
+              <ShippingCostMoney jpy={shipment.shippingCostJpy} eur={shipment.shippingCostEur} />
+            </strong>
           ) : (
             <span className="text-ink/50">
               {shipment.destination && shipment.shippingMethod
@@ -157,30 +193,7 @@ function ShipmentCard({ shipment, expanded }: { shipment: ShipmentDto; expanded:
       {expanded && (
         <div className="flex flex-col divide-y divide-mist border-t border-mist pt-2">
           {shipment.orders.map((order) => (
-            <div key={order.id} className="flex flex-col gap-1 py-2">
-              <div className="flex flex-wrap items-center gap-2">
-                <span className="font-medium text-ink">
-                  Order {orderDisplayName(order)}
-                  <OrderIdHint id={order.id} nickname={order.nickname} />
-                </span>
-                <OrderStatusBadge status={order.status} />
-                {order.orderWeightGrams != null && (
-                  <span className="text-xs text-ink/50">{formatGrams(order.orderWeightGrams)}</span>
-                )}
-                {order.shippingCostShareJpy != null && (
-                  <span className="text-xs font-medium text-ink">
-                    {formatJpy(order.shippingCostShareJpy)} shipping
-                  </span>
-                )}
-              </div>
-              <ul className="flex flex-wrap gap-2">
-                {order.items.map((item) => (
-                  <li key={item.id} className="flex items-center gap-1.5 text-sm text-ink/70">
-                    {item.title} <OrderItemStatusBadge status={item.status} />
-                  </li>
-                ))}
-              </ul>
-            </div>
+            <ShipmentOrderRow key={order.id} order={order} />
           ))}
         </div>
       )}
@@ -191,6 +204,7 @@ function ShipmentCard({ shipment, expanded }: { shipment: ShipmentDto; expanded:
 export function AdminShipmentsPage() {
   const { id } = useParams<{ id: string }>()
   const { data: shipments, isLoading } = useAdminShipments()
+  const navigate = useNavigate()
 
   if (isLoading) return <Spinner fullPage label="Fetching shipments" />
 
@@ -198,10 +212,17 @@ export function AdminShipmentsPage() {
 
   return (
     <div>
-      <h1 className="page-title mb-4">Admin: Shipments</h1>
+      <div className="mb-4 flex items-center gap-3">
+        {id && (
+          <button type="button" className="btn-secondary px-3 py-1.5 text-sm" onClick={() => navigate('/admin/shipments')}>
+            ← Back to shipments
+          </button>
+        )}
+        <h1 className="page-title">Admin: Shipments</h1>
+      </div>
       {visible && visible.length === 0 && (
         <p className="text-ink/50">
-          No shipments yet — select orders on the <a href="/admin/orders" className="text-forest hover:underline">Orders</a> page
+          No shipments yet — select orders on the <Link to="/admin/orders" className="text-forest hover:underline">Orders</Link> page
           and combine them into one.
         </p>
       )}

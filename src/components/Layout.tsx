@@ -1,8 +1,30 @@
 import { useState } from 'react'
 import { Link, NavLink, Outlet, useLocation } from 'react-router-dom'
 import { useAuthStore } from '../store/authStore'
+import { useCurrencyPreference } from '../lib/currency'
 import { BrandMark } from './BrandMark'
 import { OnboardingModal } from './OnboardingModal'
+
+function CurrencyToggle() {
+  const { displayCurrency, setDisplayCurrency } = useCurrencyPreference()
+  return (
+    <div className="flex rounded-lg bg-paper/10 p-0.5 text-sm font-medium" role="group" aria-label="Display currency">
+      {(['JPY', 'EUR'] as const).map((currency) => (
+        <button
+          key={currency}
+          type="button"
+          onClick={() => setDisplayCurrency(currency)}
+          aria-pressed={displayCurrency === currency}
+          className={`rounded-md px-2 py-1 transition-colors ${
+            displayCurrency === currency ? 'bg-paper text-ink' : 'text-paper/70 hover:text-paper'
+          }`}
+        >
+          {currency}
+        </button>
+      ))}
+    </div>
+  )
+}
 
 function TopNavLink({ to, children, onClick }: { to: string; children: React.ReactNode; onClick?: () => void }) {
   return (
@@ -56,6 +78,7 @@ export function Layout() {
           </div>
 
           <span className="ml-auto hidden items-center gap-3 md:flex">
+            <CurrencyToggle />
             {claims && <span className="text-sm font-medium text-paper/65">{claims.nickname}</span>}
             <button type="button" className="btn-ghost-inverse" onClick={logout}>
               Log out
@@ -127,11 +150,12 @@ export function Layout() {
               </>
             )}
             <div className="mt-3 flex w-full items-center justify-between border-t border-paper/15 pt-3">
-              {claims && <span className="text-sm font-medium text-paper/65">{claims.nickname}</span>}
+              <CurrencyToggle />
               <button type="button" className="btn-ghost-inverse" onClick={logout}>
                 Log out
               </button>
             </div>
+            {claims && <span className="text-sm font-medium text-paper/65">{claims.nickname}</span>}
           </div>
         )}
       </nav>

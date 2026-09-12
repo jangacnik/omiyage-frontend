@@ -1,9 +1,139 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
-import { useMyProfile, useUpdateProfile } from '../api/profile'
-import { Spinner } from '../components/Spinner'
+import { useChangeMyPassword, useMyProfile, useUpdateMyNickname, useUpdateProfile } from '../api/profile'
+import { ApiError } from '../lib/apiClient'
+import { ButtonSpinner, Spinner } from '../components/Spinner'
+import type { UserProfileDto } from '../types/api'
+
+function NicknameEditor({ profile }: { profile: UserProfileDto }) {
+  const [editing, setEditing] = useState(false)
+  const [nickname, setNickname] = useState(profile.nickname ?? '')
+  const updateNickname = useUpdateMyNickname()
+
+  function save() {
+    if (!nickname.trim()) return
+    updateNickname.mutate(nickname.trim(), { onSuccess: () => setEditing(false) })
+  }
+
+  if (!editing) {
+    return (
+      <p className="mb-4 flex items-center gap-2 text-ink/60">
+        <span>Nickname: {profile.nickname}</span>
+        <button type="button" className="btn-secondary px-2 py-0.5 text-xs" onClick={() => setEditing(true)}>
+          Rename
+        </button>
+      </p>
+    )
+  }
+
+  return (
+    <div className="mb-4 flex flex-wrap items-center gap-2">
+      <input
+        className="field-input sm:w-64"
+        value={nickname}
+        onChange={(e) => setNickname(e.target.value)}
+        aria-label="Nickname"
+        autoFocus
+      />
+      <button type="button" className="btn-primary px-3 py-1.5 text-sm" onClick={save} disabled={updateNickname.isPending}>
+        {updateNickname.isPending ? <ButtonSpinner /> : 'Save'}
+      </button>
+      <button
+        type="button"
+        className="btn-secondary px-3 py-1.5 text-sm"
+        onClick={() => {
+          setNickname(profile.nickname ?? '')
+          setEditing(false)
+        }}
+      >
+        Cancel
+      </button>
+      {updateNickname.isError && (
+        <p className="error-text w-full">
+          {updateNickname.error instanceof ApiError && updateNickname.error.status === 409
+            ? 'That nickname is already taken.'
+            : 'Could not save nickname.'}
+        </p>
+      )}
+    </div>
+  )
+}
+
+const passwordSchema = z
+  .object({
+    oldPassword: z.string().min(1, 'Current password is required'),
+    newPassword: z.string().min(8, 'New password must be at least 8 characters'),
+    confirmPassword: z.string(),
+  })
+  .refine((data) => data.newPassword === data.confirmPassword, {
+    message: "Passwords don't match",
+    path: ['confirmPassword'],
+  })
+
+type PasswordForm = z.infer<typeof passwordSchema>
+
+function ChangePasswordForm() {
+  const changePassword = useChangeMyPassword()
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors },
+  } = useForm<PasswordForm>({ resolver: zodResolver(passwordSchema) })
+
+  function onSubmit(data: PasswordForm) {
+    changePassword.mutate(
+      { oldPassword: data.oldPassword, newPassword: data.newPassword },
+      { onSuccess: () => reset() },
+    )
+  }
+
+  return (
+    <form onSubmit={handleSubmit(onSubmit)} className="card mt-4 flex max-w-sm flex-col gap-3">
+      <h2 className="font-medium text-ink">Change password</h2>
+      <div className="flex flex-col gap-1">
+        <label htmlFor="oldPassword" className="field-label">
+          Current password
+        </label>
+        <input id="oldPassword" type="password" className="field-input" {...register('oldPassword')} aria-label="Current password" />
+        {errors.oldPassword && <p className="error-text">{errors.oldPassword.message}</p>}
+      </div>
+      <div className="flex flex-col gap-1">
+        <label htmlFor="newPassword" className="field-label">
+          New password
+        </label>
+        <input id="newPassword" type="password" className="field-input" {...register('newPassword')} aria-label="New password" />
+        {errors.newPassword && <p className="error-text">{errors.newPassword.message}</p>}
+      </div>
+      <div className="flex flex-col gap-1">
+        <label htmlFor="confirmPassword" className="field-label">
+          Confirm new password
+        </label>
+        <input
+          id="confirmPassword"
+          type="password"
+          className="field-input"
+          {...register('confirmPassword')}
+          aria-label="Confirm new password"
+        />
+        {errors.confirmPassword && <p className="error-text">{errors.confirmPassword.message}</p>}
+      </div>
+      <button type="submit" className="btn-primary self-start" disabled={changePassword.isPending}>
+        {changePassword.isPending ? <ButtonSpinner /> : 'Change password'}
+      </button>
+      {changePassword.isSuccess && <p className="text-sm font-medium text-forest">Password changed.</p>}
+      {changePassword.isError && (
+        <p className="error-text">
+          {changePassword.error instanceof ApiError && changePassword.error.status === 401
+            ? 'Current password is incorrect.'
+            : 'Could not change password.'}
+        </p>
+      )}
+    </form>
+  )
+}
 
 const profileSchema = z.object({
   email: z.string().email('Invalid email').optional().or(z.literal('')),
@@ -64,7 +194,7 @@ export function ProfilePage() {
   return (
     <div className="max-w-3xl">
       <h1 className="page-title mb-1">Profile</h1>
-      <p className="mb-4 text-ink/60">Nickname: {profile?.nickname}</p>
+      {profile && <NicknameEditor profile={profile} />}
 
       <form onSubmit={handleSubmit(onSubmit)} className="card grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div className="flex flex-col gap-1">
@@ -139,6 +269,8 @@ export function ProfilePage() {
           {updateProfile.isError && <p className="error-text">Could not save profile.</p>}
         </div>
       </form>
+
+      <ChangePasswordForm />
     </div>
   )
 }

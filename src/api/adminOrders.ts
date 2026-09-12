@@ -25,7 +25,10 @@ export function useUpdateOrderStatus() {
   return useMutation({
     mutationFn: ({ id, status }: { id: string; status: OrderStatus }) =>
       api.patch<OrderDto>(`/api/admin/orders/${id}`, { status }),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['admin', 'orders'] }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin', 'orders'] })
+      queryClient.invalidateQueries({ queryKey: ['admin', 'shipments'] })
+    },
   })
 }
 
@@ -57,7 +60,10 @@ export function useAdminAddOrderItem() {
   return useMutation({
     mutationFn: ({ orderId, ...input }: CreateOrderItemInput & { orderId: string }) =>
       api.post<OrderDto>(`/api/admin/orders/${orderId}/items`, input),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['admin', 'orders'] }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin', 'orders'] })
+      queryClient.invalidateQueries({ queryKey: ['admin', 'shipments'] })
+    },
   })
 }
 
@@ -66,7 +72,10 @@ export function useAdminUpdateOrderItemContent() {
   return useMutation({
     mutationFn: ({ orderId, itemId, ...input }: UpdateMyOrderItemInput & { orderId: string; itemId: string }) =>
       api.patch<OrderDto>(`/api/admin/orders/${orderId}/items/${itemId}/details`, input),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['admin', 'orders'] }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin', 'orders'] })
+      queryClient.invalidateQueries({ queryKey: ['admin', 'shipments'] })
+    },
   })
 }
 
@@ -75,7 +84,10 @@ export function useAdminRemoveOrderItem() {
   return useMutation({
     mutationFn: ({ orderId, itemId }: { orderId: string; itemId: string }) =>
       api.delete<OrderDto>(`/api/admin/orders/${orderId}/items/${itemId}`),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['admin', 'orders'] }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin', 'orders'] })
+      queryClient.invalidateQueries({ queryKey: ['admin', 'shipments'] })
+    },
   })
 }
 
@@ -86,6 +98,7 @@ export function useAdminMarkItemPaid() {
       api.patch<OrderDto>(`/api/admin/orders/${orderId}/items/${itemId}/paid`, { paid }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin', 'orders'] })
+      queryClient.invalidateQueries({ queryKey: ['admin', 'shipments'] })
       queryClient.invalidateQueries({ queryKey: ['admin', 'dashboard'] })
     },
   })

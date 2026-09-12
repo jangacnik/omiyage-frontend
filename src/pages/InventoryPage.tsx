@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useCategories, useInventory } from '../api/inventory'
+import { Money } from '../components/Money'
 import { Pagination } from '../components/Pagination'
 import { Spinner } from '../components/Spinner'
-import { mediaUrl } from '../lib/media'
+import { ThumbnailImage } from '../components/ThumbnailImage'
 
 export function InventoryPage() {
   const [titleInput, setTitleInput] = useState('')
@@ -73,19 +74,16 @@ export function InventoryPage() {
             className="card card-interactive animate-rise group overflow-hidden p-0"
             style={{ animationDelay: `${Math.min(i, 11) * 0.04}s` }}
           >
-            <div className="aspect-square w-full overflow-hidden bg-mist">
-              {item.images[0] && (
-                <img
-                  src={mediaUrl(item.images[0])}
-                  alt={item.title}
-                  className="h-full w-full object-cover transition-transform duration-500 ease-[var(--ease-out-soft)] group-hover:scale-105"
-                />
-              )}
-            </div>
+            <ThumbnailImage
+              imageKey={item.images[0]}
+              alt={item.title}
+              className="aspect-square w-full"
+              foregroundClassName="transition-transform duration-500 ease-[var(--ease-out-soft)] group-hover:scale-105"
+            />
             <div className="p-3">
               <p className="truncate font-medium text-ink">{item.title}</p>
               <p className="text-sm text-ink/60">
-                {item.priceAmount} {item.currency}
+                <Money amount={item.priceAmount} currency={item.currency} />
               </p>
             </div>
           </Link>

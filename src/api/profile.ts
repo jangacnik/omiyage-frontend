@@ -28,3 +28,18 @@ export function useUpdateProfile() {
     onSuccess: (profile) => queryClient.setQueryData(['profile', 'me'], profile),
   })
 }
+
+export function useUpdateMyNickname() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (nickname: string) => api.patch<UserProfileDto>('/api/users/me/nickname', { nickname }),
+    onSuccess: (profile) => queryClient.setQueryData(['profile', 'me'], profile),
+  })
+}
+
+export function useChangeMyPassword() {
+  return useMutation({
+    mutationFn: ({ oldPassword, newPassword }: { oldPassword: string; newPassword: string }) =>
+      api.patch<void>('/api/users/me/password', { oldPassword, newPassword }),
+  })
+}

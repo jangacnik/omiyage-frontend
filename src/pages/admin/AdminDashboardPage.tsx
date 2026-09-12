@@ -3,16 +3,13 @@ import { Link } from 'react-router-dom'
 import { useUserDashboard } from '../../api/adminDashboard'
 import { useAdminMarkItemPaid } from '../../api/adminOrders'
 import { orderDisplayName } from '../../api/orders'
+import { Money } from '../../components/Money'
 import { OrderIdHint } from '../../components/OrderIdHint'
 import { OrderStatusBadge } from '../../components/OrderStatusBadge'
 import { OrderItemStatusBadge } from '../../components/OrderItemStatusBadge'
 import { Spinner, ButtonSpinner } from '../../components/Spinner'
-import { mediaUrl } from '../../lib/media'
-import type { Currency, OrderDto, OrderItemDto, PendingAmountDto, UserDashboardEntryDto } from '../../types/api'
-
-function formatMoney(amount: number, currency: Currency): string {
-  return new Intl.NumberFormat('en-US', { style: 'currency', currency }).format(amount)
-}
+import { ThumbnailImage } from '../../components/ThumbnailImage'
+import type { OrderDto, OrderItemDto, PendingAmountDto, UserDashboardEntryDto } from '../../types/api'
 
 function PendingSummary({ amounts }: { amounts: PendingAmountDto[] }) {
   if (amounts.length === 0) {
@@ -27,7 +24,7 @@ function PendingSummary({ amounts }: { amounts: PendingAmountDto[] }) {
           key={pending.currency}
           className="rounded-full bg-mint px-2.5 py-0.5 text-sm font-semibold text-forest-deep"
         >
-          {formatMoney(pending.amount, pending.currency)} owed
+          <Money amount={pending.amount} currency={pending.currency} /> owed
         </span>
       ))}
     </div>
@@ -57,12 +54,14 @@ function OrderItemRow({ orderId, item }: { orderId: string; item: OrderItemDto }
   return (
     <li className="flex flex-wrap items-center justify-between gap-2 rounded-lg bg-paper/60 px-2.5 py-1.5">
       <div className="flex min-w-0 items-center gap-2">
-        <div className="h-10 w-10 shrink-0 overflow-hidden rounded-lg bg-mist">
-          {item.imageKey && <img src={mediaUrl(item.imageKey)} alt="" className="h-full w-full object-cover" />}
-        </div>
+        <ThumbnailImage imageKey={item.imageKey} className="h-10 w-10 shrink-0 rounded-lg" />
         <span className="truncate text-sm text-ink/80">{item.title}</span>
         <OrderItemStatusBadge status={item.status} />
-        {price != null && <span className="text-sm text-ink/60">{formatMoney(price, item.currency)}</span>}
+        {price != null && (
+          <span className="text-sm text-ink/60">
+            <Money amount={price} currency={item.currency} />
+          </span>
+        )}
       </div>
       <PaidToggleButton orderId={orderId} item={item} />
     </li>
@@ -124,9 +123,10 @@ function UserDashboardCard({ entry }: { entry: UserDashboardEntryDto }) {
 }
 
 export function AdminDashboardPage() {
-  const { data, isLoading } = useUserDashboard()
+  const { data, isLoading, isError } = useUserDashboard()
 
   if (isLoading) return <Spinner fullPage label="Fetching users" />
+  if (isError) return <p className="error-text">Could not load the dashboard. Try refreshing the page.</p>
 
   const entries = [...(data ?? [])].sort((a, b) => {
     const aOwes = a.pendingAmounts.length > 0
