@@ -13,9 +13,11 @@ import { TrashIcon } from '../components/icons'
 const customItemSchema = z.object({
   title: z.string().min(1, 'Title is required'),
   description: z.string().optional(),
+  link: z.string().optional(),
   condition: z.enum(['NEW', 'USED']),
   currency: z.enum(['JPY', 'EUR']),
   maxPrice: z.string().optional(),
+  quantity: z.string().optional(),
 })
 
 type CustomItemForm = z.infer<typeof customItemSchema>
@@ -31,7 +33,13 @@ function CustomItemForm({ onAdd }: { onAdd: (item: CreateOrderItemInput) => void
   } = useForm<CustomItemForm>({ resolver: zodResolver(customItemSchema), defaultValues: { condition: 'NEW', currency: 'JPY' } })
 
   function onSubmit(data: CustomItemForm) {
-    onAdd({ ...data, maxPrice: data.maxPrice ? Number(data.maxPrice) : undefined, imageKey, quantity: 1 })
+    onAdd({
+      ...data,
+      maxPrice: data.maxPrice ? Number(data.maxPrice) : undefined,
+      quantity: data.quantity ? Number(data.quantity) : 1,
+      link: data.link || undefined,
+      imageKey,
+    })
     reset()
     setImageKey(undefined)
   }
@@ -51,13 +59,33 @@ function CustomItemForm({ onAdd }: { onAdd: (item: CreateOrderItemInput) => void
           <option value="EUR">EUR</option>
         </select>
       </div>
+      <div className="flex flex-col gap-2 sm:flex-row">
+        <input
+          type="number"
+          step="0.01"
+          placeholder="Max price (optional)"
+          className="field-input"
+          {...register('maxPrice')}
+          aria-label="Max price"
+        />
+        <label className="flex items-center gap-2 sm:w-32">
+          <span className="text-sm text-ink/60">Qty</span>
+          <input
+            type="number"
+            min={1}
+            placeholder="1"
+            className="field-input"
+            {...register('quantity')}
+            aria-label="Quantity"
+          />
+        </label>
+      </div>
       <input
-        type="number"
-        step="0.01"
-        placeholder="Max price (optional)"
+        type="url"
+        placeholder="Link to store page (optional)"
         className="field-input"
-        {...register('maxPrice')}
-        aria-label="Max price"
+        {...register('link')}
+        aria-label="Link to store page"
       />
       <ImageDropInput label="Photo" onUploaded={setImageKey} onUploadingChange={setUploading} />
       <button type="submit" className="btn-secondary self-start" disabled={uploading}>

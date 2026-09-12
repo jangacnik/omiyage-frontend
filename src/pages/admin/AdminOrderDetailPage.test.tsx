@@ -1,5 +1,5 @@
 import { http, HttpResponse } from 'msw'
-import { screen, waitFor } from '@testing-library/react'
+import { screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it } from 'vitest'
 import { Route, Routes } from 'react-router-dom'
@@ -15,6 +15,7 @@ function order(): OrderDto {
     id: 'order-12345678',
     userId: 'user-1',
     status: 'IN_PROGRESS',
+    open: true,
     notes: null,
     nickname: null,
     shipmentId: null,
@@ -33,6 +34,9 @@ function order(): OrderDto {
         actualPrice: null,
         weight: null,
         status: 'REQUESTED',
+        paid: false,
+        paidAt: null,
+        link: null,
         purchasedAt: null,
         quantity: 1,
       },
@@ -104,5 +108,72 @@ describe('AdminOrderDetailPage', () => {
     await user.selectOptions(screen.getByLabelText('Update order status'), 'SENT')
 
     await waitFor(() => expect(capturedBody).toEqual({ status: 'SENT' }))
+  })
+
+  it('offers PREPARING_SHIPPING as an order status option', async () => {
+    server.use(http.get(`${BASE}/api/orders/order-12345678`, () => HttpResponse.json(order())), mockShipments())
+
+    renderPage()
+    await screen.findByText('Ghibli museum ticket')
+
+    expect(within(screen.getByLabelText('Update order status')).getByText('PREPARING_SHIPPING')).toBeInTheDocument()
+  })
+
+  it('marks an item paid', async () => {
+    const user = userEvent.setup()
+    let capturedBody: unknown = null
+    server.use(
+      http.get(`${BASE}/api/orders/order-12345678`, () => HttpResponse.json(order())),
+      mockShipments(),
+      http.patch(`${BASE}/api/admin/orders/order-12345678/items/item-1/paid`, async ({ request }) => {
+        capturedBody = await request.json()
+        return HttpResponse.json({ ...order(), items: [{ ...order().items[0], paid: true }] })
+      }),
+    )
+
+    renderPage()
+    await user.click(await screen.findByText('Mark paid'))
+
+    await waitFor(() => expect(capturedBody).toEqual({ paid: true }))
+  })
+
+  it('adds a new item to the order', async () => {
+    const user = userEvent.setup()
+    let capturedBody: unknown = null
+    server.use(
+      http.get(`${BASE}/api/orders/order-12345678`, () => HttpResponse.json(order())),
+      mockShipments(),
+      http.post(`${BASE}/api/admin/orders/order-12345678/items`, async ({ request }) => {
+        capturedBody = await request.json()
+        return HttpResponse.json(order())
+      }),
+    )
+
+    renderPage()
+    await user.click(await screen.findByText('Add item'))
+    await user.type(screen.getByLabelText('Title'), 'Extra souvenir')
+    await user.click(screen.getByText('Add item'))
+
+    await waitFor(() => expect(capturedBody).toMatchObject({ title: 'Extra souvenir', condition: 'NEW', currency: 'JPY' }))
+  })
+
+  it('deletes the order after confirming, then navigates away', async () => {
+    const user = userEvent.setup()
+    let deleted = false
+    server.use(
+      http.get(`${BASE}/api/orders/order-12345678`, () => HttpResponse.json(order())),
+      mockShipments(),
+      http.delete(`${BASE}/api/admin/orders/order-12345678`, () => {
+        deleted = true
+        return new HttpResponse(null, { status: 204 })
+      }),
+    )
+
+    renderPage()
+    await user.click(await screen.findByText('Delete order'))
+    const dialog = await screen.findByRole('alertdialog')
+    await user.click(within(dialog).getByRole('button', { name: 'Delete' }))
+
+    await waitFor(() => expect(deleted).toBe(true))
   })
 })

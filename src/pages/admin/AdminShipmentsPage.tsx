@@ -1,10 +1,12 @@
 import { useParams } from 'react-router-dom'
-import { useAdminShipments, useUpdateShipment } from '../../api/adminOrders'
+import { useAdminDeleteShipment, useAdminShipments, useUpdateShipment } from '../../api/adminOrders'
 import { orderDisplayName } from '../../api/orders'
+import { useConfirm } from '../../components/ConfirmDialog'
 import { OrderIdHint } from '../../components/OrderIdHint'
 import { OrderStatusBadge } from '../../components/OrderStatusBadge'
 import { OrderItemStatusBadge } from '../../components/OrderItemStatusBadge'
 import { Spinner, ButtonSpinner } from '../../components/Spinner'
+import { TrashIcon } from '../../components/icons'
 import type { ShipmentDestination, ShipmentDto, ShipmentStatus, ShippingMethod } from '../../types/api'
 
 const SHIPMENT_STATUSES: ShipmentStatus[] = ['PREPARING', 'SHIPPED', 'DELIVERED']
@@ -26,6 +28,18 @@ function formatJpy(amount: number): string {
 
 function ShipmentCard({ shipment, expanded }: { shipment: ShipmentDto; expanded: boolean }) {
   const updateShipment = useUpdateShipment()
+  const deleteShipment = useAdminDeleteShipment()
+  const confirm = useConfirm()
+
+  async function handleDelete() {
+    const ok = await confirm({
+      title: 'Delete shipment',
+      message: 'Delete this shipment? Its orders are kept, just detached - this cannot be undone.',
+      confirmLabel: 'Delete',
+      danger: true,
+    })
+    if (ok) deleteShipment.mutate(shipment.id)
+  }
 
   return (
     <li className="card flex flex-col gap-3">
@@ -48,6 +62,18 @@ function ShipmentCard({ shipment, expanded }: { shipment: ShipmentDto; expanded:
             ))}
           </select>
           {updateShipment.isPending && <ButtonSpinner />}
+          <button
+            type="button"
+            className="btn-danger px-2 py-1 text-xs"
+            onClick={handleDelete}
+            disabled={deleteShipment.isPending}
+          >
+            {deleteShipment.isPending ? <ButtonSpinner /> : (
+              <>
+                <TrashIcon size={13} /> Delete
+              </>
+            )}
+          </button>
         </div>
       </div>
 
@@ -123,7 +149,10 @@ function ShipmentCard({ shipment, expanded }: { shipment: ShipmentDto; expanded:
             </span>
           )}
         </span>
+        {shipment.estimatedDays != null && <span>Estimated: ~{shipment.estimatedDays} days</span>}
       </div>
+
+      {deleteShipment.isError && <p className="error-text">Could not delete this shipment.</p>}
 
       {expanded && (
         <div className="flex flex-col divide-y divide-mist border-t border-mist pt-2">

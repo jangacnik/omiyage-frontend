@@ -25,3 +25,13 @@ export function TrashIcon({ size = 14 }: IconProps) {
     </svg>
   )
 }
+
+export function ExternalLinkIcon({ size = 14 }: IconProps) {
+  return (
+    <svg {...base(size)}>
+      <path d="M14 5 H19 V10" />
+      <path d="M19 5 L10 14" />
+      <path d="M17 13 V18 a1 1 0 0 1 -1 1 H6 a1 1 0 0 1 -1 -1 V8 a1 1 0 0 1 1 -1 h5" />
+    </svg>
+  )
+}

@@ -1,7 +1,14 @@
 export type Role = 'USER' | 'ADMIN'
 export type Condition = 'NEW' | 'USED'
 export type Currency = 'JPY' | 'EUR'
-export type OrderStatus = 'REQUESTED' | 'IN_PROGRESS' | 'PURCHASED' | 'SENT' | 'DELIVERED' | 'CANCELLED'
+export type OrderStatus =
+  | 'REQUESTED'
+  | 'IN_PROGRESS'
+  | 'PURCHASED'
+  | 'PREPARING_SHIPPING'
+  | 'SENT'
+  | 'DELIVERED'
+  | 'CANCELLED'
 export type OrderItemStatus = 'REQUESTED' | 'CONFIRMING' | 'BUYING' | 'BOUGHT' | 'SHIPPED'
 export type ShipmentStatus = 'PREPARING' | 'SHIPPED' | 'DELIVERED'
 export type ShipmentDestination = 'SLOVENIA' | 'AUSTRIA'
@@ -25,6 +32,7 @@ export interface InventoryItem {
   id: string
   title: string
   description: string | null
+  link: string | null
   condition: Condition
   priceAmount: number
   currency: Currency
@@ -46,6 +54,9 @@ export interface OrderItemDto {
   actualPrice: number | null
   weight: number | null
   status: OrderItemStatus
+  paid: boolean
+  paidAt: string | null
+  link: string | null
   purchasedAt: string | null
   quantity: number
 }
@@ -54,6 +65,7 @@ export interface OrderDto {
   id: string
   userId: string
   status: OrderStatus
+  open: boolean
   notes: string | null
   nickname: string | null
   shipmentId: string | null
@@ -74,13 +86,35 @@ export interface ShipmentDto {
   shippingMethod: ShippingMethod | null
   trackingNumber: string | null
   notes: string | null
+  ownerUserId: string | null
   totalWeightGrams: number
-  // Null until both destination and shippingMethod are set, or if the shipment is heavier than
-  // that method covers (Small Packet / Surface Mail cap at 2kg).
+  // Both null until destination and shippingMethod are set and an admin-configured rate covers
+  // the total weight - see the shipping-rates admin page.
   shippingCostJpy: number | null
+  estimatedDays: number | null
   createdAt: string
   updatedAt: string
   orders: OrderDto[]
+}
+
+export interface ShippingRateDto {
+  id: string
+  destination: ShipmentDestination
+  shippingMethod: ShippingMethod
+  maxWeightGrams: number
+  costJpy: number
+  estimatedDays: number
+}
+
+export interface PendingAmountDto {
+  currency: Currency
+  amount: number
+}
+
+export interface UserDashboardEntryDto {
+  user: UserProfileDto
+  orders: OrderDto[]
+  pendingAmounts: PendingAmountDto[]
 }
 
 export interface UserProfileDto {

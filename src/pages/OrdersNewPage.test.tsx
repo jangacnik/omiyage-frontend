@@ -52,6 +52,7 @@ describe('OrdersNewPage', () => {
       id: 'item-1',
       title: 'Kit Kat matcha',
       description: null,
+      link: null,
       condition: 'NEW',
       priceAmount: 1200,
       currency: 'JPY',
