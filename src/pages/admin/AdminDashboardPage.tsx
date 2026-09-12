@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { useSetOrderItemPaid, useUserDashboard } from '../../api/adminDashboard'
+import { useUserDashboard } from '../../api/adminDashboard'
+import { useAdminMarkItemPaid } from '../../api/adminOrders'
 import { orderDisplayName } from '../../api/orders'
 import { OrderIdHint } from '../../components/OrderIdHint'
 import { OrderStatusBadge } from '../../components/OrderStatusBadge'
@@ -34,16 +35,19 @@ function PendingSummary({ amounts }: { amounts: PendingAmountDto[] }) {
 }
 
 function PaidToggleButton({ orderId, item }: { orderId: string; item: OrderItemDto }) {
-  const setPaid = useSetOrderItemPaid()
+  const setPaid = useAdminMarkItemPaid()
   return (
-    <button
-      type="button"
-      className={item.paid ? 'btn-secondary px-2 py-1 text-xs' : 'btn-primary px-2 py-1 text-xs'}
-      onClick={() => setPaid.mutate({ orderId, itemId: item.id, paid: !item.paid })}
-      disabled={setPaid.isPending}
-    >
-      {setPaid.isPending ? <ButtonSpinner /> : item.paid ? 'Mark unpaid' : 'Mark paid'}
-    </button>
+    <div className="flex flex-col items-end gap-1">
+      <button
+        type="button"
+        className={item.paid ? 'btn-secondary px-2 py-1 text-xs' : 'btn-primary px-2 py-1 text-xs'}
+        onClick={() => setPaid.mutate({ orderId, itemId: item.id, paid: !item.paid })}
+        disabled={setPaid.isPending}
+      >
+        {setPaid.isPending ? <ButtonSpinner /> : item.paid ? 'Mark unpaid' : 'Mark paid'}
+      </button>
+      {setPaid.isError && <p className="error-text text-xs">Could not update paid status.</p>}
+    </div>
   )
 }
 

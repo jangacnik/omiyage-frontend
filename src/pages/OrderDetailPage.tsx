@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useParams } from 'react-router-dom'
 import {
+  isItemLocked,
   orderDisplayName,
   useAddMyOrderItem,
   useCancelMyOrder,
@@ -85,7 +86,7 @@ function EditableItem({ orderId, item, locked }: { orderId: string; item: OrderI
   const confirm = useConfirm()
   // The backend also blocks this (item already bought/shipped, or the order itself is no longer
   // open) - these checks just keep the UI from offering a button that would 409.
-  const editable = !locked && item.status !== 'BOUGHT' && item.status !== 'SHIPPED'
+  const editable = !locked && !isItemLocked(item)
 
   function save() {
     updateItem.mutate(
@@ -139,6 +140,7 @@ function EditableItem({ orderId, item, locked }: { orderId: string; item: OrderI
             </>
           )}
         </OrderItemCard>
+        {removeItem.isError && <p className="error-text mt-1">Could not remove this item.</p>}
       </li>
     )
   }
@@ -183,6 +185,7 @@ function EditableItem({ orderId, item, locked }: { orderId: string; item: OrderI
           Cancel
         </button>
       </div>
+      {updateItem.isError && <p className="error-text">Could not save changes.</p>}
     </li>
   )
 }
@@ -295,7 +298,7 @@ export function OrderDetailPage() {
   if (isLoading) return <Spinner fullPage label="Fetching order" />
   if (isError || !order) return <p className="error-text">Order not found.</p>
 
-  const hasLockedItem = order.items.some((item) => item.status === 'BOUGHT' || item.status === 'SHIPPED')
+  const hasLockedItem = order.items.some(isItemLocked)
 
   async function handleCancel() {
     if (!order) return
@@ -344,6 +347,9 @@ export function OrderDetailPage() {
         <p className="text-sm text-ink/50">This order has items already bought or shipped, so it can no longer be cancelled as a whole.</p>
       )}
       {cancelOrder.isError && <p className="error-text">Could not cancel this order (it may have items already bought or shipped).</p>}
+      {submitForShipping.isError && (
+        <p className="error-text">Could not submit for shipping (only the shipment's owner can do this).</p>
+      )}
 
       <ul className="flex flex-col divide-y divide-mist">
         {order.items.map((item) => (

@@ -134,4 +134,21 @@ describe('AdminDashboardPage', () => {
     expect(await screen.findByText('Ghibli museum ticket')).toBeInTheDocument()
     expect(screen.getByText('Mark paid')).toBeInTheDocument()
   })
+
+  it('shows an error when marking an item paid fails', async () => {
+    const user = userEvent.setup()
+    server.use(
+      http.get(`${BASE}/api/admin/dashboard/users`, () => HttpResponse.json([entry()])),
+      http.patch(`${BASE}/api/admin/orders/order-12345678/items/item-1/paid`, () =>
+        HttpResponse.json({ message: 'conflict' }, { status: 409 }),
+      ),
+    )
+
+    renderWithProviders(<AdminDashboardPage />)
+    await screen.findByText('Alice')
+    await user.click(screen.getByText('Alice'))
+    await user.click(await screen.findByText('Mark paid'))
+
+    expect(await screen.findByText('Could not update paid status.')).toBeInTheDocument()
+  })
 })

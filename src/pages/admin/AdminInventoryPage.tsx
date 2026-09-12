@@ -49,19 +49,23 @@ function EditItemForm({ item, onDone }: { item: InventoryItem; onDone: () => voi
   })
 
   async function onSubmit(data: ItemForm) {
-    await updateItem.mutateAsync({
-      id: item.id,
-      title: data.title,
-      description: data.description,
-      link: data.link || undefined,
-      condition: data.condition,
-      currency: data.currency,
-      priceAmount: Number(data.priceAmount),
-      stockQuantity: Number(data.stockQuantity),
-      imageKeys: item.images,
-      categoryIds: item.categories.map((c) => c.id),
-    })
-    onDone()
+    try {
+      await updateItem.mutateAsync({
+        id: item.id,
+        title: data.title,
+        description: data.description,
+        link: data.link || undefined,
+        condition: data.condition,
+        currency: data.currency,
+        priceAmount: Number(data.priceAmount),
+        stockQuantity: Number(data.stockQuantity),
+        imageKeys: item.images,
+        categoryIds: item.categories.map((c) => c.id),
+      })
+      onDone()
+    } catch {
+      // updateItem.isError renders the message below - stay open so the admin can retry.
+    }
   }
 
   return (
@@ -98,6 +102,7 @@ function EditItemForm({ item, onDone }: { item: InventoryItem; onDone: () => voi
           Cancel
         </button>
       </div>
+      {updateItem.isError && <p className="error-text">Could not save changes.</p>}
     </form>
   )
 }

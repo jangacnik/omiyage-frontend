@@ -125,6 +125,7 @@ function AdminItemRow({ orderId, item }: { orderId: string; item: OrderItemDto }
             Cancel
           </button>
         </div>
+        {updateContent.isError && <p className="error-text">Could not save changes.</p>}
       </li>
     )
   }
@@ -196,6 +197,13 @@ function AdminItemRow({ orderId, item }: { orderId: string; item: OrderItemDto }
               )}
             </button>
           </div>
+          {(updateItem.isError || removeItem.isError || markPaid.isError) && (
+            <p className="error-text">
+              {updateItem.isError && 'Could not save price/weight/status. '}
+              {removeItem.isError && 'Could not remove this item. '}
+              {markPaid.isError && 'Could not update paid status.'}
+            </p>
+          )}
         </div>
       </OrderItemCard>
     </li>
@@ -288,6 +296,7 @@ function AdminAddItemForm({ orderId }: { orderId: string }) {
           Cancel
         </button>
       </div>
+      {addItem.isError && <p className="error-text">Could not add item.</p>}
     </div>
   )
 }
@@ -316,9 +325,12 @@ export function AdminOrderDetailPage() {
       confirmLabel: 'Delete',
       danger: true,
     })
-    if (ok) {
+    if (!ok) return
+    try {
       await deleteOrder.mutateAsync(order.id)
       navigate('/admin/orders')
+    } catch {
+      // deleteOrder.isError renders the message below - nothing else to do here.
     }
   }
 
@@ -339,6 +351,7 @@ export function AdminOrderDetailPage() {
           )}
         </button>
       </div>
+      {deleteOrder.isError && <p className="error-text">Could not delete this order.</p>}
 
       <div className="flex flex-wrap items-end gap-3">
         <label className="flex flex-col gap-1">

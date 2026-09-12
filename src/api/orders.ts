@@ -1,6 +1,14 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { api } from '../lib/apiClient'
-import type { Condition, Currency, OrderDto, Page } from '../types/api'
+import type { Condition, Currency, OrderDto, OrderItemDto, Page } from '../types/api'
+
+// An item that's already been bought or shipped is settled - its content can't be edited or
+// removed anymore. Single source of truth so this set can't drift between call sites.
+const LOCKED_ITEM_STATUSES: OrderItemDto['status'][] = ['BOUGHT', 'SHIPPED']
+
+export function isItemLocked(item: Pick<OrderItemDto, 'status'>): boolean {
+  return LOCKED_ITEM_STATUSES.includes(item.status)
+}
 
 export interface CreateOrderItemInput {
   inventoryItemId?: string

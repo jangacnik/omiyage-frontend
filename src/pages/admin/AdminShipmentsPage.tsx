@@ -152,6 +152,8 @@ function ShipmentCard({ shipment, expanded }: { shipment: ShipmentDto; expanded:
         {shipment.estimatedDays != null && <span>Estimated: ~{shipment.estimatedDays} days</span>}
       </div>
 
+      {deleteShipment.isError && <p className="error-text">Could not delete this shipment.</p>}
+
       {expanded && (
         <div className="flex flex-col divide-y divide-mist border-t border-mist pt-2">
           {shipment.orders.map((order) => (

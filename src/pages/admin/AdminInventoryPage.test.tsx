@@ -114,15 +114,19 @@ describe('AdminInventoryPage', () => {
     await waitFor(() => expect(deleteCalled).toBe(true))
   })
 
-  it('edits an existing item, including its link', async () => {
+  it('edits an existing item, including its link, without dropping images or categories', async () => {
     const user = userEvent.setup()
+    const existing = item({
+      images: ['img-key-1', 'img-key-2'],
+      categories: [{ id: 'cat-1', name: 'Snacks', slug: 'snacks' }],
+    })
     let capturedBody: unknown = null
     server.use(
-      http.get(`${BASE}/api/admin/inventory`, () => HttpResponse.json(page([item()]))),
-      http.get(`${BASE}/api/categories`, () => HttpResponse.json([])),
+      http.get(`${BASE}/api/admin/inventory`, () => HttpResponse.json(page([existing]))),
+      http.get(`${BASE}/api/categories`, () => HttpResponse.json([{ id: 'cat-1', name: 'Snacks', slug: 'snacks' }])),
       http.put(`${BASE}/api/admin/inventory/item-1`, async ({ request }) => {
         capturedBody = await request.json()
-        return HttpResponse.json(item({ link: 'https://example.com/kitkat' }))
+        return HttpResponse.json({ ...existing, link: 'https://example.com/kitkat' })
       }),
     )
 
@@ -134,6 +138,30 @@ describe('AdminInventoryPage', () => {
     await user.type(linkInput, 'https://example.com/kitkat')
     await user.click(screen.getByText('Save'))
 
-    await waitFor(() => expect(capturedBody).toMatchObject({ title: 'Kit Kat matcha', link: 'https://example.com/kitkat' }))
+    await waitFor(() =>
+      expect(capturedBody).toMatchObject({
+        title: 'Kit Kat matcha',
+        link: 'https://example.com/kitkat',
+        imageKeys: ['img-key-1', 'img-key-2'],
+        categoryIds: ['cat-1'],
+      }),
+    )
+  })
+
+  it('shows an error and stays open when saving an edit fails', async () => {
+    const user = userEvent.setup()
+    server.use(
+      http.get(`${BASE}/api/admin/inventory`, () => HttpResponse.json(page([item()]))),
+      http.get(`${BASE}/api/categories`, () => HttpResponse.json([])),
+      http.put(`${BASE}/api/admin/inventory/item-1`, () => HttpResponse.json({ message: 'conflict' }, { status: 409 })),
+    )
+
+    renderWithProviders(<AdminInventoryPage />)
+    await screen.findByText(/Kit Kat matcha/)
+    await user.click(screen.getByText('Edit'))
+    await user.click(screen.getByText('Save'))
+
+    expect(await screen.findByText('Could not save changes.')).toBeInTheDocument()
+    expect(screen.getByLabelText('Title for Kit Kat matcha')).toBeInTheDocument()
   })
 })
