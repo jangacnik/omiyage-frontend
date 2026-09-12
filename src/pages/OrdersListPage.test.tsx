@@ -13,6 +13,7 @@ function order(overrides: Partial<OrderDto> = {}): OrderDto {
     id: 'order-123456789',
     userId: 'user-1',
     status: 'REQUESTED',
+    open: true,
     notes: null,
     nickname: null,
     shipmentId: null,

@@ -14,6 +14,7 @@ function item(overrides: Partial<InventoryItem> = {}): InventoryItem {
     id: 'item-1',
     title: 'Kit Kat matcha',
     description: 'Sealed box',
+    link: null,
     condition: 'NEW',
     priceAmount: 1200,
     currency: 'JPY',
