@@ -1,16 +1,15 @@
 import { useState } from 'react'
 import { useParams } from 'react-router-dom'
-import { useOrder, useUpdateMyOrderItem } from '../api/orders'
+import { useOrder, useRemoveMyOrderItem, useUpdateMyOrderItem } from '../api/orders'
+import { useConfirm } from '../components/ConfirmDialog'
 import { OrderStatusBadge } from '../components/OrderStatusBadge'
 import { OrderItemStatusBadge } from '../components/OrderItemStatusBadge'
 import { Spinner, ButtonSpinner } from '../components/Spinner'
 import { ImageDropInput } from '../components/ImageDropInput'
 import { mediaUrl } from '../lib/media'
-import type { OrderItemDto, OrderStatus } from '../types/api'
+import type { OrderItemDto } from '../types/api'
 
-const EDITABLE_STATUSES: OrderStatus[] = ['REQUESTED', 'IN_PROGRESS']
-
-function EditableItem({ orderId, item, editable }: { orderId: string; item: OrderItemDto; editable: boolean }) {
+function EditableItem({ orderId, item }: { orderId: string; item: OrderItemDto }) {
   const [editing, setEditing] = useState(false)
   const [title, setTitle] = useState(item.title)
   const [description, setDescription] = useState(item.description ?? '')
@@ -18,6 +17,9 @@ function EditableItem({ orderId, item, editable }: { orderId: string; item: Orde
   const [quantity, setQuantity] = useState(item.quantity.toString())
   const [imageKey, setImageKey] = useState(item.imageKey ?? undefined)
   const updateItem = useUpdateMyOrderItem()
+  const removeItem = useRemoveMyOrderItem()
+  const confirm = useConfirm()
+  const editable = item.status !== 'BOUGHT'
 
   function save() {
     updateItem.mutate(
@@ -32,6 +34,16 @@ function EditableItem({ orderId, item, editable }: { orderId: string; item: Orde
       },
       { onSuccess: () => setEditing(false) },
     )
+  }
+
+  async function remove() {
+    const ok = await confirm({
+      title: 'Remove item',
+      message: `Remove "${item.title}" from this order?`,
+      confirmLabel: 'Remove',
+      danger: true,
+    })
+    if (ok) removeItem.mutate({ orderId, itemId: item.id })
   }
 
   if (!editing) {
@@ -52,9 +64,19 @@ function EditableItem({ orderId, item, editable }: { orderId: string; item: Orde
           </div>
         </div>
         {editable && (
-          <button type="button" className="btn-secondary self-start px-2 py-1 text-xs" onClick={() => setEditing(true)}>
-            Edit
-          </button>
+          <div className="flex gap-2 self-start">
+            <button type="button" className="btn-secondary px-2 py-1 text-xs" onClick={() => setEditing(true)}>
+              Edit
+            </button>
+            <button
+              type="button"
+              className="btn-danger px-2 py-1 text-xs"
+              onClick={remove}
+              disabled={removeItem.isPending}
+            >
+              {removeItem.isPending ? <ButtonSpinner /> : 'Remove'}
+            </button>
+          </div>
         )}
       </li>
     )
@@ -103,7 +125,7 @@ export function OrderDetailPage() {
   if (isLoading) return <Spinner fullPage label="Fetching order" />
   if (isError || !order) return <p className="error-text">Order not found.</p>
 
-  const editable = EDITABLE_STATUSES.includes(order.status)
+  const anyEditable = order.items.some((item) => item.status !== 'BOUGHT')
 
   return (
     <div className="card flex flex-col gap-3">
@@ -112,11 +134,11 @@ export function OrderDetailPage() {
         <OrderStatusBadge status={order.status} />
       </div>
       {order.notes && <p className="text-ink/70">{order.notes}</p>}
-      {!editable && <p className="text-sm text-ink/50">This order is no longer editable.</p>}
+      {!anyEditable && <p className="text-sm text-ink/50">Every item in this order has already been bought.</p>}
 
       <ul className="flex flex-col divide-y divide-stone-light">
         {order.items.map((item) => (
-          <EditableItem key={item.id} orderId={order.id} item={item} editable={editable} />
+          <EditableItem key={item.id} orderId={order.id} item={item} />
         ))}
       </ul>
     </div>

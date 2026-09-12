@@ -42,6 +42,14 @@ export function useCreateOrder() {
   })
 }
 
+export function useMergeMyOrders() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (orderIds: string[]) => api.post<OrderDto>('/api/orders/merge', { orderIds }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['orders'] }),
+  })
+}
+
 export interface UpdateMyOrderItemInput {
   title?: string
   description?: string
@@ -55,6 +63,15 @@ export function useUpdateMyOrderItem() {
   return useMutation({
     mutationFn: ({ orderId, itemId, ...input }: UpdateMyOrderItemInput & { orderId: string; itemId: string }) =>
       api.patch<OrderDto>(`/api/orders/${orderId}/items/${itemId}`, input),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['orders'] }),
+  })
+}
+
+export function useRemoveMyOrderItem() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: ({ orderId, itemId }: { orderId: string; itemId: string }) =>
+      api.delete<OrderDto>(`/api/orders/${orderId}/items/${itemId}`),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['orders'] }),
   })
 }
