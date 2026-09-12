@@ -49,6 +49,8 @@ export function Layout() {
                 <TopNavLink to="/admin/categories">Categories</TopNavLink>
                 <TopNavLink to="/admin/orders">Orders</TopNavLink>
                 <TopNavLink to="/admin/shipments">Shipments</TopNavLink>
+                <TopNavLink to="/admin/shipping-rates">Shipping rates</TopNavLink>
+                <TopNavLink to="/admin/dashboard">Dashboard</TopNavLink>
               </>
             )}
           </div>
@@ -115,6 +117,12 @@ export function Layout() {
                 </TopNavLink>
                 <TopNavLink to="/admin/shipments" onClick={closeMenu}>
                   Shipments
+                </TopNavLink>
+                <TopNavLink to="/admin/shipping-rates" onClick={closeMenu}>
+                  Shipping rates
+                </TopNavLink>
+                <TopNavLink to="/admin/dashboard" onClick={closeMenu}>
+                  Dashboard
                 </TopNavLink>
               </>
             )}

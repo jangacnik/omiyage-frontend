@@ -13,6 +13,8 @@ import { AdminCategoriesPage } from '../pages/admin/AdminCategoriesPage'
 import { AdminOrdersPage } from '../pages/admin/AdminOrdersPage'
 import { AdminOrderDetailPage } from '../pages/admin/AdminOrderDetailPage'
 import { AdminShipmentsPage } from '../pages/admin/AdminShipmentsPage'
+import { AdminShippingRatesPage } from '../pages/admin/AdminShippingRatesPage'
+import { AdminDashboardPage } from '../pages/admin/AdminDashboardPage'
 
 export const router = createBrowserRouter([
   { path: '/login', element: <LoginPage /> },
@@ -38,6 +40,8 @@ export const router = createBrowserRouter([
               { path: '/admin/orders/:id', element: <AdminOrderDetailPage /> },
               { path: '/admin/shipments', element: <AdminShipmentsPage /> },
               { path: '/admin/shipments/:id', element: <AdminShipmentsPage /> },
+              { path: '/admin/shipping-rates', element: <AdminShippingRatesPage /> },
+              { path: '/admin/dashboard', element: <AdminDashboardPage /> },
             ],
           },
         ],
