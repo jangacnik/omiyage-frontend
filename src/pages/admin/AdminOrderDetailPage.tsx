@@ -28,7 +28,7 @@ function AdminItemRow({ orderId, item }: { orderId: string; item: OrderItemDto }
 
   return (
     <li className="flex flex-col gap-3 py-4 sm:flex-row sm:items-start">
-      <div className="h-20 w-20 shrink-0 overflow-hidden rounded-lg bg-stone-light">
+      <div className="h-20 w-20 shrink-0 overflow-hidden rounded-lg bg-mist">
         {item.imageKey && <img src={mediaUrl(item.imageKey)} alt="" className="h-full w-full object-cover" />}
       </div>
 
@@ -151,7 +151,7 @@ export function AdminOrderDetailPage() {
 
       {order.notes && <p className="text-ink/70">{order.notes}</p>}
 
-      <ul className="card divide-y divide-stone-light">
+      <ul className="card divide-y divide-mist">
         {order.items.map((item) => (
           <AdminItemRow key={item.id} orderId={order.id} item={item} />
         ))}

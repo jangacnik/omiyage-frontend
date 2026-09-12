@@ -17,13 +17,13 @@ function ShipmentGroup({ orders }: { orders: OrderDto[] }) {
       <div className="flex items-center justify-between">
         <span className="text-sm font-medium text-ink/60">Shipment {active.shipmentId?.slice(0, 8)}</span>
       </div>
-      <div className="flex flex-wrap gap-1 border-b border-stone-light pb-2">
+      <div className="flex flex-wrap gap-1 border-b border-mist pb-2">
         {orders.map((order) => (
           <button
             key={order.id}
             type="button"
             onClick={() => setActiveId(order.id)}
-            className={`nav-link ${order.id === activeId ? 'bg-stone-light text-ink' : ''}`}
+            className={`nav-link ${order.id === activeId ? 'bg-mist text-ink' : ''}`}
           >
             Order {orderDisplayName(order)}
             <OrderIdHint id={order.id} nickname={order.nickname} />
@@ -31,7 +31,7 @@ function ShipmentGroup({ orders }: { orders: OrderDto[] }) {
         ))}
       </div>
       <div className="flex items-center justify-between">
-        <Link to={`/orders/${active.id}`} className="font-medium text-ink hover:text-persimmon">
+        <Link to={`/orders/${active.id}`} className="font-medium text-ink hover:text-forest">
           {active.items.length} item(s)
         </Link>
         <OrderStatusBadge status={active.status} />
@@ -101,7 +101,7 @@ export function OrdersListPage() {
       {mergeError && <p className="error-text mb-2">{mergeError}</p>}
 
       {selected.length >= 2 && (
-        <div className="mb-3 flex items-center justify-between rounded-lg bg-stone-light px-3 py-2">
+        <div className="mb-3 flex items-center justify-between rounded-lg bg-mist px-3 py-2">
           <span className="text-sm text-ink">{selected.length} orders selected</span>
           <button type="button" className="btn-primary px-3 py-1.5 text-sm" onClick={mergeSelected} disabled={mergeOrders.isPending}>
             {mergeOrders.isPending ? <ButtonSpinner /> : 'Merge selected'}
@@ -122,7 +122,7 @@ export function OrdersListPage() {
                   onChange={() => toggleSelected(group[0].id)}
                   aria-label={`Select order ${group[0].id.slice(0, 8)} to merge`}
                 />
-                <Link to={`/orders/${group[0].id}`} className="font-medium text-ink hover:text-persimmon">
+                <Link to={`/orders/${group[0].id}`} className="font-medium text-ink hover:text-forest">
                   Order {orderDisplayName(group[0])}
                   <OrderIdHint id={group[0].id} nickname={group[0].nickname} /> — {group[0].items.length} item(s)
                 </Link>

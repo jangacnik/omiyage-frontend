@@ -24,9 +24,12 @@ export function InventoryPage() {
 
   return (
     <div>
-      <h1 className="page-title mb-4">Inventory</h1>
+      <div className="mb-5 flex flex-wrap items-baseline gap-x-3 gap-y-1">
+        <h1 className="page-title">Inventory</h1>
+        {data && <span className="text-sm text-ink/50">{data.totalElements} items</span>}
+      </div>
 
-      <div className="mb-4 flex flex-col gap-3 sm:flex-row">
+      <div className="mb-5 flex flex-col gap-3 sm:flex-row">
         <input
           type="search"
           placeholder="Search by title"
@@ -55,17 +58,29 @@ export function InventoryPage() {
 
       {isLoading && <Spinner label="Fetching inventory" />}
       {isError && <p className="error-text">Could not load inventory.</p>}
-      {data && data.content.length === 0 && <p className="text-ink/50">No items found.</p>}
+      {data && data.content.length === 0 && (
+        <div className="card flex flex-col items-center gap-1 py-12 text-center">
+          <p className="font-medium text-ink">Nothing here yet</p>
+          <p className="text-sm text-ink/55">Try a different search term or category.</p>
+        </div>
+      )}
 
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 md:grid-cols-4">
-        {data?.content.map((item) => (
+        {data?.content.map((item, i) => (
           <Link
             to={`/inventory/${item.id}`}
             key={item.id}
-            className="card overflow-hidden p-0 transition hover:-translate-y-0.5 hover:shadow-md"
+            className="card card-interactive animate-rise group overflow-hidden p-0"
+            style={{ animationDelay: `${Math.min(i, 11) * 0.04}s` }}
           >
-            <div className="aspect-square w-full bg-stone-light">
-              {item.images[0] && <img src={mediaUrl(item.images[0])} alt={item.title} className="h-full w-full object-cover" />}
+            <div className="aspect-square w-full overflow-hidden bg-mist">
+              {item.images[0] && (
+                <img
+                  src={mediaUrl(item.images[0])}
+                  alt={item.title}
+                  className="h-full w-full object-cover transition-transform duration-500 ease-[var(--ease-out-soft)] group-hover:scale-105"
+                />
+              )}
             </div>
             <div className="p-3">
               <p className="truncate font-medium text-ink">{item.title}</p>

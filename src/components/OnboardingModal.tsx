@@ -28,12 +28,12 @@ export function OnboardingModal() {
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink/40 p-4" role="presentation" onClick={close}>
+    <div className="animate-fade fixed inset-0 z-50 flex items-center justify-center bg-ink/50 p-4 backdrop-blur-sm" role="presentation" onClick={close}>
       <div
         role="dialog"
         aria-modal="true"
         aria-labelledby="onboarding-title"
-        className="card w-full max-w-md"
+        className="card animate-pop w-full max-w-md"
         onClick={(e) => e.stopPropagation()}
       >
         <h2 id="onboarding-title" className="page-title mb-3 text-lg">

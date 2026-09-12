@@ -69,11 +69,11 @@ export function AdminOrdersPage() {
                 onChange={() => toggle(order.id)}
                 aria-label={`Select order ${order.id.slice(0, 8)}`}
               />
-              <Link to={`/admin/orders/${order.id}`} className="flex flex-wrap items-center gap-2 font-medium text-ink hover:text-persimmon">
+              <Link to={`/admin/orders/${order.id}`} className="flex flex-wrap items-center gap-2 font-medium text-ink hover:text-forest">
                 Order {orderDisplayName(order)}
                 <OrderIdHint id={order.id} nickname={order.nickname} /> <OrderStatusBadge status={order.status} />
                 {order.shipmentId && (
-                  <span className="rounded-full bg-stone-light px-2 py-0.5 text-xs text-ink/70">
+                  <span className="rounded-full bg-mist px-2 py-0.5 text-xs text-ink/70">
                     shipment {order.shipmentId.slice(0, 8)}
                   </span>
                 )}

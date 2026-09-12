@@ -71,7 +71,7 @@ export function ImageDropInput({ label = 'Photo', initialImageKey, onUploaded, o
 
   return (
     <div
-      className="flex flex-col items-start gap-2 rounded-lg border border-dashed border-stone-light bg-surface px-3 py-3 focus-within:ring-2 focus-within:ring-persimmon"
+      className="flex flex-col items-start gap-2 rounded-lg border border-dashed border-mist bg-surface px-3 py-3 focus-within:ring-2 focus-within:ring-forest"
       onPaste={handlePaste}
       tabIndex={0}
       role="group"
@@ -79,7 +79,7 @@ export function ImageDropInput({ label = 'Photo', initialImageKey, onUploaded, o
     >
       <div className="flex flex-wrap items-center gap-3">
         {previewUrl && (
-          <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-lg bg-stone-light">
+          <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-lg bg-mist">
             <img src={previewUrl} alt="Selected preview" className="h-full w-full object-cover" />
             {!uploading && (
               <button
@@ -115,7 +115,7 @@ export function ImageDropInput({ label = 'Photo', initialImageKey, onUploaded, o
               <ButtonSpinner /> Uploading...
             </p>
           )}
-          {!uploading && previewUrl && !error && <p className="text-xs text-emerald-700">Photo attached.</p>}
+          {!uploading && previewUrl && !error && <p className="text-xs text-forest">Photo attached.</p>}
           {error && <p className="error-text text-xs">{error}</p>}
         </div>
       </div>
