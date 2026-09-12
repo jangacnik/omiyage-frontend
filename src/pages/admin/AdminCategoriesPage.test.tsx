@@ -1,5 +1,5 @@
 import { http, HttpResponse } from 'msw'
-import { screen, waitFor } from '@testing-library/react'
+import { screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it } from 'vitest'
 import { server } from '../../test/server'
@@ -36,7 +36,7 @@ describe('AdminCategoriesPage', () => {
     await waitFor(() => expect(capturedBody).toEqual({ name: 'Video Games', slug: 'video-games' }))
   })
 
-  it('deletes a category', async () => {
+  it('deletes a category after confirming', async () => {
     const user = userEvent.setup()
     let deleteCalled = false
     server.use(
@@ -50,6 +50,9 @@ describe('AdminCategoriesPage', () => {
     renderWithProviders(<AdminCategoriesPage />)
     await screen.findByText('Snacks')
     await user.click(screen.getByText('Delete'))
+
+    const dialog = await screen.findByRole('alertdialog')
+    await user.click(within(dialog).getByText('Delete'))
 
     await waitFor(() => expect(deleteCalled).toBe(true))
   })

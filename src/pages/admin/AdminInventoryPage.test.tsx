@@ -1,5 +1,5 @@
 import { http, HttpResponse } from 'msw'
-import { screen, waitFor } from '@testing-library/react'
+import { screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it } from 'vitest'
 import { server } from '../../test/server'
@@ -91,7 +91,7 @@ describe('AdminInventoryPage', () => {
     await waitFor(() => expect(capturedStatus).toEqual({ status: 'ARCHIVED' }))
   })
 
-  it('deletes an item', async () => {
+  it('deletes an item after confirming', async () => {
     const user = userEvent.setup()
     let deleteCalled = false
     server.use(
@@ -106,6 +106,9 @@ describe('AdminInventoryPage', () => {
     renderWithProviders(<AdminInventoryPage />)
     await screen.findByText(/Kit Kat matcha/)
     await user.click(screen.getByText('Delete'))
+
+    const dialog = await screen.findByRole('alertdialog')
+    await user.click(within(dialog).getByText('Delete'))
 
     await waitFor(() => expect(deleteCalled).toBe(true))
   })
