@@ -32,7 +32,7 @@ function ShipmentCard({ shipment, expanded }: { shipment: ShipmentDto; expanded:
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-2">
           <h2 className="font-medium text-ink">Shipment {shipment.id.slice(0, 8)}</h2>
-          <span className="rounded-full bg-stone-light px-2.5 py-0.5 text-sm font-medium text-ink">{shipment.status}</span>
+          <span className="rounded-full bg-mist px-2.5 py-0.5 text-sm font-medium text-ink">{shipment.status}</span>
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <select
@@ -126,7 +126,7 @@ function ShipmentCard({ shipment, expanded }: { shipment: ShipmentDto; expanded:
       </div>
 
       {expanded && (
-        <div className="flex flex-col divide-y divide-stone-light border-t border-stone-light pt-2">
+        <div className="flex flex-col divide-y divide-mist border-t border-mist pt-2">
           {shipment.orders.map((order) => (
             <div key={order.id} className="flex flex-col gap-1 py-2">
               <div className="flex flex-wrap items-center gap-2">
@@ -172,7 +172,7 @@ export function AdminShipmentsPage() {
       <h1 className="page-title mb-4">Admin: Shipments</h1>
       {visible && visible.length === 0 && (
         <p className="text-ink/50">
-          No shipments yet — select orders on the <a href="/admin/orders" className="text-persimmon hover:underline">Orders</a> page
+          No shipments yet — select orders on the <a href="/admin/orders" className="text-forest hover:underline">Orders</a> page
           and combine them into one.
         </p>
       )}

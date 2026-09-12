@@ -1,4 +1,5 @@
 import { createContext, useCallback, useContext, useRef, useState } from 'react'
+import { TrashIcon } from './icons'
 
 interface ConfirmOptions {
   title?: string
@@ -39,7 +40,7 @@ export function ConfirmProvider({ children }: { children: React.ReactNode }) {
       {children}
       {options && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-ink/40 p-4"
+          className="animate-fade fixed inset-0 z-50 flex items-center justify-center bg-ink/50 p-4 backdrop-blur-sm"
           role="presentation"
           onClick={() => close(false)}
         >
@@ -47,7 +48,7 @@ export function ConfirmProvider({ children }: { children: React.ReactNode }) {
             role="alertdialog"
             aria-modal="true"
             aria-labelledby="confirm-title"
-            className="card w-full max-w-sm"
+            className="card animate-pop w-full max-w-sm"
             onClick={(e) => e.stopPropagation()}
           >
             <h2 id="confirm-title" className="page-title mb-2 text-lg">
@@ -60,10 +61,11 @@ export function ConfirmProvider({ children }: { children: React.ReactNode }) {
               </button>
               <button
                 type="button"
-                className={options.danger ? 'btn-danger' : 'btn-primary'}
+                className={options.danger ? 'btn-danger-solid' : 'btn-primary'}
                 onClick={() => close(true)}
                 autoFocus
               >
+                {options.danger && <TrashIcon size={14} />}
                 {options.confirmLabel ?? 'Confirm'}
               </button>
             </div>

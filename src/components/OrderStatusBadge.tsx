@@ -1,4 +1,5 @@
 import type { OrderStatus } from '../types/api'
+import { StatusPill, type StatusTone } from './StatusPill'
 
 const LABELS: Record<OrderStatus, string> = {
   REQUESTED: 'Requested',
@@ -9,17 +10,15 @@ const LABELS: Record<OrderStatus, string> = {
   CANCELLED: 'Cancelled',
 }
 
-const COLORS: Record<OrderStatus, string> = {
-  REQUESTED: 'bg-stone-light text-ink',
-  IN_PROGRESS: 'bg-amber-100 text-amber-800',
-  PURCHASED: 'bg-sky-100 text-sky-800',
-  SENT: 'bg-violet-100 text-violet-800',
-  DELIVERED: 'bg-emerald-100 text-emerald-800',
-  CANCELLED: 'bg-red-100 text-red-700',
+const TONES: Record<OrderStatus, StatusTone> = {
+  REQUESTED: 'idle',
+  IN_PROGRESS: 'early',
+  PURCHASED: 'mid',
+  SENT: 'late',
+  DELIVERED: 'done',
+  CANCELLED: 'stopped',
 }
 
 export function OrderStatusBadge({ status }: { status: OrderStatus }) {
-  return (
-    <span className={`inline-block rounded-full px-2.5 py-0.5 text-sm font-medium ${COLORS[status]}`}>{LABELS[status]}</span>
-  )
+  return <StatusPill tone={TONES[status]} label={LABELS[status]} />
 }

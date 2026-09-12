@@ -49,7 +49,7 @@ describe('InventoryPage', () => {
 
     renderWithProviders(<InventoryPage />)
 
-    expect(await screen.findByText('No items found.')).toBeInTheDocument()
+    expect(await screen.findByText('Nothing here yet')).toBeInTheDocument()
   })
 
   it('sends the typed search term as a title filter', async () => {

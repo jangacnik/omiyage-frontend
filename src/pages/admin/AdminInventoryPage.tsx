@@ -13,6 +13,7 @@ import { Pagination } from '../../components/Pagination'
 import { Spinner } from '../../components/Spinner'
 import { ImageDropInput } from '../../components/ImageDropInput'
 import { useConfirm } from '../../components/ConfirmDialog'
+import { TrashIcon } from '../../components/icons'
 
 const itemSchema = z.object({
   title: z.string().min(1, 'Title is required'),
@@ -135,7 +136,7 @@ export function AdminInventoryPage() {
                 {item.status === 'ACTIVE' ? 'Archive' : 'Activate'}
               </button>
               <button type="button" className="btn-danger px-2 py-1 text-xs" onClick={() => handleDelete(item.id, item.title)}>
-                Delete
+                <TrashIcon size={13} /> Delete
               </button>
             </span>
           </li>

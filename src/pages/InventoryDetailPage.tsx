@@ -22,7 +22,7 @@ export function InventoryDetailPage() {
       <div className="flex flex-1 flex-col gap-2">
         <h1 className="page-title">{item.title}</h1>
         {item.description && <p className="text-ink/70">{item.description}</p>}
-        <p className="text-2xl font-semibold text-persimmon">
+        <p className="text-2xl font-semibold text-forest">
           {item.priceAmount} {item.currency}
         </p>
         <dl className="grid grid-cols-2 gap-y-1 text-sm text-ink/70">

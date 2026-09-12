@@ -5,6 +5,7 @@ import { z } from 'zod'
 import { useLogin } from '../api/auth'
 import { useAuthStore } from '../store/authStore'
 import { ApiError } from '../lib/apiClient'
+import { BrandMark } from '../components/BrandMark'
 import { ButtonSpinner } from '../components/Spinner'
 
 const loginSchema = z.object({
@@ -38,18 +39,17 @@ export function LoginPage() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-paper px-4">
       <div className="w-full max-w-sm">
-        <div className="mb-6 flex flex-col items-center gap-2 text-center">
-          <svg viewBox="0 0 64 64" width="40" height="40" aria-hidden="true">
-            <rect width="64" height="64" rx="14" fill="#262220" />
-            <rect x="14" y="14" width="36" height="36" rx="3" fill="none" stroke="#f7f1e4" strokeWidth="4" strokeLinejoin="round" />
-            <path d="M38 14 L50 14 L50 26 Z" fill="#bd5b3a" />
-            <circle cx="27" cy="38" r="3.4" fill="#bd5b3a" />
-          </svg>
+        <div className="animate-rise mb-6 flex flex-col items-center gap-2 text-center">
+          <BrandMark size={44} />
           <h1 className="page-title">Omiyage</h1>
           <p className="text-sm text-ink/60">Sign in to browse and request souvenirs.</p>
         </div>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="card flex flex-col gap-4">
+        <form
+          onSubmit={handleSubmit(onSubmit)}
+          className="card animate-rise flex flex-col gap-4"
+          style={{ animationDelay: '0.08s' }}
+        >
           <div className="flex flex-col gap-1">
             <label htmlFor="nickname" className="field-label">
               Nickname

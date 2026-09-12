@@ -1,59 +1,173 @@
 @import "tailwindcss";
-@import url("https://fonts.googleapis.com/css2?family=Zen+Old+Mincho:wght@500;700&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap");
 
 @theme {
-  --color-paper: #f7f1e4;
-  --color-surface: #fffdf7;
-  --color-ink: #262220;
-  --color-persimmon: #bd5b3a;
-  --color-persimmon-dark: #a24a2e;
-  --color-bottle: #2f4538;
-  --color-stone: #a98f72;
-  --color-stone-light: #e3d6be;
+  --color-paper: #e8f1f2;
+  --color-surface: #f9fcfc;
+  --color-ink: #001a23;
+  --color-forest: #31493c;
+  --color-forest-deep: #20322a;
+  --color-sage: #7a9e7e;
+  --color-mist: #cfdfe1;
+  --color-mint: #b3efb2;
+  --color-danger: #c92a2a;
+  --color-danger-soft: #fbeaea;
+  --color-danger-deep: #a31f1f;
 
   --font-display: "Zen Old Mincho", serif;
   --font-body: "Zen Kaku Gothic New", sans-serif;
+
+  --ease-out-soft: cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 html,
 body {
   @apply bg-paper text-ink;
   font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Paper grain — keeps the flat palette from reading as a sterile template fill. */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0.4;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)' opacity='0.35'/%3E%3C/svg%3E");
+}
+
+body > * {
+  position: relative;
+  z-index: 1;
+}
+
+::selection {
+  background: var(--color-mint);
+  color: var(--color-ink);
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-forest);
+  outline-offset: 2px;
 }
 
 @layer components {
   .btn-primary {
-    @apply inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-medium text-white transition-colors duration-150 bg-persimmon shadow-sm hover:bg-persimmon-dark active:bg-persimmon-dark disabled:cursor-not-allowed disabled:opacity-50;
+    @apply inline-flex items-center justify-center gap-2 rounded-lg bg-forest px-4 py-2 text-sm font-medium text-paper shadow-[0_2px_0_0_var(--color-forest-deep)] transition-all duration-150 hover:bg-forest-deep active:translate-y-0.5 active:shadow-none disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-forest;
   }
   .btn-secondary {
-    @apply inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-colors duration-150 bg-surface text-ink ring-1 ring-inset ring-stone-light hover:bg-stone-light disabled:cursor-not-allowed disabled:opacity-50;
+    @apply inline-flex items-center justify-center gap-2 rounded-lg bg-surface px-4 py-2 text-sm font-medium text-ink ring-1 ring-inset ring-mist transition-all duration-150 hover:bg-mist active:translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-50;
   }
+  /* Outlined for destructive actions sitting in a list; the solid variant is for the
+     one button that actually commits the deletion. */
   .btn-danger {
-    @apply inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-colors duration-150 bg-white text-red-600 ring-1 ring-inset ring-red-200 hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50;
+    @apply inline-flex items-center justify-center gap-1.5 rounded-lg bg-danger-soft px-4 py-2 text-sm font-medium text-danger ring-1 ring-inset ring-danger/30 transition-all duration-150 hover:bg-danger hover:text-white hover:ring-danger active:translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-50;
+  }
+  .btn-danger-solid {
+    @apply inline-flex items-center justify-center gap-1.5 rounded-lg bg-danger px-4 py-2 text-sm font-medium text-white shadow-[0_2px_0_0_var(--color-danger-deep)] transition-all duration-150 hover:bg-danger-deep active:translate-y-0.5 active:shadow-none disabled:cursor-not-allowed disabled:opacity-50;
   }
 
   .field-input {
-    @apply w-full rounded-lg border-0 bg-surface px-3 py-2 text-sm text-ink shadow-sm ring-1 ring-inset ring-stone-light transition placeholder:text-stone focus:outline-none focus:ring-2 focus:ring-persimmon;
+    @apply w-full rounded-lg border-0 bg-surface px-3 py-2 text-sm text-ink shadow-sm ring-1 ring-inset ring-mist transition placeholder:text-ink/45 focus:outline-none focus:ring-2 focus:ring-forest;
   }
   .field-label {
-    @apply block text-sm font-medium text-ink/80;
+    @apply block text-sm font-medium text-ink/70;
   }
   .error-text {
-    @apply text-sm font-medium text-red-600;
+    @apply text-sm font-medium text-danger;
   }
 
   .card {
-    @apply rounded-xl border border-stone-light bg-surface p-4 shadow-sm;
+    @apply rounded-xl border border-mist bg-surface p-4 shadow-[0_1px_2px_rgba(0,26,35,0.05)];
+  }
+
+  /* Cards that are themselves links/buttons — lift and warm their edge on hover. */
+  .card-interactive {
+    @apply transition-all duration-200 ease-[var(--ease-out-soft)] hover:-translate-y-1 hover:border-sage hover:shadow-[0_10px_24px_-12px_rgba(0,26,35,0.35)];
   }
 
   .page-title {
-    @apply text-2xl font-semibold tracking-tight text-ink;
+    @apply text-2xl font-bold tracking-tight text-ink;
     font-family: var(--font-display);
   }
 
+  /* The top bar sits on ink, so nav links are tinted paper rather than ink. */
   .nav-link {
-    @apply rounded-md px-3 py-1.5 text-sm font-medium text-ink/70 transition-colors hover:bg-stone-light hover:text-ink;
+    @apply relative rounded-md px-3 py-1.5 text-sm font-medium text-paper/65 transition-colors duration-150 hover:text-paper;
   }
+  .nav-link::after {
+    content: "";
+    @apply absolute inset-x-2 bottom-0.5 h-0.5 origin-left scale-x-0 rounded-full bg-mint transition-transform duration-200 ease-[var(--ease-out-soft)];
+  }
+  .nav-link:hover::after,
+  .nav-link-active::after {
+    @apply scale-x-100;
+  }
+  .nav-link-active {
+    @apply text-paper;
+  }
+
+  .btn-ghost-inverse {
+    @apply inline-flex items-center justify-center gap-2 rounded-lg px-3 py-1.5 text-sm font-medium text-paper/80 ring-1 ring-inset ring-paper/25 transition-colors duration-150 hover:bg-paper/10 hover:text-paper;
+  }
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.animate-rise {
+  animation: rise 0.45s var(--ease-out-soft) both;
+}
+
+@keyframes fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+.animate-fade {
+  animation: fade 0.2s ease-out both;
+}
+
+@keyframes pop {
+  0% {
+    opacity: 0;
+    transform: scale(0.85);
+  }
+  60% {
+    transform: scale(1.04);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+.animate-pop {
+  animation: pop 0.28s var(--ease-out-soft) both;
+}
+
+@keyframes sheet-in {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.animate-sheet-in {
+  animation: sheet-in 0.22s var(--ease-out-soft) both;
 }
 
 @keyframes gift-bounce {
@@ -83,4 +197,14 @@ body {
 }
 .animate-dot-bounce {
   animation: dot-bounce 1s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }

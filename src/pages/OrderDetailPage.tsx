@@ -8,6 +8,7 @@ import { OrderItemStatusBadge } from '../components/OrderItemStatusBadge'
 import { Spinner, ButtonSpinner } from '../components/Spinner'
 import { ImageDropInput } from '../components/ImageDropInput'
 import { mediaUrl } from '../lib/media'
+import { TrashIcon } from '../components/icons'
 import type { OrderDto, OrderItemDto } from '../types/api'
 
 function OrderNicknameEditor({ order }: { order: OrderDto }) {
@@ -104,7 +105,7 @@ function EditableItem({ orderId, item }: { orderId: string; item: OrderItemDto }
     return (
       <li className="flex flex-col gap-2 py-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-3">
-          <div className="h-16 w-16 shrink-0 overflow-hidden rounded-lg bg-stone-light">
+          <div className="h-16 w-16 shrink-0 overflow-hidden rounded-lg bg-mist">
             {item.imageKey && <img src={mediaUrl(item.imageKey)} alt="" className="h-full w-full object-cover" />}
           </div>
           <div>
@@ -128,7 +129,13 @@ function EditableItem({ orderId, item }: { orderId: string; item: OrderItemDto }
               onClick={remove}
               disabled={removeItem.isPending}
             >
-              {removeItem.isPending ? <ButtonSpinner /> : 'Remove'}
+              {removeItem.isPending ? (
+                <ButtonSpinner />
+              ) : (
+                <>
+                  <TrashIcon size={13} /> Remove
+                </>
+              )}
             </button>
           </div>
         )}
@@ -137,7 +144,7 @@ function EditableItem({ orderId, item }: { orderId: string; item: OrderItemDto }
   }
 
   return (
-    <li className="flex flex-col gap-2 rounded-lg border border-stone-light p-3">
+    <li className="flex flex-col gap-2 rounded-lg border border-mist p-3">
       <input className="field-input" value={title} onChange={(e) => setTitle(e.target.value)} aria-label={`Title for ${item.title}`} />
       <textarea
         className="field-input"
@@ -190,7 +197,7 @@ export function OrderDetailPage() {
       {order.notes && <p className="text-ink/70">{order.notes}</p>}
       {!anyEditable && <p className="text-sm text-ink/50">Every item in this order has already been bought.</p>}
 
-      <ul className="flex flex-col divide-y divide-stone-light">
+      <ul className="flex flex-col divide-y divide-mist">
         {order.items.map((item) => (
           <EditableItem key={item.id} orderId={order.id} item={item} />
         ))}

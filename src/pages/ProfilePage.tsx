@@ -135,7 +135,7 @@ export function ProfilePage() {
           <button type="submit" className="btn-primary self-start" disabled={updateProfile.isPending}>
             Save
           </button>
-          {updateProfile.isSuccess && <p className="text-sm font-medium text-bottle">Saved.</p>}
+          {updateProfile.isSuccess && <p className="text-sm font-medium text-forest">Saved.</p>}
           {updateProfile.isError && <p className="error-text">Could not save profile.</p>}
         </div>
       </form>
