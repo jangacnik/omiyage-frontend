@@ -11,6 +11,7 @@ export interface CreateOrderItemInput {
   currency: Currency
   maxPrice?: number
   quantity?: number
+  link?: string
 }
 
 export interface CreateOrderInput {
@@ -56,6 +57,16 @@ export interface UpdateMyOrderItemInput {
   imageKey?: string
   maxPrice?: number
   quantity?: number
+  link?: string
+}
+
+export function useAddMyOrderItem() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: ({ orderId, ...input }: CreateOrderItemInput & { orderId: string }) =>
+      api.post<OrderDto>(`/api/orders/${orderId}/items`, input),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['orders'] }),
+  })
 }
 
 export function useUpdateMyOrderItem() {
@@ -72,6 +83,22 @@ export function useRemoveMyOrderItem() {
   return useMutation({
     mutationFn: ({ orderId, itemId }: { orderId: string; itemId: string }) =>
       api.delete<OrderDto>(`/api/orders/${orderId}/items/${itemId}`),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['orders'] }),
+  })
+}
+
+export function useCancelMyOrder() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (orderId: string) => api.post<OrderDto>(`/api/orders/${orderId}/cancel`),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['orders'] }),
+  })
+}
+
+export function useSubmitForShipping() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (orderId: string) => api.post<OrderDto>(`/api/orders/${orderId}/submit-for-shipping`),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['orders'] }),
   })
 }

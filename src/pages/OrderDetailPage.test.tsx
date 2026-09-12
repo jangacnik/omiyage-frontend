@@ -1,5 +1,5 @@
 import { http, HttpResponse } from 'msw'
-import { screen, waitFor } from '@testing-library/react'
+import { screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it } from 'vitest'
 import { Route, Routes } from 'react-router-dom'
@@ -167,5 +167,110 @@ describe('OrderDetailPage', () => {
 
     expect(screen.getByText(/Grandma's Gifts/)).toBeInTheDocument()
     expect(screen.queryByLabelText('Order nickname')).not.toBeInTheDocument()
+  })
+
+  it('cancels the order after confirming', async () => {
+    const user = userEvent.setup()
+    let cancelled = false
+    server.use(
+      http.get(`${BASE}/api/orders/order-1`, () => HttpResponse.json(order())),
+      http.post(`${BASE}/api/orders/order-1/cancel`, () => {
+        cancelled = true
+        return HttpResponse.json({ ...order(), status: 'CANCELLED', open: false })
+      }),
+    )
+
+    renderWithProviders(
+      <Routes>
+        <Route path="/orders/:id" element={<OrderDetailPage />} />
+      </Routes>,
+      ['/orders/order-1'],
+    )
+
+    await user.click(await screen.findByText('Cancel order'))
+    const dialog = await screen.findByRole('alertdialog')
+    await user.click(within(dialog).getByRole('button', { name: 'Cancel order' }))
+
+    await waitFor(() => expect(cancelled).toBe(true))
+  })
+
+  it('submits for shipping after confirming', async () => {
+    const user = userEvent.setup()
+    let submitted = false
+    server.use(
+      http.get(`${BASE}/api/orders/order-1`, () => HttpResponse.json(order())),
+      http.post(`${BASE}/api/orders/order-1/submit-for-shipping`, () => {
+        submitted = true
+        return HttpResponse.json({ ...order(), status: 'PREPARING_SHIPPING', open: false })
+      }),
+    )
+
+    renderWithProviders(
+      <Routes>
+        <Route path="/orders/:id" element={<OrderDetailPage />} />
+      </Routes>,
+      ['/orders/order-1'],
+    )
+
+    await user.click(await screen.findByText('Submit for shipping'))
+    const dialog = await screen.findByRole('alertdialog')
+    await user.click(within(dialog).getByRole('button', { name: 'Submit' }))
+
+    await waitFor(() => expect(submitted).toBe(true))
+  })
+
+  it('a closed order hides edit/add/cancel controls', async () => {
+    server.use(
+      http.get(`${BASE}/api/orders/order-1`, () =>
+        HttpResponse.json({ ...order(), status: 'PREPARING_SHIPPING', open: false }),
+      ),
+    )
+
+    renderWithProviders(
+      <Routes>
+        <Route path="/orders/:id" element={<OrderDetailPage />} />
+      </Routes>,
+      ['/orders/order-1'],
+    )
+
+    expect(await screen.findByText('Ghibli museum ticket')).toBeInTheDocument()
+    expect(screen.queryByText('Edit')).not.toBeInTheDocument()
+    expect(screen.queryByText('Add item')).not.toBeInTheDocument()
+    expect(screen.queryByText('Cancel order')).not.toBeInTheDocument()
+    expect(screen.getByText(/no longer open/)).toBeInTheDocument()
+  })
+
+  it('adds a new item to an open order', async () => {
+    const user = userEvent.setup()
+    let capturedBody: unknown = null
+    server.use(
+      http.get(`${BASE}/api/orders/order-1`, () => HttpResponse.json(order())),
+      http.post(`${BASE}/api/orders/order-1/items`, async ({ request }) => {
+        capturedBody = await request.json()
+        return HttpResponse.json(order())
+      }),
+    )
+
+    renderWithProviders(
+      <Routes>
+        <Route path="/orders/:id" element={<OrderDetailPage />} />
+      </Routes>,
+      ['/orders/order-1'],
+    )
+
+    await user.click(await screen.findByText('Add item'))
+    await user.type(screen.getByLabelText('Title'), 'Studio Ghibli tote bag')
+    await user.type(screen.getByLabelText('Link to store page'), 'https://example.com/tote')
+    await user.click(screen.getByText('Add item'))
+
+    await waitFor(() =>
+      expect(capturedBody).toMatchObject({
+        title: 'Studio Ghibli tote bag',
+        condition: 'NEW',
+        currency: 'JPY',
+        quantity: 1,
+        link: 'https://example.com/tote',
+      }),
+    )
   })
 })

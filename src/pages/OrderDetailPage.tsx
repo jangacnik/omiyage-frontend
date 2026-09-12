@@ -1,13 +1,21 @@
 import { useState } from 'react'
 import { useParams } from 'react-router-dom'
-import { orderDisplayName, useOrder, useRemoveMyOrderItem, useUpdateMyOrderItem, useUpdateOrderNickname } from '../api/orders'
+import {
+  orderDisplayName,
+  useAddMyOrderItem,
+  useCancelMyOrder,
+  useOrder,
+  useRemoveMyOrderItem,
+  useSubmitForShipping,
+  useUpdateMyOrderItem,
+  useUpdateOrderNickname,
+} from '../api/orders'
 import { useConfirm } from '../components/ConfirmDialog'
 import { OrderIdHint } from '../components/OrderIdHint'
+import { OrderItemCard } from '../components/OrderItemCard'
 import { OrderStatusBadge } from '../components/OrderStatusBadge'
-import { OrderItemStatusBadge } from '../components/OrderItemStatusBadge'
 import { Spinner, ButtonSpinner } from '../components/Spinner'
 import { ImageDropInput } from '../components/ImageDropInput'
-import { mediaUrl } from '../lib/media'
 import { TrashIcon } from '../components/icons'
 import type { OrderDto, OrderItemDto } from '../types/api'
 
@@ -64,17 +72,20 @@ function OrderNicknameEditor({ order }: { order: OrderDto }) {
   )
 }
 
-function EditableItem({ orderId, item }: { orderId: string; item: OrderItemDto }) {
+function EditableItem({ orderId, item, locked }: { orderId: string; item: OrderItemDto; locked: boolean }) {
   const [editing, setEditing] = useState(false)
   const [title, setTitle] = useState(item.title)
   const [description, setDescription] = useState(item.description ?? '')
   const [maxPrice, setMaxPrice] = useState(item.maxPrice?.toString() ?? '')
   const [quantity, setQuantity] = useState(item.quantity.toString())
+  const [link, setLink] = useState(item.link ?? '')
   const [imageKey, setImageKey] = useState(item.imageKey ?? undefined)
   const updateItem = useUpdateMyOrderItem()
   const removeItem = useRemoveMyOrderItem()
   const confirm = useConfirm()
-  const editable = item.status !== 'BOUGHT'
+  // The backend also blocks this (item already bought/shipped, or the order itself is no longer
+  // open) - these checks just keep the UI from offering a button that would 409.
+  const editable = !locked && item.status !== 'BOUGHT' && item.status !== 'SHIPPED'
 
   function save() {
     updateItem.mutate(
@@ -85,6 +96,7 @@ function EditableItem({ orderId, item }: { orderId: string; item: OrderItemDto }
         description,
         maxPrice: maxPrice ? Number(maxPrice) : undefined,
         quantity: quantity ? Number(quantity) : undefined,
+        link: link || undefined,
         imageKey,
       },
       { onSuccess: () => setEditing(false) },
@@ -103,42 +115,30 @@ function EditableItem({ orderId, item }: { orderId: string; item: OrderItemDto }
 
   if (!editing) {
     return (
-      <li className="flex flex-col gap-2 py-3 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex items-center gap-3">
-          <div className="h-16 w-16 shrink-0 overflow-hidden rounded-lg bg-mist">
-            {item.imageKey && <img src={mediaUrl(item.imageKey)} alt="" className="h-full w-full object-cover" />}
-          </div>
-          <div>
-            <p className="font-medium text-ink">{item.title}</p>
-            <p className="text-sm text-ink/60">
-              {item.currency} {item.maxPrice ?? '—'} max / {item.actualPrice ?? '—'} paid · qty {item.quantity}
-            </p>
-            <div className="mt-1">
-              <OrderItemStatusBadge status={item.status} />
-            </div>
-          </div>
-        </div>
-        {editable && (
-          <div className="flex gap-2 self-start">
-            <button type="button" className="btn-secondary px-2 py-1 text-xs" onClick={() => setEditing(true)}>
-              Edit
-            </button>
-            <button
-              type="button"
-              className="btn-danger px-2 py-1 text-xs"
-              onClick={remove}
-              disabled={removeItem.isPending}
-            >
-              {removeItem.isPending ? (
-                <ButtonSpinner />
-              ) : (
-                <>
-                  <TrashIcon size={13} /> Remove
-                </>
-              )}
-            </button>
-          </div>
-        )}
+      <li className="py-3">
+        <OrderItemCard item={item}>
+          {editable && (
+            <>
+              <button type="button" className="btn-secondary px-2 py-1 text-xs" onClick={() => setEditing(true)}>
+                Edit
+              </button>
+              <button
+                type="button"
+                className="btn-danger px-2 py-1 text-xs"
+                onClick={remove}
+                disabled={removeItem.isPending}
+              >
+                {removeItem.isPending ? (
+                  <ButtonSpinner />
+                ) : (
+                  <>
+                    <TrashIcon size={13} /> Remove
+                  </>
+                )}
+              </button>
+            </>
+          )}
+        </OrderItemCard>
       </li>
     )
   }
@@ -166,6 +166,14 @@ function EditableItem({ orderId, item }: { orderId: string; item: OrderItemDto }
           aria-label={`Quantity for ${item.title}`}
         />
       </div>
+      <input
+        type="url"
+        className="field-input"
+        value={link}
+        onChange={(e) => setLink(e.target.value)}
+        placeholder="Link to store page (optional)"
+        aria-label={`Link for ${item.title}`}
+      />
       <ImageDropInput label="Photo" initialImageKey={item.imageKey ?? undefined} onUploaded={setImageKey} />
       <div className="flex gap-2">
         <button type="button" className="btn-primary px-3 py-1.5 text-sm" onClick={save} disabled={updateItem.isPending}>
@@ -179,14 +187,136 @@ function EditableItem({ orderId, item }: { orderId: string; item: OrderItemDto }
   )
 }
 
+function AddItemForm({ orderId }: { orderId: string }) {
+  const [open, setOpen] = useState(false)
+  const [title, setTitle] = useState('')
+  const [condition, setCondition] = useState<'NEW' | 'USED'>('NEW')
+  const [currency, setCurrency] = useState<'JPY' | 'EUR'>('JPY')
+  const [maxPrice, setMaxPrice] = useState('')
+  const [quantity, setQuantity] = useState('1')
+  const [link, setLink] = useState('')
+  const addItem = useAddMyOrderItem()
+
+  if (!open) {
+    return (
+      <button type="button" className="btn-secondary self-start" onClick={() => setOpen(true)}>
+        Add item
+      </button>
+    )
+  }
+
+  function submit() {
+    if (!title.trim()) return
+    addItem.mutate(
+      {
+        orderId,
+        title,
+        condition,
+        currency,
+        maxPrice: maxPrice ? Number(maxPrice) : undefined,
+        quantity: quantity ? Number(quantity) : 1,
+        link: link || undefined,
+      },
+      {
+        onSuccess: () => {
+          setTitle('')
+          setMaxPrice('')
+          setQuantity('1')
+          setLink('')
+          setOpen(false)
+        },
+      },
+    )
+  }
+
+  return (
+    <div className="card flex flex-col gap-2">
+      <input placeholder="Title" className="field-input" value={title} onChange={(e) => setTitle(e.target.value)} aria-label="Title" />
+      <div className="flex flex-col gap-2 sm:flex-row">
+        <select value={condition} onChange={(e) => setCondition(e.target.value as 'NEW' | 'USED')} className="field-input" aria-label="Condition">
+          <option value="NEW">New</option>
+          <option value="USED">Used</option>
+        </select>
+        <select value={currency} onChange={(e) => setCurrency(e.target.value as 'JPY' | 'EUR')} className="field-input" aria-label="Currency">
+          <option value="JPY">JPY</option>
+          <option value="EUR">EUR</option>
+        </select>
+      </div>
+      <div className="flex flex-col gap-2 sm:flex-row">
+        <input
+          type="number"
+          step="0.01"
+          placeholder="Max price (optional)"
+          className="field-input"
+          value={maxPrice}
+          onChange={(e) => setMaxPrice(e.target.value)}
+          aria-label="Max price"
+        />
+        <label className="flex items-center gap-2 sm:w-32">
+          <span className="text-sm text-ink/60">Qty</span>
+          <input
+            type="number"
+            min={1}
+            className="field-input"
+            value={quantity}
+            onChange={(e) => setQuantity(e.target.value)}
+            aria-label="Quantity"
+          />
+        </label>
+      </div>
+      <input
+        type="url"
+        placeholder="Link to store page (optional)"
+        className="field-input"
+        value={link}
+        onChange={(e) => setLink(e.target.value)}
+        aria-label="Link to store page"
+      />
+      <div className="flex gap-2">
+        <button type="button" className="btn-primary px-3 py-1.5 text-sm" onClick={submit} disabled={addItem.isPending || !title.trim()}>
+          {addItem.isPending ? <ButtonSpinner /> : 'Add item'}
+        </button>
+        <button type="button" className="btn-secondary px-3 py-1.5 text-sm" onClick={() => setOpen(false)}>
+          Cancel
+        </button>
+      </div>
+      {addItem.isError && <p className="error-text">Could not add item.</p>}
+    </div>
+  )
+}
+
 export function OrderDetailPage() {
   const { id } = useParams<{ id: string }>()
   const { data: order, isLoading, isError } = useOrder(id)
+  const cancelOrder = useCancelMyOrder()
+  const submitForShipping = useSubmitForShipping()
+  const confirm = useConfirm()
 
   if (isLoading) return <Spinner fullPage label="Fetching order" />
   if (isError || !order) return <p className="error-text">Order not found.</p>
 
-  const anyEditable = order.items.some((item) => item.status !== 'BOUGHT')
+  const hasLockedItem = order.items.some((item) => item.status === 'BOUGHT' || item.status === 'SHIPPED')
+
+  async function handleCancel() {
+    if (!order) return
+    const ok = await confirm({
+      title: 'Cancel order',
+      message: 'Cancel this whole order? This cannot be undone.',
+      confirmLabel: 'Cancel order',
+      danger: true,
+    })
+    if (ok) cancelOrder.mutate(order.id)
+  }
+
+  async function handleSubmitForShipping() {
+    if (!order) return
+    const ok = await confirm({
+      title: 'Submit for shipping',
+      message: 'Submit for shipping? You (and anyone whose orders were combined with yours) will no longer be able to edit these orders.',
+      confirmLabel: 'Submit',
+    })
+    if (ok) submitForShipping.mutate(order.id)
+  }
 
   return (
     <div className="card flex flex-col gap-3">
@@ -195,13 +325,33 @@ export function OrderDetailPage() {
         <OrderStatusBadge status={order.status} />
       </div>
       {order.notes && <p className="text-ink/70">{order.notes}</p>}
-      {!anyEditable && <p className="text-sm text-ink/50">Every item in this order has already been bought.</p>}
+
+      {!order.open ? (
+        <p className="text-sm text-ink/50">
+          This order is {order.status === 'CANCELLED' ? 'cancelled' : 'no longer open'} and can't be edited.
+        </p>
+      ) : (
+        <div className="flex flex-wrap gap-2">
+          <button type="button" className="btn-secondary px-3 py-1.5 text-sm" onClick={handleSubmitForShipping} disabled={submitForShipping.isPending}>
+            {submitForShipping.isPending ? <ButtonSpinner /> : 'Submit for shipping'}
+          </button>
+          <button type="button" className="btn-danger px-3 py-1.5 text-sm" onClick={handleCancel} disabled={cancelOrder.isPending || hasLockedItem}>
+            {cancelOrder.isPending ? <ButtonSpinner /> : 'Cancel order'}
+          </button>
+        </div>
+      )}
+      {hasLockedItem && order.open && (
+        <p className="text-sm text-ink/50">This order has items already bought or shipped, so it can no longer be cancelled as a whole.</p>
+      )}
+      {cancelOrder.isError && <p className="error-text">Could not cancel this order (it may have items already bought or shipped).</p>}
 
       <ul className="flex flex-col divide-y divide-mist">
         {order.items.map((item) => (
-          <EditableItem key={item.id} orderId={order.id} item={item} />
+          <EditableItem key={item.id} orderId={order.id} item={item} locked={!order.open} />
         ))}
       </ul>
+
+      {order.open && <AddItemForm orderId={order.id} />}
     </div>
   )
 }
