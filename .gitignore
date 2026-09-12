@@ -18,6 +18,7 @@ coverage
 .vscode/*
 !.vscode/extensions.json
 .idea
+.claude/launch.json
 .DS_Store
 *.suo
 *.ntvs*
