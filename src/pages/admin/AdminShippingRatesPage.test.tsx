@@ -46,8 +46,23 @@ describe('AdminShippingRatesPage', () => {
     expect(screen.getByText(/up to 500 g/)).toBeInTheDocument()
     expect(screen.getByText('Slovenia', { selector: 'summary' })).toBeInTheDocument()
     expect(screen.getByText('Austria', { selector: 'summary' })).toBeInTheDocument()
-    expect(screen.getByRole('heading', { name: 'EMS' })).toBeInTheDocument()
-    expect(screen.getByRole('heading', { name: 'Small Packet (air, up to 2kg)' })).toBeInTheDocument()
+    expect(screen.getByText('EMS', { selector: 'summary' })).toBeInTheDocument()
+    expect(screen.getByText('Small Packet (air, up to 2kg)', { selector: 'summary' })).toBeInTheDocument()
+  })
+
+  it('starts each shipping method collapsed within its destination and expands it on click', async () => {
+    const user = userEvent.setup()
+    server.use(http.get(`${BASE}/api/admin/shipping-rates`, () => HttpResponse.json([rate()])))
+
+    renderWithProviders(<AdminShippingRatesPage />)
+    const methodSummary = await screen.findByText('EMS', { selector: 'summary' })
+    const methodDetails = methodSummary.closest('details') as HTMLDetailsElement
+
+    expect(methodDetails.open).toBe(false)
+
+    await user.click(methodSummary)
+
+    expect(methodDetails.open).toBe(true)
   })
 
   it('creates a rate with the entered values', async () => {

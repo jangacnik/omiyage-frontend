@@ -189,7 +189,7 @@ export function AdminShippingRatesPage() {
   })).filter((g) => g.methods.length > 0)
 
   return (
-    <div className="max-w-2xl">
+    <div className="mx-auto max-w-2xl">
       <form onSubmit={handleCreate} className="card mb-6 flex flex-col gap-2">
         <div className="flex flex-col gap-2 sm:flex-row">
           <select
@@ -259,16 +259,18 @@ export function AdminShippingRatesPage() {
             <summary className="cursor-pointer select-none px-4 py-3 text-lg font-medium text-ink marker:text-ink/40">
               {destinationLabel(group.destination)}
             </summary>
-            <div className="flex flex-col gap-4 px-4 pb-4">
+            <div className="flex flex-col gap-2 px-4 pb-4">
               {group.methods.map((method) => (
-                <div key={method.shippingMethod}>
-                  <h3 className="mb-1 text-sm font-medium text-forest">{METHOD_LABELS[method.shippingMethod]}</h3>
-                  <ul className="flex flex-col divide-y divide-mist">
+                <details key={method.shippingMethod} className="rounded-lg bg-surface">
+                  <summary className="cursor-pointer select-none px-3 py-2 text-sm font-medium text-forest marker:text-ink/30">
+                    {METHOD_LABELS[method.shippingMethod]}
+                  </summary>
+                  <ul className="flex flex-col divide-y divide-mist px-3 pb-2">
                     {method.rates.map((rate) => (
                       <RateRow key={rate.id} rate={rate} />
                     ))}
                   </ul>
-                </div>
+                </details>
               ))}
             </div>
           </details>
