@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { useUserDashboard } from '../../api/adminDashboard'
 import { useAdminCreateOrderForUser, useAdminMarkItemPaid } from '../../api/adminOrders'
 import { orderDisplayName } from '../../api/orders'
+import { Avatar } from '../../components/Avatar'
 import { OrderIdHint } from '../../components/OrderIdHint'
 import { OrderItemBuilder, type DraftItem } from '../../components/OrderItemBuilder'
 import { OrderStatusBadge } from '../../components/OrderStatusBadge'
@@ -139,6 +140,7 @@ function UserDashboardCard({ entry }: { entry: UserDashboardEntryDto }) {
           onClick={() => setExpanded((v) => !v)}
           aria-expanded={expanded}
         >
+          <Avatar imageKey={entry.user.avatarKey} nickname={entry.user.nickname} />
           <span className="font-medium text-ink">{entry.user.nickname}</span>
           <span className="text-xs text-ink/50">{entry.orders.length} order(s)</span>
         </button>

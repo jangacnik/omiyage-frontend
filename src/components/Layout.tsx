@@ -1,6 +1,8 @@
 import { useRef, useState } from 'react'
 import { Link, NavLink, Outlet, useLocation } from 'react-router-dom'
+import { useMyProfile } from '../api/profile'
 import { useAuthStore } from '../store/authStore'
+import { Avatar } from './Avatar'
 import { BrandMark } from './BrandMark'
 import { OnboardingModal } from './OnboardingModal'
 
@@ -16,6 +18,7 @@ function TopNavLink({ to, children, onClick }: { to: string; children: React.Rea
  *  just a ref to collapse it after a selection is made. */
 function AccountMenu({ nickname, onLogout, onNavigate }: { nickname: string; onLogout: () => void; onNavigate?: () => void }) {
   const detailsRef = useRef<HTMLDetailsElement>(null)
+  const { data: profile } = useMyProfile()
 
   function select(action?: () => void) {
     return () => {
@@ -27,7 +30,8 @@ function AccountMenu({ nickname, onLogout, onNavigate }: { nickname: string; onL
 
   return (
     <details ref={detailsRef} className="relative">
-      <summary className="flex cursor-pointer list-none items-center gap-1 text-sm font-medium text-paper/65 hover:text-paper">
+      <summary className="flex cursor-pointer list-none items-center gap-2 text-sm font-medium text-paper/65 hover:text-paper">
+        <Avatar imageKey={profile?.avatarKey} nickname={nickname} size="sm" />
         <span>{nickname}</span>
         <span aria-hidden="true" className="text-[0.6rem]">▾</span>
       </summary>

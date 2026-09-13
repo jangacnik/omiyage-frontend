@@ -22,6 +22,7 @@ function profile(overrides: Partial<UserProfileDto> = {}): UserProfileDto {
     postalCode: null,
     city: null,
     country: null,
+    avatarKey: null,
     ...overrides,
   }
 }

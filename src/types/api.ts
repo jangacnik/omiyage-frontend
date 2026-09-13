@@ -211,4 +211,5 @@ export interface UserProfileDto {
   postalCode: string | null
   city: string | null
   country: string | null
+  avatarKey: string | null
 }
