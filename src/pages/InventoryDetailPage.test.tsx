@@ -22,6 +22,7 @@ function item(): InventoryItem {
     status: 'ACTIVE',
     images: [],
     categories: [{ id: 'cat-1', name: 'Snacks', slug: 'snacks' }],
+    boughtPrice: null,
   }
 }
 

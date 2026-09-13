@@ -13,6 +13,7 @@ import { OrderItemCard } from '../../components/OrderItemCard'
 import { ORDER_ITEM_STATUSES } from '../../components/OrderItemStatusBadge'
 import { ButtonSpinner } from '../../components/Spinner'
 import { TrashIcon } from '../../components/icons'
+import { formatMoney } from '../../lib/currency'
 import type { OrderDto, OrderItemDto, OrderItemStatus, OrderStatus } from '../../types/api'
 
 const STATUSES: OrderStatus[] = [
@@ -28,6 +29,7 @@ const STATUSES: OrderStatus[] = [
 function AdminItemRow({ orderId, item }: { orderId: string; item: OrderItemDto }) {
   const [editingContent, setEditingContent] = useState(false)
   const [actualPrice, setActualPrice] = useState(item.actualPrice?.toString() ?? '')
+  const [soldPrice, setSoldPrice] = useState(item.soldPrice?.toString() ?? '')
   const [weight, setWeight] = useState(item.weight?.toString() ?? '')
   const [title, setTitle] = useState(item.title)
   const [description, setDescription] = useState(item.description ?? '')
@@ -47,6 +49,7 @@ function AdminItemRow({ orderId, item }: { orderId: string; item: OrderItemDto }
       itemId: item.id,
       status,
       actualPrice: actualPrice ? Number(actualPrice) : undefined,
+      soldPrice: soldPrice ? Number(soldPrice) : undefined,
       weight: weight ? Number(weight) : undefined,
     })
   }
@@ -138,6 +141,15 @@ function AdminItemRow({ orderId, item }: { orderId: string; item: OrderItemDto }
               />
             </label>
             <label className="flex flex-col gap-1">
+              <span className="text-xs text-ink/50">Sold price</span>
+              <input
+                value={soldPrice}
+                onChange={(e) => setSoldPrice(e.target.value)}
+                aria-label={`Sold price for ${item.title}`}
+                className="field-input w-28 py-1"
+              />
+            </label>
+            <label className="flex flex-col gap-1">
               <span className="text-xs text-ink/50">Weight (g)</span>
               <input
                 value={weight}
@@ -190,6 +202,9 @@ function AdminItemRow({ orderId, item }: { orderId: string; item: OrderItemDto }
               )}
             </button>
           </div>
+          {item.profit != null && (
+            <p className="text-xs text-ink/50">Profit: {formatMoney(item.profit, item.currency)}</p>
+          )}
           {(updateItem.isError || removeItem.isError || markPaid.isError) && (
             <p className="error-text">
               {updateItem.isError && 'Could not save price/weight/status. '}
@@ -326,6 +341,10 @@ export function AdminOrderEditor({ order }: { order: OrderDto }) {
           {updateStatus.isPending && <ButtonSpinner />}
         </span>
       </label>
+
+      {order.profit != null && (
+        <p className="text-sm text-ink/60">Order profit: {formatMoney(order.profit, order.items[0]?.currency ?? 'JPY')}</p>
+      )}
 
       <ul className="card divide-y divide-mist">
         {order.items.map((item) => (

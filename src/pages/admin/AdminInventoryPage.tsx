@@ -27,6 +27,7 @@ const itemSchema = z.object({
   condition: z.enum(['NEW', 'USED']),
   currency: z.enum(['JPY', 'EUR']),
   priceAmount: z.string().min(1, 'Price is required'),
+  boughtPrice: z.string().optional(),
   stockQuantity: z.string().min(1, 'Stock is required'),
 })
 
@@ -76,6 +77,7 @@ function EditItemForm({ item, onDone }: { item: InventoryItem; onDone: () => voi
       condition: item.condition,
       currency: item.currency,
       priceAmount: item.priceAmount.toString(),
+      boughtPrice: item.boughtPrice?.toString() ?? '',
       stockQuantity: item.stockQuantity.toString(),
     },
   })
@@ -90,6 +92,7 @@ function EditItemForm({ item, onDone }: { item: InventoryItem; onDone: () => voi
         condition: data.condition,
         currency: data.currency,
         priceAmount: Number(data.priceAmount),
+        boughtPrice: data.boughtPrice ? Number(data.boughtPrice) : undefined,
         stockQuantity: Number(data.stockQuantity),
         imageKeys: images,
         categoryIds: item.categories.map((c) => c.id),
@@ -119,6 +122,7 @@ function EditItemForm({ item, onDone }: { item: InventoryItem; onDone: () => voi
           </div>
           <div className="flex flex-col gap-2 sm:flex-row">
             <input placeholder="Price" className="field-input" {...register('priceAmount')} aria-label={`Price for ${item.title}`} />
+            <input placeholder="Bought price (admin only)" className="field-input" {...register('boughtPrice')} aria-label={`Bought price for ${item.title}`} />
             <input placeholder="Stock quantity" className="field-input" {...register('stockQuantity')} aria-label={`Stock quantity for ${item.title}`} />
           </div>
           <input
@@ -175,6 +179,9 @@ function InventoryRow({
         <p className="font-medium text-ink">{item.title}</p>
         <p className="mt-1 text-sm text-ink/60">
           {item.status} · {formatMoney(item.priceAmount, item.currency)}
+          {item.boughtPrice != null && (
+            <> · profit {formatMoney(item.priceAmount - item.boughtPrice, item.currency)}</>
+          )}
         </p>
       </ItemCardShell>
     </li>
@@ -212,6 +219,7 @@ export function AdminInventoryPage() {
       condition: data.condition,
       currency: data.currency,
       priceAmount: Number(data.priceAmount),
+      boughtPrice: data.boughtPrice ? Number(data.boughtPrice) : undefined,
       stockQuantity: Number(data.stockQuantity),
       imageKeys,
       categoryIds: selectedCategoryIds,
@@ -253,6 +261,7 @@ export function AdminInventoryPage() {
         </div>
         <div className="flex flex-col gap-2 sm:flex-row">
           <input placeholder="Price" className="field-input" {...register('priceAmount')} aria-label="Price" />
+          <input placeholder="Bought price (admin only)" className="field-input" {...register('boughtPrice')} aria-label="Bought price" />
           <input placeholder="Stock quantity" className="field-input" {...register('stockQuantity')} aria-label="Stock quantity" />
         </div>
         {errors.priceAmount && <p className="error-text">{errors.priceAmount.message}</p>}

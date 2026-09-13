@@ -181,6 +181,7 @@ function ShipmentCard({ shipment, expanded }: { shipment: ShipmentDto; expanded:
           )}
         </span>
         {shipment.estimatedDays != null && <span>Estimated: ~{shipment.estimatedDays} days</span>}
+        <span>Profit: <strong className="text-ink">{formatMoney(shipment.profit, 'JPY')}</strong></span>
       </div>
 
       {deleteShipment.isError && <p className="error-text">Could not delete this shipment.</p>}

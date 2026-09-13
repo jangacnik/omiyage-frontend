@@ -40,6 +40,8 @@ export interface InventoryItem {
   status: 'ACTIVE' | 'ARCHIVED'
   images: string[]
   categories: Category[]
+  // Admin-only cost basis - absent on any response a normal user can read.
+  boughtPrice: number | null
 }
 
 export interface OrderItemDto {
@@ -59,6 +61,9 @@ export interface OrderItemDto {
   link: string | null
   purchasedAt: string | null
   quantity: number
+  // Admin-only - absent on any response a normal user can read.
+  soldPrice: number | null
+  profit: number | null
 }
 
 export interface OrderDto {
@@ -80,6 +85,8 @@ export interface OrderDto {
   // EUR display amount already includes the admin-configured conversion rate plus a hidden
   // shipping markup applied server-side - never derive this on the frontend.
   shippingCostShareEur?: number | null
+  // Admin-only - absent on any response a normal user can read.
+  profit?: number | null
 }
 
 export interface ShipmentDto {
@@ -101,6 +108,8 @@ export interface ShipmentDto {
   createdAt: string
   updatedAt: string
   orders: OrderDto[]
+  // Admin-only - every shipment endpoint is admin-only, so this is always populated.
+  profit: number
 }
 
 export interface ShippingRateDto {

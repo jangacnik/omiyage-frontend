@@ -26,6 +26,7 @@ function shipment(overrides: Partial<ShipmentDto> = {}): ShipmentDto {
     createdAt: '2026-01-01T00:00:00Z',
     updatedAt: '2026-01-01T00:00:00Z',
     orders: [],
+    profit: 0,
     ...overrides,
   }
 }
@@ -59,6 +60,8 @@ function order(overrides: Partial<OrderDto> = {}): OrderDto {
         link: null,
         purchasedAt: null,
         quantity: 1,
+        soldPrice: null,
+        profit: null,
       },
     ],
     ...overrides,

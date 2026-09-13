@@ -55,6 +55,8 @@ function order(overrides: Partial<OrderDto> = {}): OrderDto {
         link: null,
         purchasedAt: null,
         quantity: 1,
+        soldPrice: null,
+        profit: null,
       },
     ],
     ...overrides,

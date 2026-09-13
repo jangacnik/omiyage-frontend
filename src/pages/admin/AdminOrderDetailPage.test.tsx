@@ -39,6 +39,8 @@ function order(): OrderDto {
         link: null,
         purchasedAt: null,
         quantity: 1,
+        soldPrice: null,
+        profit: null,
       },
     ],
   }
@@ -84,10 +86,30 @@ describe('AdminOrderDetailPage', () => {
     await screen.findByText('Ghibli museum ticket')
 
     await user.type(screen.getByLabelText('Buy price for Ghibli museum ticket'), '1800')
+    await user.type(screen.getByLabelText('Sold price for Ghibli museum ticket'), '2200')
     await user.type(screen.getByLabelText('Weight for Ghibli museum ticket'), '250')
     await user.selectOptions(screen.getByLabelText('Status for Ghibli museum ticket'), 'BOUGHT')
 
-    await waitFor(() => expect(capturedBody).toMatchObject({ status: 'BOUGHT', actualPrice: 1800, weight: 250 }))
+    await waitFor(() =>
+      expect(capturedBody).toMatchObject({ status: 'BOUGHT', actualPrice: 1800, soldPrice: 2200, weight: 250 }),
+    )
+  })
+
+  it('shows an item and order profit once soldPrice is set', async () => {
+    const withProfit: OrderDto = {
+      ...order(),
+      profit: 400,
+      items: [{ ...order().items[0], soldPrice: 2200, actualPrice: 1800, profit: 400 }],
+    }
+    server.use(
+      http.get(`${BASE}/api/orders/order-12345678`, () => HttpResponse.json(withProfit)),
+      mockShipments(),
+    )
+
+    renderPage()
+
+    expect(await screen.findByText('Profit: ¥400')).toBeInTheDocument()
+    expect(screen.getByText('Order profit: ¥400')).toBeInTheDocument()
   })
 
   it('advances the order status', async () => {
