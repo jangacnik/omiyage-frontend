@@ -1,10 +1,10 @@
 import type { ReactNode } from 'react'
 import { ItemCardShell } from './ItemCardShell'
-import { Money } from './Money'
 import { OrderItemStatusBadge } from './OrderItemStatusBadge'
 import { StatusPill } from './StatusPill'
 import { ThumbnailImage } from './ThumbnailImage'
 import { ExternalLinkIcon } from './icons'
+import { formatMoney } from '../lib/currency'
 import type { OrderItemDto } from '../types/api'
 
 const CONDITION_LABELS: Record<'NEW' | 'USED', string> = { NEW: 'New', USED: 'Used' }
@@ -30,7 +30,7 @@ export function OrderItemCard({ item, children }: { item: OrderItemDto; children
         {item.condition && `${CONDITION_LABELS[item.condition]} · `}
         {item.actualPrice ?? item.maxPrice ? (
           <>
-            <Money amount={item.actualPrice ?? item.maxPrice!} currency={item.currency} /> {item.actualPrice != null ? 'paid' : 'max'}
+            {formatMoney(item.actualPrice ?? item.maxPrice!, item.currency)} {item.actualPrice != null ? 'paid' : 'max'}
           </>
         ) : (
           '—'

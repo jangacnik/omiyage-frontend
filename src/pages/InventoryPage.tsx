@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useCategories, useInventory } from '../api/inventory'
-import { Money } from '../components/Money'
 import { Pagination } from '../components/Pagination'
 import { Spinner } from '../components/Spinner'
 import { ThumbnailImage } from '../components/ThumbnailImage'
+import { formatMoney } from '../lib/currency'
 
 export function InventoryPage() {
   const [titleInput, setTitleInput] = useState('')
@@ -82,9 +82,7 @@ export function InventoryPage() {
             />
             <div className="p-3">
               <p className="truncate font-medium text-ink">{item.title}</p>
-              <p className="text-sm text-ink/60">
-                <Money amount={item.priceAmount} currency={item.currency} />
-              </p>
+              <p className="text-sm text-ink/60">{formatMoney(item.priceAmount, item.currency)}</p>
             </div>
           </Link>
         ))}

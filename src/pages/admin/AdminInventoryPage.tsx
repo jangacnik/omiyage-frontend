@@ -14,9 +14,9 @@ import { Pagination } from '../../components/Pagination'
 import { Spinner, ButtonSpinner } from '../../components/Spinner'
 import { ImageDropInput } from '../../components/ImageDropInput'
 import { ItemCardShell } from '../../components/ItemCardShell'
-import { Money } from '../../components/Money'
 import { ThumbnailImage } from '../../components/ThumbnailImage'
 import { useConfirm } from '../../components/ConfirmDialog'
+import { formatMoney } from '../../lib/currency'
 import { TrashIcon } from '../../components/icons'
 import type { InventoryItem } from '../../types/api'
 
@@ -174,7 +174,7 @@ function InventoryRow({
       >
         <p className="font-medium text-ink">{item.title}</p>
         <p className="mt-1 text-sm text-ink/60">
-          {item.status} · <Money amount={item.priceAmount} currency={item.currency} />
+          {item.status} · {formatMoney(item.priceAmount, item.currency)}
         </p>
       </ItemCardShell>
     </li>

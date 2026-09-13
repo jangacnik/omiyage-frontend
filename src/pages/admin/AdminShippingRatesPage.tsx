@@ -1,19 +1,16 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import {
-  useAdminExchangeRate,
   useCreateShippingRate,
   useDeleteShippingRate,
-  useSetExchangeRate,
   useShippingRates,
   useUpdateShippingRate,
   type ShippingRateInput,
 } from '../../api/adminShippingRates'
-import { Spinner, ButtonSpinner } from '../../components/Spinner'
+import { Spinner } from '../../components/Spinner'
 import { useConfirm } from '../../components/ConfirmDialog'
-import { ShippingCostMoney } from '../../components/Money'
 import { TrashIcon } from '../../components/icons'
 import { ApiError } from '../../lib/apiClient'
-import { formatGrams } from '../../lib/currency'
+import { formatGrams, formatMoney } from '../../lib/currency'
 import type { ShipmentDestination, ShippingMethod, ShippingRateDto } from '../../types/api'
 
 const DESTINATIONS: ShipmentDestination[] = ['SLOVENIA', 'AUSTRIA']
@@ -141,7 +138,7 @@ function RateRow({ rate }: { rate: ShippingRateDto }) {
   return (
     <li className="flex items-center justify-between py-2">
       <span className="text-sm text-ink/80">
-        up to {formatGrams(rate.maxWeightGrams)} — <ShippingCostMoney jpy={rate.costJpy} eur={rate.costEur} /> — ~{rate.estimatedDays} days
+        up to {formatGrams(rate.maxWeightGrams)} — {formatMoney(rate.costJpy, 'JPY')} — ~{rate.estimatedDays} days
       </span>
       <span className="flex gap-2">
         <button type="button" className="btn-secondary px-2 py-1 text-xs" onClick={startEdit}>
@@ -152,45 +149,6 @@ function RateRow({ rate }: { rate: ShippingRateDto }) {
         </button>
       </span>
     </li>
-  )
-}
-
-function ExchangeRateSettings() {
-  const { data: rate, isLoading } = useAdminExchangeRate()
-  const setRate = useSetExchangeRate()
-  const [value, setValue] = useState('')
-
-  useEffect(() => {
-    if (rate) setValue(String(rate.jpyPerEur))
-  }, [rate])
-
-  function handleSave(e: React.FormEvent) {
-    e.preventDefault()
-    const parsed = Number(value)
-    if (!parsed || parsed <= 0) return
-    setRate.mutate(parsed)
-  }
-
-  return (
-    <form onSubmit={handleSave} className="card mb-6 flex flex-wrap items-end gap-2">
-      <label className="flex flex-col gap-1">
-        <span className="field-label">JPY per 1 EUR</span>
-        <input
-          type="number"
-          step="0.0001"
-          value={value}
-          onChange={(e) => setValue(e.target.value)}
-          aria-label="JPY per 1 EUR"
-          className="field-input w-40"
-          disabled={isLoading}
-        />
-      </label>
-      <button type="submit" className="btn-primary px-3 py-1.5 text-sm" disabled={setRate.isPending}>
-        {setRate.isPending ? <ButtonSpinner /> : 'Save rate'}
-      </button>
-      <span className="text-xs text-ink/50">Used to convert shipping costs and item prices to EUR everywhere.</span>
-      {setRate.isError && <p className="error-text w-full">Could not save the exchange rate.</p>}
-    </form>
   )
 }
 
@@ -233,8 +191,6 @@ export function AdminShippingRatesPage() {
   return (
     <div className="max-w-2xl">
       <h1 className="page-title mb-4">Admin: Shipping Rates</h1>
-
-      <ExchangeRateSettings />
 
       <form onSubmit={handleCreate} className="card mb-6 flex flex-col gap-2">
         <div className="flex flex-col gap-2 sm:flex-row">

@@ -139,43 +139,4 @@ describe('AdminShippingRatesPage', () => {
 
     expect(details.open).toBe(true)
   })
-
-  it('shows the saved exchange rate and lets an admin update it', async () => {
-    const user = userEvent.setup()
-    let capturedBody: unknown = null
-    server.use(
-      http.get(`${BASE}/api/admin/shipping-rates`, () => HttpResponse.json([])),
-      http.get(`${BASE}/api/admin/exchange-rate`, () => HttpResponse.json({ jpyPerEur: 150 })),
-      http.put(`${BASE}/api/admin/exchange-rate`, async ({ request }) => {
-        capturedBody = await request.json()
-        return HttpResponse.json({ jpyPerEur: 160 })
-      }),
-    )
-
-    renderWithProviders(<AdminShippingRatesPage />)
-
-    const input = await screen.findByLabelText('JPY per 1 EUR')
-    await waitFor(() => expect(input).toHaveValue(150))
-
-    await user.clear(input)
-    await user.type(input, '160')
-    await user.click(screen.getByText('Save rate'))
-
-    await waitFor(() => expect(capturedBody).toEqual({ jpyPerEur: 160 }))
-  })
-
-  it('shows an error when saving the exchange rate fails', async () => {
-    const user = userEvent.setup()
-    server.use(
-      http.get(`${BASE}/api/admin/shipping-rates`, () => HttpResponse.json([])),
-      http.get(`${BASE}/api/admin/exchange-rate`, () => HttpResponse.json({ jpyPerEur: 150 })),
-      http.put(`${BASE}/api/admin/exchange-rate`, () => HttpResponse.json({ message: 'nope' }, { status: 500 })),
-    )
-
-    renderWithProviders(<AdminShippingRatesPage />)
-    await waitFor(async () => expect(await screen.findByLabelText('JPY per 1 EUR')).toHaveValue(150))
-    await user.click(screen.getByText('Save rate'))
-
-    expect(await screen.findByText('Could not save the exchange rate.')).toBeInTheDocument()
-  })
 })
