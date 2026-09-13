@@ -43,7 +43,11 @@ export function InventoryPage() {
     <div>
       <div className="mb-5 flex flex-wrap items-baseline gap-x-3 gap-y-1">
         <h1 className="page-title">Inventory</h1>
-        {data && <span className="text-sm text-ink/50">{data.totalElements} items</span>}
+        {data && (
+          <span className="text-sm text-ink/50">
+            {data.totalElements} {data.totalElements === 1 ? 'item' : 'items'}
+          </span>
+        )}
       </div>
 
       <div className="mb-5 flex flex-col gap-3 sm:flex-row">
