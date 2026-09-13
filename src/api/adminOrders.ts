@@ -52,14 +52,16 @@ export function useUpdateOrderItem() {
       itemId,
       status,
       actualPrice,
+      soldPrice,
       weight,
     }: {
       orderId: string
       itemId: string
       status: OrderItemStatus
       actualPrice?: number
+      soldPrice?: number
       weight?: number
-    }) => api.patch<OrderDto>(`/api/admin/orders/${orderId}/items/${itemId}`, { status, actualPrice, weight }),
+    }) => api.patch<OrderDto>(`/api/admin/orders/${orderId}/items/${itemId}`, { status, actualPrice, soldPrice, weight }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin', 'orders'] })
       queryClient.invalidateQueries({ queryKey: ['admin', 'shipments'] })

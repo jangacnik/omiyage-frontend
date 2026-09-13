@@ -22,6 +22,7 @@ function item(overrides: Partial<InventoryItem> = {}): InventoryItem {
     status: 'ACTIVE',
     images: [],
     categories: [],
+    boughtPrice: null,
     ...overrides,
   }
 }
@@ -71,6 +72,40 @@ describe('AdminInventoryPage', () => {
         categoryIds: ['cat-1'],
       }),
     )
+  })
+
+  it('creates an item with a bought price', async () => {
+    const user = userEvent.setup()
+    let capturedBody: unknown = null
+    server.use(
+      http.get(`${BASE}/api/admin/inventory`, () => HttpResponse.json(page([]))),
+      http.get(`${BASE}/api/categories`, () => HttpResponse.json([])),
+      http.post(`${BASE}/api/admin/inventory`, async ({ request }) => {
+        capturedBody = await request.json()
+        return HttpResponse.json(item(), { status: 201 })
+      }),
+    )
+
+    renderWithProviders(<AdminInventoryPage />)
+
+    await user.type(screen.getByLabelText('Title'), 'Pocky strawberry')
+    await user.type(screen.getByLabelText('Price'), '500')
+    await user.type(screen.getByLabelText('Bought price'), '300')
+    await user.type(screen.getByLabelText('Stock quantity'), '10')
+    await user.click(screen.getByText('Create item'))
+
+    await waitFor(() => expect(capturedBody).toMatchObject({ priceAmount: 500, boughtPrice: 300 }))
+  })
+
+  it('shows profit for an item once a bought price is set', async () => {
+    server.use(
+      http.get(`${BASE}/api/admin/inventory`, () => HttpResponse.json(page([item({ boughtPrice: 500 })]))),
+      http.get(`${BASE}/api/categories`, () => HttpResponse.json([])),
+    )
+
+    renderWithProviders(<AdminInventoryPage />)
+
+    expect(await screen.findByText(/profit ¥700/)).toBeInTheDocument()
   })
 
   it('archives an active item', async () => {

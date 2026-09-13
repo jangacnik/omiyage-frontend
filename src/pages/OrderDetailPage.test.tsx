@@ -39,6 +39,8 @@ function order(): OrderDto {
         link: null,
         purchasedAt: null,
         quantity: 1,
+        soldPrice: null,
+        profit: null,
       },
     ],
   }

@@ -9,6 +9,7 @@ export interface InventoryItemInput {
   condition: Condition
   priceAmount: number
   currency: Currency
+  boughtPrice?: number
   stockQuantity: number
   imageKeys?: string[]
   categoryIds?: string[]
