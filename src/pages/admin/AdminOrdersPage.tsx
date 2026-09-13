@@ -8,15 +8,26 @@ import { OrderStatusBadge } from '../../components/OrderStatusBadge'
 import { Pagination } from '../../components/Pagination'
 import { Spinner, ButtonSpinner } from '../../components/Spinner'
 import { TrashIcon } from '../../components/icons'
-import type { OrderStatus } from '../../types/api'
+import type { AdminOrderSortBy, OrderStatus, SortDirection } from '../../types/api'
 
 const STATUSES: OrderStatus[] = ['REQUESTED', 'IN_PROGRESS', 'PURCHASED', 'SENT', 'DELIVERED', 'CANCELLED']
+
+const SORT_OPTIONS: { value: `${AdminOrderSortBy}:${SortDirection}`; label: string }[] = [
+  { value: 'UPDATED_AT:DESC', label: 'Last updated (newest first)' },
+  { value: 'UPDATED_AT:ASC', label: 'Last updated (oldest first)' },
+  { value: 'CREATED_AT:DESC', label: 'Order date (newest first)' },
+  { value: 'CREATED_AT:ASC', label: 'Order date (oldest first)' },
+  { value: 'ITEM_COUNT:DESC', label: 'Item count (most first)' },
+  { value: 'ITEM_COUNT:ASC', label: 'Item count (fewest first)' },
+]
 
 export function AdminOrdersPage() {
   const [status, setStatus] = useState<OrderStatus | ''>('')
   const [page, setPage] = useState(0)
+  const [sort, setSort] = useState<`${AdminOrderSortBy}:${SortDirection}`>('UPDATED_AT:DESC')
   const [selected, setSelected] = useState<string[]>([])
-  const { data, isLoading } = useAdminOrders(status, page)
+  const [sortBy, direction] = sort.split(':') as [AdminOrderSortBy, SortDirection]
+  const { data, isLoading } = useAdminOrders(status, page, sortBy, direction)
   const createShipment = useCreateShipment()
   const deleteOrder = useAdminDeleteOrder()
   const confirm = useConfirm()
@@ -53,22 +64,40 @@ export function AdminOrdersPage() {
         )}
       </div>
 
-      <select
-        value={status}
-        onChange={(e) => {
-          setStatus(e.target.value as OrderStatus | '')
-          setPage(0)
-        }}
-        aria-label="Filter by status"
-        className="field-input mb-4 max-w-xs"
-      >
-        <option value="">All statuses</option>
-        {STATUSES.map((s) => (
-          <option key={s} value={s}>
-            {s}
-          </option>
-        ))}
-      </select>
+      <div className="mb-4 flex flex-wrap gap-3">
+        <select
+          value={status}
+          onChange={(e) => {
+            setStatus(e.target.value as OrderStatus | '')
+            setPage(0)
+          }}
+          aria-label="Filter by status"
+          className="field-input max-w-xs"
+        >
+          <option value="">All statuses</option>
+          {STATUSES.map((s) => (
+            <option key={s} value={s}>
+              {s}
+            </option>
+          ))}
+        </select>
+
+        <select
+          value={sort}
+          onChange={(e) => {
+            setSort(e.target.value as `${AdminOrderSortBy}:${SortDirection}`)
+            setPage(0)
+          }}
+          aria-label="Sort orders by"
+          className="field-input max-w-xs"
+        >
+          {SORT_OPTIONS.map((option) => (
+            <option key={option.value} value={option.value}>
+              {option.label}
+            </option>
+          ))}
+        </select>
+      </div>
 
       {isLoading && <Spinner label="Fetching orders" />}
       {data && data.content.length === 0 && <p className="text-ink/50">No orders found.</p>}
@@ -85,7 +114,11 @@ export function AdminOrdersPage() {
               />
               <Link to={`/admin/orders/${order.id}`} className="flex flex-wrap items-center gap-2 font-medium text-ink hover:text-forest">
                 Order {orderDisplayName(order)}
-                <OrderIdHint id={order.id} nickname={order.nickname} /> <OrderStatusBadge status={order.status} />
+                <OrderIdHint id={order.id} nickname={order.nickname} />
+                {order.userNickname && (
+                  <span className="rounded-full bg-mist px-2 py-0.5 text-xs text-ink/70">by {order.userNickname}</span>
+                )}
+                <OrderStatusBadge status={order.status} />
                 {order.shipmentId && (
                   <span className="rounded-full bg-mist px-2 py-0.5 text-xs text-ink/70">
                     shipment {order.shipmentId.slice(0, 8)}

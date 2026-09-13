@@ -14,6 +14,8 @@ export type ShipmentStatus = 'PREPARING' | 'SHIPPED' | 'DELIVERED'
 export type ShipmentDestination = 'SLOVENIA' | 'AUSTRIA'
 export type ShippingMethod = 'EMS' | 'SMALL_PACKET' | 'SURFACE_MAIL'
 export type CombineRequestStatus = 'PENDING' | 'ACCEPTED' | 'DECLINED' | 'CANCELLED'
+export type AdminOrderSortBy = 'UPDATED_AT' | 'CREATED_AT' | 'ITEM_COUNT'
+export type SortDirection = 'ASC' | 'DESC'
 
 export interface Page<T> {
   content: T[]
@@ -79,6 +81,9 @@ export interface OrderDto {
   notes: string | null
   nickname: string | null
   shipmentId: string | null
+  // Only populated on the admin orders list - the requester's account nickname, not this order's
+  // own optional nickname (see `nickname` above).
+  userNickname?: string | null
   createdAt: string
   updatedAt: string
   items: OrderItemDto[]
