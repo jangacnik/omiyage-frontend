@@ -32,7 +32,8 @@ export function OrderItemCard({ item, children }: { item: OrderItemDto; children
         {item.condition && `${CONDITION_LABELS[item.condition]} · `}
         {item.actualPrice ?? item.maxPrice ? (
           <>
-            {formatMoney(item.actualPrice ?? item.maxPrice!, item.currency)} {item.actualPrice != null ? 'paid' : 'max'}
+            {formatMoney(item.actualPrice ?? item.maxPrice!, item.actualPrice != null ? item.actualPriceCurrency ?? item.currency : item.currency)}{' '}
+            {item.actualPrice != null ? 'paid' : 'max'}
           </>
         ) : (
           '—'

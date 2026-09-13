@@ -59,6 +59,9 @@ export interface OrderItemDto {
   currency: Currency
   maxPrice: number | null
   actualPrice: number | null
+  // Currency the item was actually bought in - can differ from `currency` above. Null on a row
+  // written before per-price currencies existed; treat as `currency` in that case.
+  actualPriceCurrency: Currency | null
   weight: number | null
   status: OrderItemStatus
   paid: boolean
@@ -70,6 +73,7 @@ export interface OrderItemDto {
   expectedReleaseDate: string | null
   // Admin-only - absent on any response a normal user can read.
   soldPrice: number | null
+  soldPriceCurrency: Currency | null
   profit: number | null
 }
 

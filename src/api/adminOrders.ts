@@ -4,6 +4,7 @@ import type { CreateOrderInput, CreateOrderItemInput, UpdateMyOrderItemInput } f
 import type {
   AdminOrderSortBy,
   CombineRequestDto,
+  Currency,
   OrderDto,
   OrderItemStatus,
   OrderStatus,
@@ -63,16 +64,28 @@ export function useUpdateOrderItem() {
       itemId,
       status,
       actualPrice,
+      actualPriceCurrency,
       soldPrice,
+      soldPriceCurrency,
       weight,
     }: {
       orderId: string
       itemId: string
       status: OrderItemStatus
       actualPrice?: number
+      actualPriceCurrency?: Currency
       soldPrice?: number
+      soldPriceCurrency?: Currency
       weight?: number
-    }) => api.patch<OrderDto>(`/api/admin/orders/${orderId}/items/${itemId}`, { status, actualPrice, soldPrice, weight }),
+    }) =>
+      api.patch<OrderDto>(`/api/admin/orders/${orderId}/items/${itemId}`, {
+        status,
+        actualPrice,
+        actualPriceCurrency,
+        soldPrice,
+        soldPriceCurrency,
+        weight,
+      }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin', 'orders'] })
       queryClient.invalidateQueries({ queryKey: ['admin', 'shipments'] })
