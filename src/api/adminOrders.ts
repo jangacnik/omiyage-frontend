@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { api } from '../lib/apiClient'
-import type { CreateOrderItemInput, UpdateMyOrderItemInput } from './orders'
+import type { CreateOrderInput, CreateOrderItemInput, UpdateMyOrderItemInput } from './orders'
 import type {
   OrderDto,
   OrderItemStatus,
@@ -17,6 +17,18 @@ export function useAdminOrders(status: OrderStatus | '', page: number) {
     queryKey: ['admin', 'orders', status, page],
     queryFn: () => api.get<Page<OrderDto>>(`/api/admin/orders?page=${page}&size=20${status ? `&status=${status}` : ''}`),
     placeholderData: (previous) => previous,
+  })
+}
+
+export function useAdminCreateOrderForUser() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: ({ userId, ...input }: CreateOrderInput & { userId: string }) =>
+      api.post<OrderDto>(`/api/admin/orders/for-user/${userId}`, input),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin', 'orders'] })
+      queryClient.invalidateQueries({ queryKey: ['admin', 'dashboard'] })
+    },
   })
 }
 

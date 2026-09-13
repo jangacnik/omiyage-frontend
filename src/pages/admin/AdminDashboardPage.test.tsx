@@ -1,5 +1,5 @@
 import { http, HttpResponse } from 'msw'
-import { screen } from '@testing-library/react'
+import { screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it } from 'vitest'
 import { server } from '../../test/server'
@@ -150,5 +150,49 @@ describe('AdminDashboardPage', () => {
     await user.click(await screen.findByText('Mark paid'))
 
     expect(await screen.findByText('Could not update paid status.')).toBeInTheDocument()
+  })
+
+  it("lets an admin create an order on a user's behalf", async () => {
+    const user = userEvent.setup()
+    let capturedBody: unknown = null
+    server.use(
+      http.get(`${BASE}/api/admin/dashboard/users`, () => HttpResponse.json([entry()])),
+      http.post(`${BASE}/api/admin/orders/for-user/user-1`, async ({ request }) => {
+        capturedBody = await request.json()
+        return HttpResponse.json(order(), { status: 201 })
+      }),
+    )
+
+    renderWithProviders(<AdminDashboardPage />)
+    await screen.findByText('Alice')
+    await user.click(screen.getByText('Create order'))
+
+    await user.type(screen.getByLabelText('Order nickname'), 'Test order')
+    await user.click(screen.getByText("Can't find it? Create a custom request"))
+    await user.type(screen.getByLabelText('Title'), 'Custom souvenir')
+    await user.click(screen.getByText('Add item'))
+    await user.click(screen.getByRole('button', { name: 'Create order' }))
+
+    await waitFor(() =>
+      expect(capturedBody).toMatchObject({ nickname: 'Test order', items: [{ title: 'Custom souvenir' }] }),
+    )
+  })
+
+  it('shows an error when creating an order for a user fails', async () => {
+    const user = userEvent.setup()
+    server.use(
+      http.get(`${BASE}/api/admin/dashboard/users`, () => HttpResponse.json([entry()])),
+      http.post(`${BASE}/api/admin/orders/for-user/user-1`, () => HttpResponse.json({ message: 'nope' }, { status: 500 })),
+    )
+
+    renderWithProviders(<AdminDashboardPage />)
+    await screen.findByText('Alice')
+    await user.click(screen.getByText('Create order'))
+    await user.click(screen.getByText("Can't find it? Create a custom request"))
+    await user.type(screen.getByLabelText('Title'), 'Custom souvenir')
+    await user.click(screen.getByText('Add item'))
+    await user.click(screen.getByRole('button', { name: 'Create order' }))
+
+    expect(await screen.findByText('Could not create the order.')).toBeInTheDocument()
   })
 })
