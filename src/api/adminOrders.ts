@@ -44,14 +44,20 @@ export function useAdminCreateOrderForUser() {
   })
 }
 
+// AdminOrderDetailPage reads the order via useOrder(id), the member-facing hook keyed
+// ['orders', id] - not ['admin', 'orders']. Every mutation below that acts on one order also
+// invalidates that key, or the detail page silently keeps showing pre-edit data after a
+// successful save (reproduced: markItemPaid persisted paid=true server-side while the button
+// stayed on "Mark paid" indefinitely).
 export function useUpdateOrderStatus() {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: ({ id, status }: { id: string; status: OrderStatus }) =>
       api.patch<OrderDto>(`/api/admin/orders/${id}`, { status }),
-    onSuccess: () => {
+    onSuccess: (_, { id }) => {
       queryClient.invalidateQueries({ queryKey: ['admin', 'orders'] })
       queryClient.invalidateQueries({ queryKey: ['admin', 'shipments'] })
+      queryClient.invalidateQueries({ queryKey: ['orders', id] })
     },
   })
 }
@@ -86,9 +92,10 @@ export function useUpdateOrderItem() {
         soldPriceCurrency,
         weight,
       }),
-    onSuccess: () => {
+    onSuccess: (_, { orderId }) => {
       queryClient.invalidateQueries({ queryKey: ['admin', 'orders'] })
       queryClient.invalidateQueries({ queryKey: ['admin', 'shipments'] })
+      queryClient.invalidateQueries({ queryKey: ['orders', orderId] })
     },
   })
 }
@@ -98,9 +105,10 @@ export function useAdminAddOrderItem() {
   return useMutation({
     mutationFn: ({ orderId, ...input }: CreateOrderItemInput & { orderId: string }) =>
       api.post<OrderDto>(`/api/admin/orders/${orderId}/items`, input),
-    onSuccess: () => {
+    onSuccess: (_, { orderId }) => {
       queryClient.invalidateQueries({ queryKey: ['admin', 'orders'] })
       queryClient.invalidateQueries({ queryKey: ['admin', 'shipments'] })
+      queryClient.invalidateQueries({ queryKey: ['orders', orderId] })
     },
   })
 }
@@ -110,9 +118,10 @@ export function useAdminUpdateOrderItemContent() {
   return useMutation({
     mutationFn: ({ orderId, itemId, ...input }: UpdateMyOrderItemInput & { orderId: string; itemId: string }) =>
       api.patch<OrderDto>(`/api/admin/orders/${orderId}/items/${itemId}/details`, input),
-    onSuccess: () => {
+    onSuccess: (_, { orderId }) => {
       queryClient.invalidateQueries({ queryKey: ['admin', 'orders'] })
       queryClient.invalidateQueries({ queryKey: ['admin', 'shipments'] })
+      queryClient.invalidateQueries({ queryKey: ['orders', orderId] })
     },
   })
 }
@@ -122,9 +131,10 @@ export function useAdminRemoveOrderItem() {
   return useMutation({
     mutationFn: ({ orderId, itemId }: { orderId: string; itemId: string }) =>
       api.delete<OrderDto>(`/api/admin/orders/${orderId}/items/${itemId}`),
-    onSuccess: () => {
+    onSuccess: (_, { orderId }) => {
       queryClient.invalidateQueries({ queryKey: ['admin', 'orders'] })
       queryClient.invalidateQueries({ queryKey: ['admin', 'shipments'] })
+      queryClient.invalidateQueries({ queryKey: ['orders', orderId] })
     },
   })
 }
@@ -134,10 +144,11 @@ export function useAdminMarkItemPaid() {
   return useMutation({
     mutationFn: ({ orderId, itemId, paid }: { orderId: string; itemId: string; paid: boolean }) =>
       api.patch<OrderDto>(`/api/admin/orders/${orderId}/items/${itemId}/paid`, { paid }),
-    onSuccess: () => {
+    onSuccess: (_, { orderId }) => {
       queryClient.invalidateQueries({ queryKey: ['admin', 'orders'] })
       queryClient.invalidateQueries({ queryKey: ['admin', 'shipments'] })
       queryClient.invalidateQueries({ queryKey: ['admin', 'dashboard'] })
+      queryClient.invalidateQueries({ queryKey: ['orders', orderId] })
     },
   })
 }
@@ -146,9 +157,10 @@ export function useAdminDeleteOrder() {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: (orderId: string) => api.delete<void>(`/api/admin/orders/${orderId}`),
-    onSuccess: () => {
+    onSuccess: (_, orderId) => {
       queryClient.invalidateQueries({ queryKey: ['admin', 'orders'] })
       queryClient.invalidateQueries({ queryKey: ['admin', 'shipments'] })
+      queryClient.invalidateQueries({ queryKey: ['orders', orderId] })
     },
   })
 }
@@ -169,9 +181,10 @@ export function useAssignOrderShipment() {
   return useMutation({
     mutationFn: ({ orderId, shipmentId }: { orderId: string; shipmentId: string | null }) =>
       api.patch<OrderDto>(`/api/admin/orders/${orderId}/shipment`, { shipmentId }),
-    onSuccess: () => {
+    onSuccess: (_, { orderId }) => {
       queryClient.invalidateQueries({ queryKey: ['admin', 'orders'] })
       queryClient.invalidateQueries({ queryKey: ['admin', 'shipments'] })
+      queryClient.invalidateQueries({ queryKey: ['orders', orderId] })
     },
   })
 }
