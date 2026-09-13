@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { Link, NavLink, Outlet, useLocation } from 'react-router-dom'
 import { useAuthStore } from '../store/authStore'
 import { BrandMark } from './BrandMark'
@@ -9,6 +9,37 @@ function TopNavLink({ to, children, onClick }: { to: string; children: React.Rea
     <NavLink to={to} onClick={onClick} className={({ isActive }) => `nav-link ${isActive ? 'nav-link-active' : ''}`}>
       {children}
     </NavLink>
+  )
+}
+
+/** Nickname dropdown holding Profile and Log out - a native <details> needs no open/close state,
+ *  just a ref to collapse it after a selection is made. */
+function AccountMenu({ nickname, onLogout, onNavigate }: { nickname: string; onLogout: () => void; onNavigate?: () => void }) {
+  const detailsRef = useRef<HTMLDetailsElement>(null)
+
+  function select(action?: () => void) {
+    return () => {
+      if (detailsRef.current) detailsRef.current.open = false
+      onNavigate?.()
+      action?.()
+    }
+  }
+
+  return (
+    <details ref={detailsRef} className="relative">
+      <summary className="flex cursor-pointer list-none items-center gap-1 text-sm font-medium text-paper/65 hover:text-paper">
+        <span>{nickname}</span>
+        <span aria-hidden="true" className="text-[0.6rem]">▾</span>
+      </summary>
+      <div className="absolute right-0 z-30 mt-2 flex w-36 flex-col overflow-hidden rounded-lg bg-ink shadow-lg ring-1 ring-paper/15">
+        <Link to="/profile" className="px-3 py-2 text-sm text-paper hover:bg-paper/10" onClick={select()}>
+          Profile
+        </Link>
+        <button type="button" className="px-3 py-2 text-left text-sm text-paper hover:bg-paper/10" onClick={select(onLogout)}>
+          Log out
+        </button>
+      </div>
+    </details>
   )
 }
 
@@ -41,7 +72,6 @@ export function Layout() {
                 <TopNavLink to="/orders">My orders</TopNavLink>
               </>
             )}
-            <TopNavLink to="/profile">Profile</TopNavLink>
             {isAdmin && (
               <>
                 <span className="mx-1 h-4 w-px bg-paper/20" aria-hidden="true" />
@@ -54,11 +84,8 @@ export function Layout() {
             )}
           </div>
 
-          <span className="ml-auto hidden items-center gap-3 md:flex">
-            {claims && <span className="text-sm font-medium text-paper/65">{claims.nickname}</span>}
-            <button type="button" className="btn-ghost-inverse" onClick={logout}>
-              Log out
-            </button>
+          <span className="ml-auto hidden items-center md:flex">
+            {claims && <AccountMenu nickname={claims.nickname} onLogout={logout} />}
           </span>
 
           <button
@@ -100,9 +127,6 @@ export function Layout() {
                 </TopNavLink>
               </>
             )}
-            <TopNavLink to="/profile" onClick={closeMenu}>
-              Profile
-            </TopNavLink>
             {isAdmin && (
               <>
                 <TopNavLink to="/admin/inventory" onClick={closeMenu}>
@@ -122,11 +146,8 @@ export function Layout() {
                 </TopNavLink>
               </>
             )}
-            <div className="mt-3 flex w-full items-center justify-between border-t border-paper/15 pt-3">
-              {claims && <span className="text-sm font-medium text-paper/65">{claims.nickname}</span>}
-              <button type="button" className="btn-ghost-inverse" onClick={logout}>
-                Log out
-              </button>
+            <div className="mt-3 flex w-full items-center border-t border-paper/15 pt-3">
+              {claims && <AccountMenu nickname={claims.nickname} onLogout={logout} onNavigate={closeMenu} />}
             </div>
           </div>
         )}
