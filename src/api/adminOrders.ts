@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { api } from '../lib/apiClient'
 import type { CreateOrderInput, CreateOrderItemInput, UpdateMyOrderItemInput } from './orders'
 import type {
+  AdminOrderSortBy,
   CombineRequestDto,
   OrderDto,
   OrderItemStatus,
@@ -11,12 +12,21 @@ import type {
   ShipmentDto,
   ShipmentStatus,
   ShippingMethod,
+  SortDirection,
 } from '../types/api'
 
-export function useAdminOrders(status: OrderStatus | '', page: number) {
+export function useAdminOrders(
+  status: OrderStatus | '',
+  page: number,
+  sortBy: AdminOrderSortBy = 'UPDATED_AT',
+  direction: SortDirection = 'DESC',
+) {
   return useQuery({
-    queryKey: ['admin', 'orders', status, page],
-    queryFn: () => api.get<Page<OrderDto>>(`/api/admin/orders?page=${page}&size=20${status ? `&status=${status}` : ''}`),
+    queryKey: ['admin', 'orders', status, page, sortBy, direction],
+    queryFn: () =>
+      api.get<Page<OrderDto>>(
+        `/api/admin/orders?page=${page}&size=20&sortBy=${sortBy}&direction=${direction}${status ? `&status=${status}` : ''}`,
+      ),
     placeholderData: (previous) => previous,
   })
 }
