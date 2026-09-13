@@ -47,13 +47,30 @@ describe('Layout account menu', () => {
     expect(screen.getByRole('button', { name: 'Log out' })).toBeInTheDocument()
   })
 
-  it('logs out and navigates to Profile from the dropdown', async () => {
+  it('logs out and navigates to Profile from the dropdown, closing it after', async () => {
     const user = userEvent.setup()
     renderLayout()
 
-    await user.click(screen.getByText('bob'))
+    const summary = screen.getByText('bob')
+    const details = summary.closest('details') as HTMLDetailsElement
+
+    await user.click(summary)
     await user.click(screen.getByRole('link', { name: 'Profile' }))
 
     expect(await screen.findByText('profile page')).toBeInTheDocument()
+    expect(details.open).toBe(false)
+  })
+
+  it('closes the dropdown after logging out', async () => {
+    const user = userEvent.setup()
+    renderLayout()
+
+    const summary = screen.getByText('bob')
+    const details = summary.closest('details') as HTMLDetailsElement
+
+    await user.click(summary)
+    await user.click(screen.getByRole('button', { name: 'Log out' }))
+
+    expect(details.open).toBe(false)
   })
 })

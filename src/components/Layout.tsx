@@ -27,7 +27,10 @@ function AccountMenu({ nickname, onLogout, onNavigate }: { nickname: string; onL
 
   return (
     <details ref={detailsRef} className="relative">
-      <summary className="cursor-pointer list-none text-sm font-medium text-paper/65 hover:text-paper">{nickname}</summary>
+      <summary className="flex cursor-pointer list-none items-center gap-1 text-sm font-medium text-paper/65 hover:text-paper">
+        <span>{nickname}</span>
+        <span aria-hidden="true" className="text-[0.6rem]">▾</span>
+      </summary>
       <div className="absolute right-0 z-30 mt-2 flex w-36 flex-col overflow-hidden rounded-lg bg-ink shadow-lg ring-1 ring-paper/15">
         <Link to="/profile" className="px-3 py-2 text-sm text-paper hover:bg-paper/10" onClick={select()}>
           Profile
