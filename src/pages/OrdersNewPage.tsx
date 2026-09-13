@@ -3,12 +3,19 @@ import { useNavigate, useSearchParams } from 'react-router-dom'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
-import { useInventoryItem } from '../api/inventory'
+import { useInventory, useInventoryItem } from '../api/inventory'
 import { useCreateOrder, type CreateOrderItemInput } from '../api/orders'
 import { ButtonSpinner } from '../components/Spinner'
 import { ImageDropInput } from '../components/ImageDropInput'
 import { ThumbnailImage } from '../components/ThumbnailImage'
 import { TrashIcon } from '../components/icons'
+import type { InventoryItem } from '../types/api'
+
+interface DraftItem {
+  input: CreateOrderItemInput
+  displayTitle: string
+  imageKey?: string
+}
 
 const customItemSchema = z.object({
   title: z.string().min(1, 'Title is required'),
@@ -22,7 +29,7 @@ const customItemSchema = z.object({
 
 type CustomItemForm = z.infer<typeof customItemSchema>
 
-function CustomItemForm({ onAdd }: { onAdd: (item: CreateOrderItemInput) => void }) {
+function CustomItemForm({ onAdd }: { onAdd: (item: DraftItem) => void }) {
   const [imageKey, setImageKey] = useState<string | undefined>()
   const [uploading, setUploading] = useState(false)
   const {
@@ -34,10 +41,17 @@ function CustomItemForm({ onAdd }: { onAdd: (item: CreateOrderItemInput) => void
 
   function onSubmit(data: CustomItemForm) {
     onAdd({
-      ...data,
-      maxPrice: data.maxPrice ? Number(data.maxPrice) : undefined,
-      quantity: data.quantity ? Number(data.quantity) : 1,
-      link: data.link || undefined,
+      input: {
+        title: data.title,
+        description: data.description,
+        link: data.link || undefined,
+        condition: data.condition,
+        currency: data.currency,
+        maxPrice: data.maxPrice ? Number(data.maxPrice) : undefined,
+        quantity: data.quantity ? Number(data.quantity) : 1,
+        imageKey,
+      },
+      displayTitle: data.title,
       imageKey,
     })
     reset()
@@ -95,30 +109,95 @@ function CustomItemForm({ onAdd }: { onAdd: (item: CreateOrderItemInput) => void
   )
 }
 
+function InventorySearch({ onSelect, onCreateCustom }: { onSelect: (item: InventoryItem) => void; onCreateCustom: () => void }) {
+  const [search, setSearch] = useState('')
+  const query = search.trim()
+  const { data } = useInventory({ title: query, page: 0, enabled: query.length > 0 })
+  const results = query ? (data?.content ?? []) : []
+
+  return (
+    <div className="card flex flex-col gap-2">
+      <input
+        placeholder="Search inventory to add an item..."
+        className="field-input"
+        value={search}
+        onChange={(e) => setSearch(e.target.value)}
+        aria-label="Search inventory"
+      />
+      {query && results.length > 0 && (
+        <ul className="flex flex-col divide-y divide-mist">
+          {results.map((item) => (
+            <li key={item.id}>
+              <button
+                type="button"
+                className="flex w-full items-center gap-3 rounded-lg p-2 text-left hover:bg-mist"
+                onClick={() => {
+                  onSelect(item)
+                  setSearch('')
+                }}
+              >
+                <ThumbnailImage imageKey={item.images[0]} className="h-10 w-10 shrink-0 rounded-lg" />
+                <span className="text-sm text-ink/80">{item.title}</span>
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+      {query && results.length === 0 && (
+        <p className="text-sm text-ink/60">
+          No matching item.{' '}
+          <button type="button" className="text-forest underline" onClick={onCreateCustom}>
+            Create a custom request instead
+          </button>
+        </p>
+      )}
+    </div>
+  )
+}
+
 export function OrdersNewPage() {
   const [searchParams] = useSearchParams()
   const preselectedInventoryItemId = searchParams.get('inventoryItemId') ?? undefined
   const { data: preselectedItem } = useInventoryItem(preselectedInventoryItemId)
 
-  const [items, setItems] = useState<CreateOrderItemInput[]>([])
+  const [items, setItems] = useState<DraftItem[]>([])
   const [prefilledAdded, setPrefilledAdded] = useState(false)
   const [nickname, setNickname] = useState('')
+  const [showCustomForm, setShowCustomForm] = useState(false)
   const createOrder = useCreateOrder()
   const navigate = useNavigate()
 
   useEffect(() => {
     if (preselectedItem && !prefilledAdded) {
-      setItems((current) => [...current, { inventoryItemId: preselectedItem.id, currency: preselectedItem.currency, quantity: 1 }])
+      setItems((current) => [
+        ...current,
+        {
+          input: { inventoryItemId: preselectedItem.id, currency: preselectedItem.currency, quantity: 1 },
+          displayTitle: preselectedItem.title,
+          imageKey: preselectedItem.images[0],
+        },
+      ])
       setPrefilledAdded(true)
     }
   }, [preselectedItem, prefilledAdded])
+
+  function addInventoryItem(item: InventoryItem) {
+    setItems((current) => [
+      ...current,
+      {
+        input: { inventoryItemId: item.id, currency: item.currency, quantity: 1 },
+        displayTitle: item.title,
+        imageKey: item.images[0],
+      },
+    ])
+  }
 
   function removeItem(index: number) {
     setItems((current) => current.filter((_, i) => i !== index))
   }
 
   async function submit() {
-    const order = await createOrder.mutateAsync({ items, nickname: nickname.trim() || undefined })
+    const order = await createOrder.mutateAsync({ items: items.map((draft) => draft.input), nickname: nickname.trim() || undefined })
     navigate(`/orders/${order.id}`)
   }
 
@@ -141,9 +220,7 @@ export function OrdersNewPage() {
               <span className="flex items-center gap-3">
                 <ThumbnailImage imageKey={item.imageKey} className="h-10 w-10 shrink-0 rounded-lg" />
                 <span className="text-sm text-ink/80">
-                  {item.inventoryItemId ? `Inventory item: ${preselectedItem?.title ?? item.inventoryItemId}` : item.title}
-                  {' — '}
-                  {item.currency}
+                  {item.displayTitle} — {item.input.currency}
                 </span>
               </span>
               <button type="button" className="btn-danger px-2 py-1 text-xs" onClick={() => removeItem(index)}>
@@ -154,7 +231,17 @@ export function OrdersNewPage() {
         </ul>
       )}
 
-      <CustomItemForm onAdd={(item) => setItems((current) => [...current, item])} />
+      <div className="mb-4">
+        <InventorySearch onSelect={addInventoryItem} onCreateCustom={() => setShowCustomForm(true)} />
+      </div>
+
+      {showCustomForm ? (
+        <CustomItemForm onAdd={(item) => setItems((current) => [...current, item])} />
+      ) : (
+        <button type="button" className="btn-secondary" onClick={() => setShowCustomForm(true)}>
+          Can't find it? Create a custom request
+        </button>
+      )}
 
       <button
         type="button"

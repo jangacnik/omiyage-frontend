@@ -7,6 +7,7 @@ export interface InventorySearchParams {
   categoryId?: string
   page?: number
   size?: number
+  enabled?: boolean
 }
 
 function buildQuery(params: Record<string, string | number | undefined>): string {
@@ -25,6 +26,7 @@ export function useInventory(params: InventorySearchParams) {
       api.get<Page<InventoryItem>>(
         `/api/inventory${buildQuery({ title: params.title, categoryId: params.categoryId, page: params.page ?? 0, size: params.size ?? 20 })}`,
       ),
+    enabled: params.enabled ?? true,
     placeholderData: (previous) => previous,
   })
 }
