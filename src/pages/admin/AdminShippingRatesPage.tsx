@@ -190,8 +190,6 @@ export function AdminShippingRatesPage() {
 
   return (
     <div className="max-w-2xl">
-      <h1 className="page-title mb-4">Admin: Shipping Rates</h1>
-
       <form onSubmit={handleCreate} className="card mb-6 flex flex-col gap-2">
         <div className="flex flex-col gap-2 sm:flex-row">
           <select

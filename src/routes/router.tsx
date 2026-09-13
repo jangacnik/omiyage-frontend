@@ -9,6 +9,7 @@ import { OrdersListPage } from '../pages/OrdersListPage'
 import { OrderDetailPage } from '../pages/OrderDetailPage'
 import { ProfilePage } from '../pages/ProfilePage'
 import { AdminInventoryPage } from '../pages/admin/AdminInventoryPage'
+import { AdminSettingsPage } from '../pages/admin/AdminSettingsPage'
 import { AdminCategoriesPage } from '../pages/admin/AdminCategoriesPage'
 import { AdminOrdersPage } from '../pages/admin/AdminOrdersPage'
 import { AdminOrderDetailPage } from '../pages/admin/AdminOrderDetailPage'
@@ -35,12 +36,19 @@ export const router = createBrowserRouter([
             element: <RequireAdmin />,
             children: [
               { path: '/admin/inventory', element: <AdminInventoryPage /> },
-              { path: '/admin/categories', element: <AdminCategoriesPage /> },
               { path: '/admin/orders', element: <AdminOrdersPage /> },
               { path: '/admin/orders/:id', element: <AdminOrderDetailPage /> },
               { path: '/admin/shipments', element: <AdminShipmentsPage /> },
               { path: '/admin/shipments/:id', element: <AdminShipmentsPage /> },
-              { path: '/admin/shipping-rates', element: <AdminShippingRatesPage /> },
+              {
+                path: '/admin/settings',
+                element: <AdminSettingsPage />,
+                children: [
+                  { index: true, element: <Navigate to="/admin/settings/categories" replace /> },
+                  { path: 'categories', element: <AdminCategoriesPage /> },
+                  { path: 'shipping-rates', element: <AdminShippingRatesPage /> },
+                ],
+              },
               { path: '/admin/dashboard', element: <AdminDashboardPage /> },
             ],
           },

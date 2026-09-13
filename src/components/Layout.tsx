@@ -46,10 +46,9 @@ export function Layout() {
               <>
                 <span className="mx-1 h-4 w-px bg-paper/20" aria-hidden="true" />
                 <TopNavLink to="/admin/inventory">Inventory</TopNavLink>
-                <TopNavLink to="/admin/categories">Categories</TopNavLink>
                 <TopNavLink to="/admin/orders">Orders</TopNavLink>
                 <TopNavLink to="/admin/shipments">Shipments</TopNavLink>
-                <TopNavLink to="/admin/shipping-rates">Shipping rates</TopNavLink>
+                <TopNavLink to="/admin/settings">Settings</TopNavLink>
                 <TopNavLink to="/admin/dashboard">Dashboard</TopNavLink>
               </>
             )}
@@ -109,17 +108,14 @@ export function Layout() {
                 <TopNavLink to="/admin/inventory" onClick={closeMenu}>
                   Inventory
                 </TopNavLink>
-                <TopNavLink to="/admin/categories" onClick={closeMenu}>
-                  Categories
-                </TopNavLink>
                 <TopNavLink to="/admin/orders" onClick={closeMenu}>
                   Orders
                 </TopNavLink>
                 <TopNavLink to="/admin/shipments" onClick={closeMenu}>
                   Shipments
                 </TopNavLink>
-                <TopNavLink to="/admin/shipping-rates" onClick={closeMenu}>
-                  Shipping rates
+                <TopNavLink to="/admin/settings" onClick={closeMenu}>
+                  Settings
                 </TopNavLink>
                 <TopNavLink to="/admin/dashboard" onClick={closeMenu}>
                   Dashboard
