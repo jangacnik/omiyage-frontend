@@ -1,6 +1,13 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { api } from '../lib/apiClient'
-import type { CombineRequestDto } from '../types/api'
+import type { BrowsableShipmentDto, CombineRequestDto } from '../types/api'
+
+export function useBrowsableShipments() {
+  return useQuery({
+    queryKey: ['shipments', 'browsable'],
+    queryFn: () => api.get<BrowsableShipmentDto[]>('/api/shipments/browsable'),
+  })
+}
 
 export function useIncomingCombineRequests() {
   return useQuery({
@@ -28,8 +35,8 @@ function useInvalidateCombineRequests() {
 export function useSendCombineRequest() {
   const invalidate = useInvalidateCombineRequests()
   return useMutation({
-    mutationFn: ({ requesterOrderId, targetOrderId }: { requesterOrderId: string; targetOrderId: string }) =>
-      api.post<CombineRequestDto>('/api/orders/combine-requests', { requesterOrderId, targetOrderId }),
+    mutationFn: ({ requesterOrderId, targetShipmentId }: { requesterOrderId: string; targetShipmentId: string }) =>
+      api.post<CombineRequestDto>('/api/orders/combine-requests', { requesterOrderId, targetShipmentId }),
     onSuccess: invalidate,
   })
 }

@@ -74,6 +74,7 @@ export function Layout() {
               <>
                 <TopNavLink to="/inventory">Inventory</TopNavLink>
                 <TopNavLink to="/orders">My orders</TopNavLink>
+                <TopNavLink to="/shipments">Shipments</TopNavLink>
               </>
             )}
             {isAdmin && (
@@ -129,6 +130,9 @@ export function Layout() {
                 </TopNavLink>
                 <TopNavLink to="/orders" onClick={closeMenu}>
                   My orders
+                </TopNavLink>
+                <TopNavLink to="/shipments" onClick={closeMenu}>
+                  Shipments
                 </TopNavLink>
               </>
             )}

@@ -131,10 +131,25 @@ export interface OrderSummaryDto {
   itemCount: number
 }
 
+export interface ShipmentSummaryDto {
+  id: string
+  title: string | null
+  itemCount: number
+  totalWeightGrams: number
+}
+
+export interface BrowsableShipmentDto {
+  id: string
+  title: string | null
+  itemCount: number
+  totalWeightGrams: number
+  ownerNickname: string | null
+}
+
 export interface CombineRequestDto {
   id: string
   requesterOrder: OrderSummaryDto
-  targetOrder: OrderSummaryDto
+  targetShipment: ShipmentSummaryDto
   status: CombineRequestStatus
   createdAt: string
   respondedAt: string | null

@@ -18,8 +18,7 @@ export function AdminCombineRequestsPage() {
             <p className="text-sm text-ink/80">
               {request.requesterOrder.nickname ?? request.requesterOrder.id.slice(0, 8)}
               <OrderIdHint id={request.requesterOrder.id} nickname={request.requesterOrder.nickname} /> → wants to
-              combine with {request.targetOrder.nickname ?? request.targetOrder.id.slice(0, 8)}
-              <OrderIdHint id={request.targetOrder.id} nickname={request.targetOrder.nickname} />
+              join {request.targetShipment.title ?? `shipment ${request.targetShipment.id.slice(0, 8)}`}
             </p>
             <button
               type="button"

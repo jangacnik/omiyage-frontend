@@ -7,7 +7,7 @@ import {
 } from '../api/combineRequests'
 import { OrderIdHint } from '../components/OrderIdHint'
 import { ButtonSpinner, Spinner } from '../components/Spinner'
-import type { CombineRequestDto } from '../types/api'
+import type { CombineRequestDto, ShipmentSummaryDto } from '../types/api'
 
 function OrderSummary({ id, nickname }: { id: string; nickname: string | null }) {
   return (
@@ -18,6 +18,10 @@ function OrderSummary({ id, nickname }: { id: string; nickname: string | null })
   )
 }
 
+function ShipmentSummary({ shipment }: { shipment: ShipmentSummaryDto }) {
+  return <span className="font-medium text-ink">{shipment.title ?? `shipment ${shipment.id.slice(0, 8)}`}</span>
+}
+
 function IncomingRow({ request }: { request: CombineRequestDto }) {
   const accept = useAcceptCombineRequest()
   const decline = useDeclineCombineRequest()
@@ -25,8 +29,8 @@ function IncomingRow({ request }: { request: CombineRequestDto }) {
   return (
     <li className="card flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
       <p className="text-sm text-ink/80">
-        <OrderSummary id={request.requesterOrder.id} nickname={request.requesterOrder.nickname} /> wants to combine
-        with your order <OrderSummary id={request.targetOrder.id} nickname={request.targetOrder.nickname} />
+        <OrderSummary id={request.requesterOrder.id} nickname={request.requesterOrder.nickname} /> wants to join your{' '}
+        <ShipmentSummary shipment={request.targetShipment} />
       </p>
       <div className="flex gap-2">
         <button type="button" className="btn-primary px-3 py-1.5 text-sm" onClick={() => accept.mutate(request.id)} disabled={accept.isPending}>
@@ -47,8 +51,8 @@ function OutgoingRow({ request }: { request: CombineRequestDto }) {
   return (
     <li className="card flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
       <p className="text-sm text-ink/80">
-        Your order <OrderSummary id={request.requesterOrder.id} nickname={request.requesterOrder.nickname} /> asked to combine
-        with <OrderSummary id={request.targetOrder.id} nickname={request.targetOrder.nickname} /> — waiting for them to respond.
+        Your order <OrderSummary id={request.requesterOrder.id} nickname={request.requesterOrder.nickname} /> asked to join{' '}
+        <ShipmentSummary shipment={request.targetShipment} /> — waiting for them to respond.
       </p>
       <button type="button" className="btn-secondary px-3 py-1.5 text-sm" onClick={() => cancel.mutate(request.id)} disabled={cancel.isPending}>
         {cancel.isPending ? <ButtonSpinner /> : 'Cancel'}
