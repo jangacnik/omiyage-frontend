@@ -91,7 +91,7 @@ function ChangePasswordForm() {
   }
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="card mt-4 flex max-w-sm flex-col gap-3">
+    <form onSubmit={handleSubmit(onSubmit)} className="card mt-4 flex flex-col gap-3">
       <h2 className="font-medium text-ink">Change password</h2>
       <div className="flex flex-col gap-1">
         <label htmlFor="oldPassword" className="field-label">
@@ -192,7 +192,7 @@ export function ProfilePage() {
   if (isLoading) return <Spinner fullPage label="Fetching profile" />
 
   return (
-    <div className="max-w-3xl">
+    <div className="mx-auto max-w-3xl">
       <h1 className="page-title mb-1">Profile</h1>
       {profile && <NicknameEditor profile={profile} />}
 
