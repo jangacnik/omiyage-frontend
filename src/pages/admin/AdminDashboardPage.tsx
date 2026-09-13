@@ -1,15 +1,57 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useUserDashboard } from '../../api/adminDashboard'
-import { useAdminMarkItemPaid } from '../../api/adminOrders'
+import { useAdminCreateOrderForUser, useAdminMarkItemPaid } from '../../api/adminOrders'
 import { orderDisplayName } from '../../api/orders'
 import { Money } from '../../components/Money'
 import { OrderIdHint } from '../../components/OrderIdHint'
+import { OrderItemBuilder, type DraftItem } from '../../components/OrderItemBuilder'
 import { OrderStatusBadge } from '../../components/OrderStatusBadge'
 import { OrderItemStatusBadge } from '../../components/OrderItemStatusBadge'
 import { Spinner, ButtonSpinner } from '../../components/Spinner'
 import { ThumbnailImage } from '../../components/ThumbnailImage'
 import type { OrderDto, OrderItemDto, PendingAmountDto, UserDashboardEntryDto } from '../../types/api'
+
+function CreateOrderForUser({ userId, onDone }: { userId: string; onDone: () => void }) {
+  const [items, setItems] = useState<DraftItem[]>([])
+  const [nickname, setNickname] = useState('')
+  const createOrder = useAdminCreateOrderForUser()
+
+  async function submit() {
+    try {
+      await createOrder.mutateAsync({ userId, items: items.map((draft) => draft.input), nickname: nickname.trim() || undefined })
+      onDone()
+    } catch {
+      // createOrder.isError renders the message below - stay open so the admin can retry.
+    }
+  }
+
+  return (
+    <div className="card flex flex-col gap-3 border-t border-mist">
+      <input
+        placeholder="Nickname for this order (optional)"
+        className="field-input"
+        value={nickname}
+        onChange={(e) => setNickname(e.target.value)}
+        aria-label="Order nickname"
+      />
+      <OrderItemBuilder
+        items={items}
+        onAdd={(item) => setItems((current) => [...current, item])}
+        onRemove={(index) => setItems((current) => current.filter((_, i) => i !== index))}
+      />
+      <div className="flex items-center gap-2">
+        <button type="button" className="btn-primary" disabled={items.length === 0 || createOrder.isPending} onClick={submit}>
+          {createOrder.isPending ? <ButtonSpinner /> : 'Create order'}
+        </button>
+        <button type="button" className="btn-secondary" onClick={onDone}>
+          Cancel
+        </button>
+      </div>
+      {createOrder.isError && <p className="error-text">Could not create the order.</p>}
+    </div>
+  )
+}
 
 function PendingSummary({ amounts }: { amounts: PendingAmountDto[] }) {
   if (amounts.length === 0) {
@@ -89,27 +131,33 @@ function DashboardOrderRow({ order }: { order: OrderDto }) {
 
 function UserDashboardCard({ entry }: { entry: UserDashboardEntryDto }) {
   const [expanded, setExpanded] = useState(false)
+  const [creatingOrder, setCreatingOrder] = useState(false)
   const owesMoney = entry.pendingAmounts.length > 0
 
   return (
     <li className={`card flex flex-col gap-3 ${owesMoney ? 'ring-1 ring-inset ring-sage' : ''}`}>
-      <button
-        type="button"
-        className="flex flex-wrap items-center justify-between gap-3 text-left"
-        onClick={() => setExpanded((v) => !v)}
-        aria-expanded={expanded}
-      >
-        <div className="flex items-baseline gap-2">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <button
+          type="button"
+          className="flex flex-1 flex-wrap items-center gap-2 text-left"
+          onClick={() => setExpanded((v) => !v)}
+          aria-expanded={expanded}
+        >
           <span className="font-medium text-ink">{entry.user.nickname}</span>
           <span className="text-xs text-ink/50">{entry.orders.length} order(s)</span>
-        </div>
+        </button>
         <div className="flex items-center gap-3">
           <PendingSummary amounts={entry.pendingAmounts} />
+          <button type="button" className="btn-secondary px-2 py-1 text-xs" onClick={() => setCreatingOrder((v) => !v)}>
+            {creatingOrder ? 'Cancel' : 'Create order'}
+          </button>
           <span className="text-ink/40" aria-hidden="true">
             {expanded ? '▲' : '▼'}
           </span>
         </div>
-      </button>
+      </div>
+
+      {creatingOrder && <CreateOrderForUser userId={entry.user.id} onDone={() => setCreatingOrder(false)} />}
 
       {expanded && (
         <div className="flex flex-col divide-y divide-mist border-t border-mist pt-1">

@@ -90,6 +90,20 @@ describe('OrdersNewPage', () => {
     expect((capturedBody as { nickname?: string }).nickname).toBeUndefined()
   })
 
+  it('shows an error and stays on the page when submitting fails', async () => {
+    const user = userEvent.setup()
+    server.use(http.post(`${BASE}/api/orders`, () => HttpResponse.json({ message: 'nope' }, { status: 500 })))
+
+    renderPage(['/orders/new'])
+    await user.click(screen.getByText("Can't find it? Create a custom request"))
+    await user.type(screen.getByLabelText('Title'), 'Ghibli museum ticket')
+    await user.click(screen.getByText('Add item'))
+    await user.click(screen.getByText('Submit request'))
+
+    expect(await screen.findByText('Could not submit request.')).toBeInTheDocument()
+    expect(screen.getByLabelText('Order nickname')).toBeInTheDocument()
+  })
+
   it('pre-fills a draft item from an inventoryItemId query param', async () => {
     const item: InventoryItem = {
       id: 'item-1',
