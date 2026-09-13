@@ -40,15 +40,6 @@ export function useUpdateInventoryItem() {
   })
 }
 
-export function useUpdateInventoryStatus() {
-  const queryClient = useQueryClient()
-  return useMutation({
-    mutationFn: ({ id, status }: { id: string; status: InventoryItem['status'] }) =>
-      api.patch<InventoryItem>(`/api/admin/inventory/${id}/status`, { status }),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['admin', 'inventory'] }),
-  })
-}
-
 export function useDeleteInventoryItem() {
   const queryClient = useQueryClient()
   return useMutation({
