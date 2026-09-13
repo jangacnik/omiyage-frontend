@@ -3,13 +3,13 @@ import { Link } from 'react-router-dom'
 import { useUserDashboard } from '../../api/adminDashboard'
 import { useAdminCreateOrderForUser, useAdminMarkItemPaid } from '../../api/adminOrders'
 import { orderDisplayName } from '../../api/orders'
-import { Money } from '../../components/Money'
 import { OrderIdHint } from '../../components/OrderIdHint'
 import { OrderItemBuilder, type DraftItem } from '../../components/OrderItemBuilder'
 import { OrderStatusBadge } from '../../components/OrderStatusBadge'
 import { OrderItemStatusBadge } from '../../components/OrderItemStatusBadge'
 import { Spinner, ButtonSpinner } from '../../components/Spinner'
 import { ThumbnailImage } from '../../components/ThumbnailImage'
+import { formatMoney } from '../../lib/currency'
 import type { OrderDto, OrderItemDto, PendingAmountDto, UserDashboardEntryDto } from '../../types/api'
 
 function CreateOrderForUser({ userId, onDone }: { userId: string; onDone: () => void }) {
@@ -66,7 +66,7 @@ function PendingSummary({ amounts }: { amounts: PendingAmountDto[] }) {
           key={pending.currency}
           className="rounded-full bg-mint px-2.5 py-0.5 text-sm font-semibold text-forest-deep"
         >
-          <Money amount={pending.amount} currency={pending.currency} /> owed
+          {formatMoney(pending.amount, pending.currency)} owed
         </span>
       ))}
     </div>
@@ -99,11 +99,7 @@ function OrderItemRow({ orderId, item }: { orderId: string; item: OrderItemDto }
         <ThumbnailImage imageKey={item.imageKey} className="h-10 w-10 shrink-0 rounded-lg" />
         <span className="truncate text-sm text-ink/80">{item.title}</span>
         <OrderItemStatusBadge status={item.status} />
-        {price != null && (
-          <span className="text-sm text-ink/60">
-            <Money amount={price} currency={item.currency} />
-          </span>
-        )}
+        {price != null && <span className="text-sm text-ink/60">{formatMoney(price, item.currency)}</span>}
       </div>
       <PaidToggleButton orderId={orderId} item={item} />
     </li>

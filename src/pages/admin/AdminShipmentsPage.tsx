@@ -3,8 +3,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom'
 import { useAdminDeleteShipment, useAdminShipments, useUpdateShipment } from '../../api/adminOrders'
 import { orderDisplayName } from '../../api/orders'
 import { useConfirm } from '../../components/ConfirmDialog'
-import { formatGrams } from '../../lib/currency'
-import { ShippingCostMoney } from '../../components/Money'
+import { formatGrams, formatMoney } from '../../lib/currency'
 import { OrderIdHint } from '../../components/OrderIdHint'
 import { OrderStatusBadge } from '../../components/OrderStatusBadge'
 import { OrderItemStatusBadge } from '../../components/OrderItemStatusBadge'
@@ -36,10 +35,8 @@ function ShipmentOrderRow({ order }: { order: OrderDto }) {
         {order.orderWeightGrams != null && (
           <span className="text-xs text-ink/50">{formatGrams(order.orderWeightGrams)}</span>
         )}
-        {order.shippingCostShareJpy != null && order.shippingCostShareEur != null && (
-          <span className="text-xs font-medium text-ink">
-            <ShippingCostMoney jpy={order.shippingCostShareJpy} eur={order.shippingCostShareEur} /> shipping
-          </span>
+        {order.shippingCostShareJpy != null && (
+          <span className="text-xs font-medium text-ink">{formatMoney(order.shippingCostShareJpy, 'JPY')} shipping</span>
         )}
         <button type="button" className="btn-secondary ml-auto px-2 py-1 text-xs" onClick={() => setEditing((v) => !v)}>
           {editing ? 'Done' : 'Edit'}
@@ -173,10 +170,8 @@ function ShipmentCard({ shipment, expanded }: { shipment: ShipmentDto; expanded:
         <span>Total weight: {formatGrams(shipment.totalWeightGrams)}</span>
         <span>
           Shipping cost:{' '}
-          {shipment.shippingCostJpy != null && shipment.shippingCostEur != null ? (
-            <strong className="text-ink">
-              <ShippingCostMoney jpy={shipment.shippingCostJpy} eur={shipment.shippingCostEur} />
-            </strong>
+          {shipment.shippingCostJpy != null ? (
+            <strong className="text-ink">{formatMoney(shipment.shippingCostJpy, 'JPY')}</strong>
           ) : (
             <span className="text-ink/50">
               {shipment.destination && shipment.shippingMethod

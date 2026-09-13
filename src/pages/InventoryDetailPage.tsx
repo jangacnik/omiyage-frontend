@@ -1,8 +1,8 @@
 import { Link, useParams } from 'react-router-dom'
 import { useInventoryItem } from '../api/inventory'
-import { Money } from '../components/Money'
 import { Spinner } from '../components/Spinner'
 import { ThumbnailImage } from '../components/ThumbnailImage'
+import { formatMoney } from '../lib/currency'
 
 export function InventoryDetailPage() {
   const { id } = useParams<{ id: string }>()
@@ -23,9 +23,7 @@ export function InventoryDetailPage() {
       <div className="flex flex-1 flex-col gap-2">
         <h1 className="page-title">{item.title}</h1>
         {item.description && <p className="text-ink/70">{item.description}</p>}
-        <p className="text-2xl font-semibold text-forest">
-          <Money amount={item.priceAmount} currency={item.currency} />
-        </p>
+        <p className="text-2xl font-semibold text-forest">{formatMoney(item.priceAmount, item.currency)}</p>
         <dl className="grid grid-cols-2 gap-y-1 text-sm text-ink/70">
           <dt className="font-medium text-ink/50">Condition</dt>
           <dd>{item.condition}</dd>
