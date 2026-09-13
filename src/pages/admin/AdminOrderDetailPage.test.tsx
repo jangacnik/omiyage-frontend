@@ -41,7 +41,9 @@ function order(): OrderDto {
         quantity: 1,
         isPreorder: false,
         expectedReleaseDate: null,
+        actualPriceCurrency: null,
         soldPrice: null,
+        soldPriceCurrency: null,
         profit: null,
       },
     ],
@@ -72,7 +74,7 @@ describe('AdminOrderDetailPage', () => {
     expect(screen.getByText('Total weight: 0 g')).toBeInTheDocument()
   })
 
-  it('saves buy price, weight and status together', async () => {
+  it('saves bought price, sold price, weight and status together via the edit dialog', async () => {
     const user = userEvent.setup()
     let capturedBody: unknown = null
     server.use(
@@ -82,18 +84,28 @@ describe('AdminOrderDetailPage', () => {
         capturedBody = await request.json()
         return HttpResponse.json(order())
       }),
+      http.patch(`${BASE}/api/admin/orders/order-12345678/items/item-1/details`, () => HttpResponse.json(order())),
     )
 
     renderPage()
     await screen.findByText('Ghibli museum ticket')
+    await user.click(screen.getByText('Edit'))
 
-    await user.type(screen.getByLabelText('Buy price for Ghibli museum ticket'), '1800')
-    await user.type(screen.getByLabelText('Sold price for Ghibli museum ticket'), '2200')
-    await user.type(screen.getByLabelText('Weight for Ghibli museum ticket'), '250')
-    await user.selectOptions(screen.getByLabelText('Status for Ghibli museum ticket'), 'BOUGHT')
+    await user.type(await screen.findByLabelText('Bought for'), '1800')
+    await user.selectOptions(screen.getByLabelText('Bought for currency'), 'EUR')
+    await user.type(screen.getByLabelText('Sold for'), '2200')
+    await user.type(screen.getByLabelText('Weight'), '250')
+    await user.selectOptions(screen.getByLabelText('Status'), 'BOUGHT')
+    await user.click(screen.getByText('Save'))
 
     await waitFor(() =>
-      expect(capturedBody).toMatchObject({ status: 'BOUGHT', actualPrice: 1800, soldPrice: 2200, weight: 250 }),
+      expect(capturedBody).toMatchObject({
+        status: 'BOUGHT',
+        actualPrice: 1800,
+        actualPriceCurrency: 'EUR',
+        soldPrice: 2200,
+        weight: 250,
+      }),
     )
   })
 
