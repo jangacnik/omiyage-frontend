@@ -32,6 +32,7 @@ describe('OrdersNewPage', () => {
     )
 
     renderPage(['/orders/new'])
+    await user.click(screen.getByText("Can't find it? Create a custom request"))
 
     await user.type(screen.getByLabelText('Title'), 'Ghibli museum ticket')
     await user.type(screen.getByLabelText('Max price'), '2000')
@@ -58,6 +59,7 @@ describe('OrdersNewPage', () => {
     )
 
     renderPage(['/orders/new'])
+    await user.click(screen.getByText("Can't find it? Create a custom request"))
 
     await user.type(screen.getByLabelText('Order nickname'), "Grandma's gifts")
     await user.type(screen.getByLabelText('Title'), 'Ghibli museum ticket')
@@ -78,6 +80,7 @@ describe('OrdersNewPage', () => {
     )
 
     renderPage(['/orders/new'])
+    await user.click(screen.getByText("Can't find it? Create a custom request"))
 
     await user.type(screen.getByLabelText('Title'), 'Ghibli museum ticket')
     await user.click(screen.getByText('Add item'))
@@ -105,6 +108,54 @@ describe('OrdersNewPage', () => {
 
     renderPage(['/orders/new?inventoryItemId=item-1'])
 
-    expect(await screen.findByText(/Inventory item: Kit Kat matcha/)).toBeInTheDocument()
+    expect(await screen.findByText(/Kit Kat matcha — JPY/)).toBeInTheDocument()
+  })
+
+  it('adds an inventory item found via search, without opening the custom form', async () => {
+    const user = userEvent.setup()
+    const item: InventoryItem = {
+      id: 'item-1',
+      title: 'Kit Kat matcha',
+      description: null,
+      link: null,
+      condition: 'NEW',
+      priceAmount: 1200,
+      currency: 'JPY',
+      stockQuantity: 3,
+      status: 'ACTIVE',
+      images: [],
+      categories: [],
+    }
+    let capturedBody: unknown = null
+    server.use(
+      http.get(`${BASE}/api/inventory`, () => HttpResponse.json({ content: [item], page: 0, size: 20, totalElements: 1, totalPages: 1 })),
+      http.post(`${BASE}/api/orders`, async ({ request }) => {
+        capturedBody = await request.json()
+        return HttpResponse.json({ id: 'new-order-id', status: 'REQUESTED' } as Partial<OrderDto>, { status: 201 })
+      }),
+    )
+
+    renderPage(['/orders/new'])
+    await user.type(screen.getByLabelText('Search inventory'), 'Kit Kat')
+    await user.click(await screen.findByText('Kit Kat matcha'))
+
+    expect(screen.getByText(/Kit Kat matcha — JPY/)).toBeInTheDocument()
+    expect(screen.queryByLabelText('Title')).not.toBeInTheDocument()
+
+    await user.click(screen.getByText('Submit request'))
+
+    await waitFor(() => expect(capturedBody).toMatchObject({ items: [{ inventoryItemId: 'item-1' }] }))
+  })
+
+  it("offers a custom request when the search finds nothing", async () => {
+    const user = userEvent.setup()
+    server.use(http.get(`${BASE}/api/inventory`, () => HttpResponse.json({ content: [], page: 0, size: 20, totalElements: 0, totalPages: 0 })))
+
+    renderPage(['/orders/new'])
+    await user.type(screen.getByLabelText('Search inventory'), 'Nonexistent thing')
+
+    await user.click(await screen.findByText('Create a custom request instead'))
+
+    expect(screen.getByLabelText('Title')).toBeInTheDocument()
   })
 })
