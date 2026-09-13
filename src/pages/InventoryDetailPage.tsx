@@ -28,7 +28,7 @@ export function InventoryDetailPage() {
           <dt className="font-medium text-ink/50">Condition</dt>
           <dd>{item.condition}</dd>
           <dt className="font-medium text-ink/50">In stock</dt>
-          <dd>{item.stockQuantity}</dd>
+          <dd>{item.stockQuantity === 0 ? 'Out of stock' : item.stockQuantity}</dd>
           <dt className="font-medium text-ink/50">Categories</dt>
           <dd>{item.categories.map((c) => c.name).join(', ') || 'None'}</dd>
         </dl>

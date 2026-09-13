@@ -108,23 +108,28 @@ describe('AdminInventoryPage', () => {
     expect(await screen.findByText(/profit ¥700/)).toBeInTheDocument()
   })
 
-  it('archives an active item', async () => {
-    const user = userEvent.setup()
-    let capturedStatus: unknown = null
+  it('has no archive control', async () => {
     server.use(
       http.get(`${BASE}/api/admin/inventory`, () => HttpResponse.json(page([item()]))),
       http.get(`${BASE}/api/categories`, () => HttpResponse.json([])),
-      http.patch(`${BASE}/api/admin/inventory/item-1/status`, async ({ request }) => {
-        capturedStatus = await request.json()
-        return HttpResponse.json(item({ status: 'ARCHIVED' }))
-      }),
     )
 
     renderWithProviders(<AdminInventoryPage />)
     await screen.findByText(/Kit Kat matcha/)
-    await user.click(screen.getByText('Archive'))
 
-    await waitFor(() => expect(capturedStatus).toEqual({ status: 'ARCHIVED' }))
+    expect(screen.queryByText('Archive')).not.toBeInTheDocument()
+    expect(screen.queryByText('Activate')).not.toBeInTheDocument()
+  })
+
+  it('shows an out-of-stock badge when quantity is zero', async () => {
+    server.use(
+      http.get(`${BASE}/api/admin/inventory`, () => HttpResponse.json(page([item({ stockQuantity: 0 })]))),
+      http.get(`${BASE}/api/categories`, () => HttpResponse.json([])),
+    )
+
+    renderWithProviders(<AdminInventoryPage />)
+
+    expect(await screen.findByText('Out of stock')).toBeInTheDocument()
   })
 
   it('deletes an item after confirming', async () => {
@@ -141,7 +146,7 @@ describe('AdminInventoryPage', () => {
 
     renderWithProviders(<AdminInventoryPage />)
     await screen.findByText(/Kit Kat matcha/)
-    await user.click(screen.getByText('Delete'))
+    await user.click(screen.getByLabelText('Delete Kit Kat matcha'))
 
     const dialog = await screen.findByRole('alertdialog')
     await user.click(within(dialog).getByText('Delete'))

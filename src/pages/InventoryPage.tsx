@@ -1,16 +1,22 @@
 import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
 import { useCategories, useInventory } from '../api/inventory'
+import { useDeleteInventoryItem } from '../api/adminInventory'
+import { useAuthStore } from '../store/authStore'
+import { useConfirm } from '../components/ConfirmDialog'
 import { Pagination } from '../components/Pagination'
 import { Spinner } from '../components/Spinner'
-import { ThumbnailImage } from '../components/ThumbnailImage'
-import { formatMoney } from '../lib/currency'
+import { InventoryCard } from '../components/InventoryCard'
+import { InventoryItemEditForm } from '../components/InventoryItemEditForm'
 
 export function InventoryPage() {
+  const isAdmin = useAuthStore((s) => s.claims?.role === 'ADMIN')
   const [titleInput, setTitleInput] = useState('')
   const [title, setTitle] = useState('')
   const [categoryId, setCategoryId] = useState('')
   const [page, setPage] = useState(0)
+  const [editingId, setEditingId] = useState<string | null>(null)
+  const deleteItem = useDeleteInventoryItem()
+  const confirm = useConfirm()
 
   useEffect(() => {
     const timeout = setTimeout(() => {
@@ -22,6 +28,16 @@ export function InventoryPage() {
 
   const { data: categories } = useCategories()
   const { data, isLoading, isError } = useInventory({ title, categoryId: categoryId || undefined, page })
+
+  async function handleDelete(id: string, itemTitle: string) {
+    const ok = await confirm({
+      title: 'Delete item',
+      message: `Delete "${itemTitle}" from inventory? This can't be undone.`,
+      confirmLabel: 'Delete',
+      danger: true,
+    })
+    if (ok) deleteItem.mutate(id)
+  }
 
   return (
     <div>
@@ -67,25 +83,21 @@ export function InventoryPage() {
       )}
 
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 md:grid-cols-4">
-        {data?.content.map((item, i) => (
-          <Link
-            to={`/inventory/${item.id}`}
-            key={item.id}
-            className="card card-interactive animate-rise group overflow-hidden p-0"
-            style={{ animationDelay: `${Math.min(i, 11) * 0.04}s` }}
-          >
-            <ThumbnailImage
-              imageKey={item.images[0]}
-              alt={item.title}
-              className="aspect-square w-full"
-              foregroundClassName="transition-transform duration-500 ease-[var(--ease-out-soft)] group-hover:scale-105"
-            />
-            <div className="p-3">
-              <p className="truncate font-medium text-ink">{item.title}</p>
-              <p className="text-sm text-ink/60">{formatMoney(item.priceAmount, item.currency)}</p>
+        {data?.content.map((item, i) =>
+          editingId === item.id ? (
+            <div key={item.id} className="col-span-2 sm:col-span-3 md:col-span-4">
+              <InventoryItemEditForm item={item} onDone={() => setEditingId(null)} />
             </div>
-          </Link>
-        ))}
+          ) : (
+            <div key={item.id} className="animate-rise" style={{ animationDelay: `${Math.min(i, 11) * 0.04}s` }}>
+              <InventoryCard
+                item={item}
+                onEdit={isAdmin ? () => setEditingId(item.id) : undefined}
+                onDelete={isAdmin ? () => handleDelete(item.id, item.title) : undefined}
+              />
+            </div>
+          ),
+        )}
       </div>
 
       {data && <Pagination page={data.page} totalPages={data.totalPages} onPageChange={setPage} />}

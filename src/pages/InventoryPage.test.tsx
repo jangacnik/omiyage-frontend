@@ -1,11 +1,15 @@
 import { http, HttpResponse } from 'msw'
 import { screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { describe, expect, it } from 'vitest'
+import { beforeEach, describe, expect, it } from 'vitest'
 import { server } from '../test/server'
 import { renderWithProviders } from '../test/renderWithProviders'
+import { useAuthStore } from '../store/authStore'
+import { makeFakeToken } from '../test/fakeJwt'
 import { InventoryPage } from './InventoryPage'
 import type { InventoryItem, Page } from '../types/api'
+
+const futureExp = Math.floor(Date.now() / 1000) + 3600
 
 const BASE = 'http://localhost:8081'
 
@@ -32,6 +36,11 @@ function page(content: InventoryItem[]): Page<InventoryItem> {
 }
 
 describe('InventoryPage', () => {
+  beforeEach(() => {
+    localStorage.clear()
+    useAuthStore.setState({ token: null, claims: null })
+  })
+
   it('renders items returned by the API', async () => {
     server.use(
       http.get(`${BASE}/api/inventory`, () => HttpResponse.json(page([item()]))),
@@ -71,5 +80,42 @@ describe('InventoryPage', () => {
     await user.type(screen.getByLabelText('Search by title'), 'kitkat')
 
     await waitFor(() => expect(capturedTitle).toBe('kitkat'))
+  })
+
+  it('shows an out-of-stock badge for a zero-quantity item', async () => {
+    server.use(
+      http.get(`${BASE}/api/inventory`, () => HttpResponse.json(page([item({ stockQuantity: 0 })]))),
+      http.get(`${BASE}/api/categories`, () => HttpResponse.json([])),
+    )
+
+    renderWithProviders(<InventoryPage />)
+
+    expect(await screen.findByText('Out of stock')).toBeInTheDocument()
+  })
+
+  it('does not show edit or delete controls to a regular user', async () => {
+    server.use(
+      http.get(`${BASE}/api/inventory`, () => HttpResponse.json(page([item()]))),
+      http.get(`${BASE}/api/categories`, () => HttpResponse.json([])),
+    )
+
+    renderWithProviders(<InventoryPage />)
+    await screen.findByText('Kit Kat matcha')
+
+    expect(screen.queryByText('Edit')).not.toBeInTheDocument()
+  })
+
+  it('shows edit and delete controls to an admin', async () => {
+    const token = makeFakeToken({ sub: 'u1', nickname: 'root', role: 'ADMIN', exp: futureExp })
+    useAuthStore.getState().login(token)
+    server.use(
+      http.get(`${BASE}/api/inventory`, () => HttpResponse.json(page([item()]))),
+      http.get(`${BASE}/api/categories`, () => HttpResponse.json([])),
+    )
+
+    renderWithProviders(<InventoryPage />)
+    await screen.findByText('Kit Kat matcha')
+
+    expect(screen.getByText('Edit')).toBeInTheDocument()
   })
 })
