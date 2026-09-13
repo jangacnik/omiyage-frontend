@@ -25,11 +25,19 @@ export function useAdminInventory(page: number) {
   })
 }
 
+// The member-facing catalog reads via ['inventory', params] / ['inventory-item', id] - a
+// different cache bucket than ['admin', 'inventory']. Same class of bug as the admin
+// order-detail cache fix: without also invalidating these, a member's already-open Inventory
+// page or item detail page never reflects an admin's create/edit/delete until they navigate
+// away and back.
 export function useCreateInventoryItem() {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: (input: InventoryItemInput) => api.post<InventoryItem>('/api/admin/inventory', input),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['admin', 'inventory'] }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin', 'inventory'] })
+      queryClient.invalidateQueries({ queryKey: ['inventory'] })
+    },
   })
 }
 
@@ -38,7 +46,11 @@ export function useUpdateInventoryItem() {
   return useMutation({
     mutationFn: ({ id, ...input }: InventoryItemInput & { id: string }) =>
       api.put<InventoryItem>(`/api/admin/inventory/${id}`, input),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['admin', 'inventory'] }),
+    onSuccess: (_, { id }) => {
+      queryClient.invalidateQueries({ queryKey: ['admin', 'inventory'] })
+      queryClient.invalidateQueries({ queryKey: ['inventory'] })
+      queryClient.invalidateQueries({ queryKey: ['inventory-item', id] })
+    },
   })
 }
 
@@ -46,7 +58,11 @@ export function useDeleteInventoryItem() {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: (id: string) => api.delete<void>(`/api/admin/inventory/${id}`),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['admin', 'inventory'] }),
+    onSuccess: (_, id) => {
+      queryClient.invalidateQueries({ queryKey: ['admin', 'inventory'] })
+      queryClient.invalidateQueries({ queryKey: ['inventory'] })
+      queryClient.invalidateQueries({ queryKey: ['inventory-item', id] })
+    },
   })
 }
 

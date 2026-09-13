@@ -158,12 +158,16 @@ function EditableItem({ orderId, item, locked }: { orderId: string; item: OrderI
       />
       <div className="flex flex-col gap-2 sm:flex-row">
         <input
+          type="number"
+          step="0.01"
           className="field-input sm:w-32"
           value={maxPrice}
           onChange={(e) => setMaxPrice(e.target.value)}
           aria-label={`Max price for ${item.title}`}
         />
         <input
+          type="number"
+          min={1}
           className="field-input sm:w-24"
           value={quantity}
           onChange={(e) => setQuantity(e.target.value)}
