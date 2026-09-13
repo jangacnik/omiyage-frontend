@@ -42,6 +42,7 @@ export const router = createBrowserRouter([
           {
             element: <RequireAdmin />,
             children: [
+              { path: '/admin', element: <Navigate to="/admin/dashboard" replace /> },
               { path: '/admin/inventory', element: <AdminInventoryPage /> },
               { path: '/admin/orders', element: <AdminOrdersPage /> },
               { path: '/admin/orders/:id', element: <AdminOrderDetailPage /> },
