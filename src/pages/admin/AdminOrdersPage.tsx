@@ -10,7 +10,7 @@ import { Spinner, ButtonSpinner } from '../../components/Spinner'
 import { TrashIcon } from '../../components/icons'
 import type { AdminOrderSortBy, OrderStatus, SortDirection } from '../../types/api'
 
-const STATUSES: OrderStatus[] = ['REQUESTED', 'IN_PROGRESS', 'PURCHASED', 'SENT', 'DELIVERED', 'CANCELLED']
+const STATUSES: OrderStatus[] = ['REQUESTED', 'IN_PROGRESS', 'PURCHASED', 'PREPARING_SHIPPING', 'SENT', 'DELIVERED', 'CANCELLED']
 
 const SORT_OPTIONS: { value: `${AdminOrderSortBy}:${SortDirection}`; label: string }[] = [
   { value: 'UPDATED_AT:DESC', label: 'Last updated (newest first)' },

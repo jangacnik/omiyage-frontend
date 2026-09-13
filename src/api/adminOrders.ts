@@ -95,6 +95,7 @@ export function useUpdateOrderItem() {
     onSuccess: (_, { orderId }) => {
       queryClient.invalidateQueries({ queryKey: ['admin', 'orders'] })
       queryClient.invalidateQueries({ queryKey: ['admin', 'shipments'] })
+      queryClient.invalidateQueries({ queryKey: ['admin', 'dashboard'] })
       queryClient.invalidateQueries({ queryKey: ['orders', orderId] })
     },
   })
@@ -108,6 +109,7 @@ export function useAdminAddOrderItem() {
     onSuccess: (_, { orderId }) => {
       queryClient.invalidateQueries({ queryKey: ['admin', 'orders'] })
       queryClient.invalidateQueries({ queryKey: ['admin', 'shipments'] })
+      queryClient.invalidateQueries({ queryKey: ['admin', 'dashboard'] })
       queryClient.invalidateQueries({ queryKey: ['orders', orderId] })
     },
   })
@@ -121,6 +123,7 @@ export function useAdminUpdateOrderItemContent() {
     onSuccess: (_, { orderId }) => {
       queryClient.invalidateQueries({ queryKey: ['admin', 'orders'] })
       queryClient.invalidateQueries({ queryKey: ['admin', 'shipments'] })
+      queryClient.invalidateQueries({ queryKey: ['admin', 'dashboard'] })
       queryClient.invalidateQueries({ queryKey: ['orders', orderId] })
     },
   })
@@ -134,6 +137,7 @@ export function useAdminRemoveOrderItem() {
     onSuccess: (_, { orderId }) => {
       queryClient.invalidateQueries({ queryKey: ['admin', 'orders'] })
       queryClient.invalidateQueries({ queryKey: ['admin', 'shipments'] })
+      queryClient.invalidateQueries({ queryKey: ['admin', 'dashboard'] })
       queryClient.invalidateQueries({ queryKey: ['orders', orderId] })
     },
   })
