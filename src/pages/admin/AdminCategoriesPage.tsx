@@ -37,7 +37,7 @@ export function AdminCategoriesPage() {
   }
 
   return (
-    <div className="max-w-md">
+    <div className="mx-auto max-w-2xl">
       <h1 className="page-title mb-4">Admin: Categories</h1>
 
       <form onSubmit={handleCreate} className="mb-4 flex flex-col gap-2 sm:flex-row">
