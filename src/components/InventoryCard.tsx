@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom'
+import { PreorderBadge } from './PreorderBadge'
 import { ThumbnailImage } from './ThumbnailImage'
 import { formatMoney } from '../lib/currency'
 import { TrashIcon } from './icons'
@@ -26,6 +27,11 @@ export function InventoryCard({
         />
         <div className="p-3">
           <p className="truncate font-medium text-ink">{item.title}</p>
+          {item.isPreorder && (
+            <div className="mb-1">
+              <PreorderBadge expectedReleaseDate={item.expectedReleaseDate} />
+            </div>
+          )}
           <p className="text-sm text-ink/60">
             {formatMoney(item.priceAmount, item.currency)}
             {item.boughtPrice != null && (

@@ -1,12 +1,14 @@
 import { useState } from 'react'
-import { useParams } from 'react-router-dom'
+import { useNavigate, useParams } from 'react-router-dom'
 import {
   isItemLocked,
   orderDisplayName,
   useAddMyOrderItem,
   useCancelMyOrder,
+  useLeaveShipment,
   useOrder,
   useRemoveMyOrderItem,
+  useSplitMyOrder,
   useSubmitForShipping,
   useUpdateMyOrderItem,
   useUpdateOrderNickname,
@@ -288,11 +290,54 @@ function AddItemForm({ orderId }: { orderId: string }) {
   )
 }
 
+function SplitItemsPanel({ order }: { order: OrderDto }) {
+  const [selected, setSelected] = useState<string[]>([])
+  const splitOrder = useSplitMyOrder()
+  const navigate = useNavigate()
+
+  function toggle(itemId: string) {
+    setSelected((current) => (current.includes(itemId) ? current.filter((id) => id !== itemId) : [...current, itemId]))
+  }
+
+  function submit() {
+    splitOrder.mutate(
+      { orderId: order.id, itemIds: selected },
+      { onSuccess: (result) => navigate(`/orders/${result.created.id}`) },
+    )
+  }
+
+  if (order.items.length < 2) return null
+
+  return (
+    <div className="flex flex-col gap-2 rounded-lg border border-mist p-3">
+      <p className="text-sm font-medium text-ink">Split items into a new order</p>
+      <ul className="flex flex-col gap-1">
+        {order.items.map((item) => (
+          <label key={item.id} className="flex items-center gap-2 text-sm text-ink/80">
+            <input type="checkbox" checked={selected.includes(item.id)} onChange={() => toggle(item.id)} />
+            {item.title}
+          </label>
+        ))}
+      </ul>
+      <button
+        type="button"
+        className="btn-secondary self-start px-3 py-1.5 text-sm"
+        onClick={submit}
+        disabled={selected.length === 0 || selected.length === order.items.length || splitOrder.isPending}
+      >
+        {splitOrder.isPending ? <ButtonSpinner /> : 'Split selected into new order'}
+      </button>
+      {splitOrder.isError && <p className="error-text">Could not split these items.</p>}
+    </div>
+  )
+}
+
 export function OrderDetailPage() {
   const { id } = useParams<{ id: string }>()
   const { data: order, isLoading, isError } = useOrder(id)
   const cancelOrder = useCancelMyOrder()
   const submitForShipping = useSubmitForShipping()
+  const leaveShipment = useLeaveShipment()
   const confirm = useConfirm()
 
   if (isLoading) return <Spinner fullPage label="Fetching order" />
@@ -338,11 +383,22 @@ export function OrderDetailPage() {
           <button type="button" className="btn-secondary px-3 py-1.5 text-sm" onClick={handleSubmitForShipping} disabled={submitForShipping.isPending}>
             {submitForShipping.isPending ? <ButtonSpinner /> : 'Submit for shipping'}
           </button>
+          {order.shipmentId && (
+            <button
+              type="button"
+              className="btn-secondary px-3 py-1.5 text-sm"
+              onClick={() => leaveShipment.mutate(order.id)}
+              disabled={leaveShipment.isPending}
+            >
+              {leaveShipment.isPending ? <ButtonSpinner /> : 'Remove from shipment'}
+            </button>
+          )}
           <button type="button" className="btn-danger px-3 py-1.5 text-sm" onClick={handleCancel} disabled={cancelOrder.isPending || hasLockedItem}>
             {cancelOrder.isPending ? <ButtonSpinner /> : 'Cancel order'}
           </button>
         </div>
       )}
+      {leaveShipment.isError && <p className="error-text">Could not remove this order from its shipment (it may have already shipped).</p>}
       {hasLockedItem && order.open && (
         <p className="text-sm text-ink/50">This order has items already bought or shipped, so it can no longer be cancelled as a whole.</p>
       )}
@@ -358,6 +414,7 @@ export function OrderDetailPage() {
       </ul>
 
       {order.open && <AddItemForm orderId={order.id} />}
+      {order.open && <SplitItemsPanel order={order} />}
     </div>
   )
 }

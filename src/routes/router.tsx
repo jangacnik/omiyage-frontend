@@ -7,6 +7,8 @@ import { InventoryDetailPage } from '../pages/InventoryDetailPage'
 import { OrdersNewPage } from '../pages/OrdersNewPage'
 import { OrdersListPage } from '../pages/OrdersListPage'
 import { OrderDetailPage } from '../pages/OrderDetailPage'
+import { CombineRequestsPage } from '../pages/CombineRequestsPage'
+import { MyShipmentPage } from '../pages/MyShipmentPage'
 import { ProfilePage } from '../pages/ProfilePage'
 import { AdminInventoryPage } from '../pages/admin/AdminInventoryPage'
 import { AdminSettingsPage } from '../pages/admin/AdminSettingsPage'
@@ -14,6 +16,7 @@ import { AdminCategoriesPage } from '../pages/admin/AdminCategoriesPage'
 import { AdminOrdersPage } from '../pages/admin/AdminOrdersPage'
 import { AdminOrderDetailPage } from '../pages/admin/AdminOrderDetailPage'
 import { AdminShipmentsPage } from '../pages/admin/AdminShipmentsPage'
+import { AdminCombineRequestsPage } from '../pages/admin/AdminCombineRequestsPage'
 import { AdminShippingRatesPage } from '../pages/admin/AdminShippingRatesPage'
 import { AdminDashboardPage } from '../pages/admin/AdminDashboardPage'
 
@@ -31,6 +34,8 @@ export const router = createBrowserRouter([
           { path: '/orders/new', element: <OrdersNewPage /> },
           { path: '/orders', element: <OrdersListPage /> },
           { path: '/orders/:id', element: <OrderDetailPage /> },
+          { path: '/combine-requests', element: <CombineRequestsPage /> },
+          { path: '/shipments/:id', element: <MyShipmentPage /> },
           { path: '/profile', element: <ProfilePage /> },
           {
             element: <RequireAdmin />,
@@ -50,6 +55,7 @@ export const router = createBrowserRouter([
                 ],
               },
               { path: '/admin/dashboard', element: <AdminDashboardPage /> },
+              { path: '/admin/combine-requests', element: <AdminCombineRequestsPage /> },
             ],
           },
         ],

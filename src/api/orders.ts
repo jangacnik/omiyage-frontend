@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { api } from '../lib/apiClient'
-import type { Condition, Currency, OrderDto, OrderItemDto, Page } from '../types/api'
+import type { Condition, Currency, OrderDto, OrderItemDto, Page, SplitOrderResponseDto } from '../types/api'
 
 // An item that's already been bought or shipped is settled - its content can't be edited or
 // removed anymore. Single source of truth so this set can't drift between call sites.
@@ -20,6 +20,8 @@ export interface CreateOrderItemInput {
   maxPrice?: number
   quantity?: number
   link?: string
+  isPreorder?: boolean
+  expectedReleaseDate?: string
 }
 
 export interface CreateOrderInput {
@@ -123,4 +125,24 @@ export function useUpdateOrderNickname() {
 
 export function orderDisplayName(order: Pick<OrderDto, 'id' | 'nickname'>): string {
   return order.nickname ?? order.id.slice(0, 8)
+}
+
+export function useSplitMyOrder() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: ({ orderId, itemIds }: { orderId: string; itemIds: string[] }) =>
+      api.post<SplitOrderResponseDto>(`/api/orders/${orderId}/split`, { itemIds }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['orders'] }),
+  })
+}
+
+export function useLeaveShipment() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (orderId: string) => api.post<OrderDto>(`/api/orders/${orderId}/leave-shipment`),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['orders'] })
+      queryClient.invalidateQueries({ queryKey: ['shipments', 'mine'] })
+    },
+  })
 }

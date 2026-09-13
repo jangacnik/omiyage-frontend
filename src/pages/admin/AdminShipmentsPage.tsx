@@ -1,6 +1,12 @@
 import { useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
-import { useAdminDeleteShipment, useAdminShipments, useUpdateShipment } from '../../api/adminOrders'
+import {
+  useAdminDeleteShipment,
+  useAdminShipments,
+  useCombineShipments,
+  useSplitShipment,
+  useUpdateShipment,
+} from '../../api/adminOrders'
 import { orderDisplayName } from '../../api/orders'
 import { useConfirm } from '../../components/ConfirmDialog'
 import { formatGrams, formatMoney } from '../../lib/currency'
@@ -21,12 +27,28 @@ const METHOD_LABELS: Record<ShippingMethod, string> = {
   SURFACE_MAIL: 'Surface Mail (up to 2kg)',
 }
 
-function ShipmentOrderRow({ order }: { order: OrderDto }) {
+function ShipmentOrderRow({
+  order,
+  splitSelected,
+  onToggleSplit,
+}: {
+  order: OrderDto
+  splitSelected?: boolean
+  onToggleSplit?: () => void
+}) {
   const [editing, setEditing] = useState(false)
 
   return (
     <div className="flex flex-col gap-1 py-2">
       <div className="flex flex-wrap items-center gap-2">
+        {onToggleSplit && (
+          <input
+            type="checkbox"
+            checked={splitSelected}
+            onChange={onToggleSplit}
+            aria-label={`Select order ${order.id.slice(0, 8)} to split off`}
+          />
+        )}
         <Link to={`/admin/orders/${order.id}`} className="font-medium text-ink hover:text-forest">
           Order {orderDisplayName(order)}
         </Link>
@@ -57,10 +79,22 @@ function ShipmentOrderRow({ order }: { order: OrderDto }) {
   )
 }
 
-function ShipmentCard({ shipment, expanded }: { shipment: ShipmentDto; expanded: boolean }) {
+function ShipmentCard({
+  shipment,
+  expanded,
+  selected,
+  onToggleSelect,
+}: {
+  shipment: ShipmentDto
+  expanded: boolean
+  selected?: boolean
+  onToggleSelect?: () => void
+}) {
   const updateShipment = useUpdateShipment()
   const deleteShipment = useAdminDeleteShipment()
+  const splitShipment = useSplitShipment()
   const confirm = useConfirm()
+  const [splitSelection, setSplitSelection] = useState<string[]>([])
 
   async function handleDelete() {
     const ok = await confirm({
@@ -72,17 +106,48 @@ function ShipmentCard({ shipment, expanded }: { shipment: ShipmentDto; expanded:
     if (ok) deleteShipment.mutate(shipment.id)
   }
 
+  async function handleStatusChange(newStatus: ShipmentStatus) {
+    if (newStatus === 'SHIPPED') {
+      const ok = await confirm({
+        title: 'Mark as shipped',
+        message: 'Mark this shipment as shipped? This records the shipped date and locks its order list.',
+        confirmLabel: 'Mark shipped',
+      })
+      if (!ok) return
+    }
+    updateShipment.mutate({ id: shipment.id, status: newStatus })
+  }
+
+  function toggleSplitOrder(orderId: string) {
+    setSplitSelection((current) => (current.includes(orderId) ? current.filter((id) => id !== orderId) : [...current, orderId]))
+  }
+
+  function handleSplit() {
+    splitShipment.mutate(
+      { shipmentId: shipment.id, orderIds: splitSelection },
+      { onSuccess: () => setSplitSelection([]) },
+    )
+  }
+
   return (
     <li className="card flex flex-col gap-3">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-2">
-          <h2 className="font-medium text-ink">Shipment {shipment.id.slice(0, 8)}</h2>
+          {onToggleSelect && (
+            <input
+              type="checkbox"
+              checked={selected}
+              onChange={onToggleSelect}
+              aria-label={`Select shipment ${shipment.id.slice(0, 8)} to combine`}
+            />
+          )}
+          <h2 className="font-medium text-ink">{shipment.title ?? `Shipment ${shipment.id.slice(0, 8)}`}</h2>
           <span className="rounded-full bg-mist px-2.5 py-0.5 text-sm font-medium text-ink">{shipment.status}</span>
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <select
             value={shipment.status}
-            onChange={(e) => updateShipment.mutate({ id: shipment.id, status: e.target.value as ShipmentStatus })}
+            onChange={(e) => handleStatusChange(e.target.value as ShipmentStatus)}
             aria-label={`Status for shipment ${shipment.id.slice(0, 8)}`}
             className="field-input py-1 text-sm"
           >
@@ -160,6 +225,20 @@ function ShipmentCard({ shipment, expanded }: { shipment: ShipmentDto; expanded:
                 updateShipment.mutate({ id: shipment.id, trackingNumber: e.target.value })
               }
             }}
+            placeholder="Not set — can be added any time, including after shipping"
+            className="field-input max-w-xs py-1 text-sm"
+          />
+        </label>
+
+        <label className="flex flex-col gap-1">
+          <span className="text-xs text-ink/50">Title</span>
+          <input
+            defaultValue={shipment.title ?? ''}
+            onBlur={(e) => {
+              if (e.target.value !== (shipment.title ?? '')) {
+                updateShipment.mutate({ id: shipment.id, title: e.target.value })
+              }
+            }}
             placeholder="Not set"
             className="field-input max-w-xs py-1 text-sm"
           />
@@ -182,6 +261,8 @@ function ShipmentCard({ shipment, expanded }: { shipment: ShipmentDto; expanded:
         </span>
         {shipment.estimatedDays != null && <span>Estimated: ~{shipment.estimatedDays} days</span>}
         <span>Profit: <strong className="text-ink">{formatMoney(shipment.profit, 'JPY')}</strong></span>
+        {shipment.shippedAt && <span>Shipped: {new Date(shipment.shippedAt).toLocaleString()}</span>}
+        {shipment.arrivedAt && <span>Arrived: {new Date(shipment.arrivedAt).toLocaleString()}</span>}
       </div>
 
       {deleteShipment.isError && <p className="error-text">Could not delete this shipment.</p>}
@@ -189,8 +270,26 @@ function ShipmentCard({ shipment, expanded }: { shipment: ShipmentDto; expanded:
       {expanded && (
         <div className="flex flex-col divide-y divide-mist border-t border-mist pt-2">
           {shipment.orders.map((order) => (
-            <ShipmentOrderRow key={order.id} order={order} />
+            <ShipmentOrderRow
+              key={order.id}
+              order={order}
+              splitSelected={splitSelection.includes(order.id)}
+              onToggleSplit={shipment.orders.length > 1 ? () => toggleSplitOrder(order.id) : undefined}
+            />
           ))}
+          {shipment.orders.length > 1 && (
+            <div className="flex flex-wrap items-center gap-2 pt-2">
+              <button
+                type="button"
+                className="btn-secondary px-3 py-1.5 text-sm"
+                onClick={handleSplit}
+                disabled={splitSelection.length === 0 || splitSelection.length === shipment.orders.length || splitShipment.isPending}
+              >
+                {splitShipment.isPending ? <ButtonSpinner /> : 'Split selected into new shipment'}
+              </button>
+              {splitShipment.isError && <p className="error-text">Could not split this shipment.</p>}
+            </div>
+          )}
         </div>
       )}
     </li>
@@ -201,10 +300,25 @@ export function AdminShipmentsPage() {
   const { id } = useParams<{ id: string }>()
   const { data: shipments, isLoading } = useAdminShipments()
   const navigate = useNavigate()
+  const combineShipments = useCombineShipments()
+  const [selectedShipmentIds, setSelectedShipmentIds] = useState<string[]>([])
 
   if (isLoading) return <Spinner fullPage label="Fetching shipments" />
 
   const visible = id ? shipments?.filter((s) => s.id === id) : shipments
+
+  function toggleShipment(shipmentId: string) {
+    setSelectedShipmentIds((current) =>
+      current.includes(shipmentId) ? current.filter((sid) => sid !== shipmentId) : [...current, shipmentId],
+    )
+  }
+
+  function handleCombine() {
+    combineShipments.mutate(
+      { shipmentIds: selectedShipmentIds },
+      { onSuccess: () => setSelectedShipmentIds([]) },
+    )
+  }
 
   return (
     <div>
@@ -222,9 +336,26 @@ export function AdminShipmentsPage() {
           and combine them into one.
         </p>
       )}
+
+      {!id && selectedShipmentIds.length >= 2 && (
+        <div className="mb-3 flex items-center justify-between rounded-lg bg-mist px-3 py-2">
+          <span className="text-sm text-ink">{selectedShipmentIds.length} shipments selected</span>
+          <button type="button" className="btn-primary px-3 py-1.5 text-sm" onClick={handleCombine} disabled={combineShipments.isPending}>
+            {combineShipments.isPending ? <ButtonSpinner /> : 'Combine selected shipments'}
+          </button>
+        </div>
+      )}
+      {combineShipments.isError && <p className="error-text mb-2">Could not combine these shipments.</p>}
+
       <ul className="flex flex-col gap-3">
         {visible?.map((shipment) => (
-          <ShipmentCard key={shipment.id} shipment={shipment} expanded />
+          <ShipmentCard
+            key={shipment.id}
+            shipment={shipment}
+            expanded
+            selected={selectedShipmentIds.includes(shipment.id)}
+            onToggleSelect={id ? undefined : () => toggleShipment(shipment.id)}
+          />
         ))}
       </ul>
     </div>

@@ -29,8 +29,10 @@ export function AdminInventoryPage() {
     register,
     handleSubmit,
     reset,
+    watch,
     formState: { errors },
   } = useForm<InventoryItemForm>({ resolver: zodResolver(itemSchema), defaultValues: { condition: 'NEW', currency: 'JPY' } })
+  const isPreorder = watch('isPreorder')
 
   function toggleCategory(id: string) {
     setSelectedCategoryIds((current) => (current.includes(id) ? current.filter((c) => c !== id) : [...current, id]))
@@ -48,6 +50,8 @@ export function AdminInventoryPage() {
       stockQuantity: Number(data.stockQuantity),
       imageKeys,
       categoryIds: selectedCategoryIds,
+      isPreorder: data.isPreorder,
+      expectedReleaseDate: data.isPreorder ? data.expectedReleaseDate : undefined,
     })
     reset()
     setImageKeys([])
@@ -94,6 +98,18 @@ export function AdminInventoryPage() {
         <input type="url" placeholder="Link to store page (optional)" className="field-input" {...register('link')} aria-label="Link to store page" />
         <ImageDropInput label="Photo" onUploaded={(key) => setImageKeys(key ? (current) => [...current, key] : (current) => current)} />
         {imageKeys.length > 0 && <p className="text-xs text-ink/50">{imageKeys.length} photo(s) added.</p>}
+
+        <label className="flex items-center gap-2 text-sm text-ink/80">
+          <input type="checkbox" {...register('isPreorder')} />
+          This is a preorder
+        </label>
+        {isPreorder && (
+          <label className="flex flex-col gap-1">
+            <span className="text-xs text-ink/50">Expected release date</span>
+            <input type="date" className="field-input sm:w-48" {...register('expectedReleaseDate')} aria-label="Expected release date" />
+            {errors.expectedReleaseDate && <p className="error-text">{errors.expectedReleaseDate.message}</p>}
+          </label>
+        )}
 
         <fieldset className="flex flex-col gap-1">
           <legend className="field-label mb-1">Categories</legend>

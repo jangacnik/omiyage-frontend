@@ -9,16 +9,23 @@ import { ThumbnailImage } from './ThumbnailImage'
 import { ButtonSpinner } from './Spinner'
 import type { InventoryItem } from '../types/api'
 
-const itemSchema = z.object({
-  title: z.string().min(1, 'Title is required'),
-  description: z.string().optional(),
-  link: z.string().optional(),
-  condition: z.enum(['NEW', 'USED']),
-  currency: z.enum(['JPY', 'EUR']),
-  priceAmount: z.string().min(1, 'Price is required'),
-  boughtPrice: z.string().optional(),
-  stockQuantity: z.string().min(1, 'Stock is required'),
-})
+const itemSchema = z
+  .object({
+    title: z.string().min(1, 'Title is required'),
+    description: z.string().optional(),
+    link: z.string().optional(),
+    condition: z.enum(['NEW', 'USED']),
+    currency: z.enum(['JPY', 'EUR']),
+    priceAmount: z.string().min(1, 'Price is required'),
+    boughtPrice: z.string().optional(),
+    stockQuantity: z.string().min(1, 'Stock is required'),
+    isPreorder: z.boolean().optional(),
+    expectedReleaseDate: z.string().optional(),
+  })
+  .refine((data) => !data.isPreorder || !!data.expectedReleaseDate, {
+    message: 'Expected release date is required for a preorder',
+    path: ['expectedReleaseDate'],
+  })
 
 export type InventoryItemForm = z.infer<typeof itemSchema>
 export { itemSchema }
@@ -56,6 +63,7 @@ export function InventoryItemEditForm({ item, onDone }: { item: InventoryItem; o
   const {
     register,
     handleSubmit,
+    watch,
     formState: { errors },
   } = useForm<InventoryItemForm>({
     resolver: zodResolver(itemSchema),
@@ -68,8 +76,11 @@ export function InventoryItemEditForm({ item, onDone }: { item: InventoryItem; o
       priceAmount: item.priceAmount.toString(),
       boughtPrice: item.boughtPrice?.toString() ?? '',
       stockQuantity: item.stockQuantity.toString(),
+      isPreorder: item.isPreorder,
+      expectedReleaseDate: item.expectedReleaseDate ?? '',
     },
   })
+  const isPreorder = watch('isPreorder')
 
   async function onSubmit(data: InventoryItemForm) {
     try {
@@ -85,6 +96,8 @@ export function InventoryItemEditForm({ item, onDone }: { item: InventoryItem; o
         stockQuantity: Number(data.stockQuantity),
         imageKeys: images,
         categoryIds: item.categories.map((c) => c.id),
+        isPreorder: data.isPreorder,
+        expectedReleaseDate: data.isPreorder ? data.expectedReleaseDate : undefined,
       })
       onDone()
     } catch {
@@ -121,6 +134,22 @@ export function InventoryItemEditForm({ item, onDone }: { item: InventoryItem; o
             {...register('link')}
             aria-label={`Link for ${item.title}`}
           />
+          <label className="flex items-center gap-2 text-sm text-ink/80">
+            <input type="checkbox" {...register('isPreorder')} />
+            This is a preorder
+          </label>
+          {isPreorder && (
+            <label className="flex flex-col gap-1">
+              <span className="text-xs text-ink/50">Expected release date</span>
+              <input
+                type="date"
+                className="field-input sm:w-48"
+                {...register('expectedReleaseDate')}
+                aria-label={`Expected release date for ${item.title}`}
+              />
+              {errors.expectedReleaseDate && <p className="error-text">{errors.expectedReleaseDate.message}</p>}
+            </label>
+          )}
           <div className="flex gap-2">
             <button type="submit" className="btn-primary px-3 py-1.5 text-sm" disabled={updateItem.isPending}>
               {updateItem.isPending ? <ButtonSpinner /> : 'Save'}

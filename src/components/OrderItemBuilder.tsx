@@ -5,6 +5,7 @@ import { z } from 'zod'
 import { useInventory } from '../api/inventory'
 import type { CreateOrderItemInput } from '../api/orders'
 import { ImageDropInput } from './ImageDropInput'
+import { PreorderBadge } from './PreorderBadge'
 import { ThumbnailImage } from './ThumbnailImage'
 import { TrashIcon } from './icons'
 import type { InventoryItem } from '../types/api'
@@ -13,6 +14,8 @@ export interface DraftItem {
   input: CreateOrderItemInput
   displayTitle: string
   imageKey?: string
+  isPreorder?: boolean
+  expectedReleaseDate?: string | null
 }
 
 export function draftFromInventoryItem(item: InventoryItem): DraftItem {
@@ -20,18 +23,27 @@ export function draftFromInventoryItem(item: InventoryItem): DraftItem {
     input: { inventoryItemId: item.id, currency: item.currency, quantity: 1 },
     displayTitle: item.title,
     imageKey: item.images[0],
+    isPreorder: item.isPreorder,
+    expectedReleaseDate: item.expectedReleaseDate,
   }
 }
 
-const customItemSchema = z.object({
-  title: z.string().min(1, 'Title is required'),
-  description: z.string().optional(),
-  link: z.string().optional(),
-  condition: z.enum(['NEW', 'USED']),
-  currency: z.enum(['JPY', 'EUR']),
-  maxPrice: z.string().optional(),
-  quantity: z.string().optional(),
-})
+const customItemSchema = z
+  .object({
+    title: z.string().min(1, 'Title is required'),
+    description: z.string().optional(),
+    link: z.string().optional(),
+    condition: z.enum(['NEW', 'USED']),
+    currency: z.enum(['JPY', 'EUR']),
+    maxPrice: z.string().optional(),
+    quantity: z.string().optional(),
+    isPreorder: z.boolean().optional(),
+    expectedReleaseDate: z.string().optional(),
+  })
+  .refine((data) => !data.isPreorder || !!data.expectedReleaseDate, {
+    message: 'Expected release date is required for a preorder',
+    path: ['expectedReleaseDate'],
+  })
 
 type CustomItemForm = z.infer<typeof customItemSchema>
 
@@ -42,8 +54,10 @@ function CustomItemForm({ onAdd }: { onAdd: (item: DraftItem) => void }) {
     register,
     handleSubmit,
     reset,
+    watch,
     formState: { errors },
   } = useForm<CustomItemForm>({ resolver: zodResolver(customItemSchema), defaultValues: { condition: 'NEW', currency: 'JPY' } })
+  const isPreorder = watch('isPreorder')
 
   function onSubmit(data: CustomItemForm) {
     onAdd({
@@ -56,9 +70,13 @@ function CustomItemForm({ onAdd }: { onAdd: (item: DraftItem) => void }) {
         maxPrice: data.maxPrice ? Number(data.maxPrice) : undefined,
         quantity: data.quantity ? Number(data.quantity) : 1,
         imageKey,
+        isPreorder: data.isPreorder,
+        expectedReleaseDate: data.isPreorder ? data.expectedReleaseDate : undefined,
       },
       displayTitle: data.title,
       imageKey,
+      isPreorder: data.isPreorder,
+      expectedReleaseDate: data.isPreorder ? data.expectedReleaseDate : null,
     })
     reset()
     setImageKey(undefined)
@@ -108,6 +126,17 @@ function CustomItemForm({ onAdd }: { onAdd: (item: DraftItem) => void }) {
         aria-label="Link to store page"
       />
       <ImageDropInput label="Photo" onUploaded={setImageKey} onUploadingChange={setUploading} />
+      <label className="flex items-center gap-2 text-sm text-ink/80">
+        <input type="checkbox" {...register('isPreorder')} />
+        This is a preorder
+      </label>
+      {isPreorder && (
+        <label className="flex flex-col gap-1">
+          <span className="text-xs text-ink/50">Expected release date</span>
+          <input type="date" className="field-input sm:w-48" {...register('expectedReleaseDate')} aria-label="Expected release date" />
+          {errors.expectedReleaseDate && <p className="error-text">{errors.expectedReleaseDate.message}</p>}
+        </label>
+      )}
       <button type="submit" className="btn-secondary self-start" disabled={uploading}>
         Add item
       </button>
@@ -144,6 +173,7 @@ function InventorySearch({ onSelect, onCreateCustom }: { onSelect: (item: Invent
               >
                 <ThumbnailImage imageKey={item.images[0]} className="h-10 w-10 shrink-0 rounded-lg" />
                 <span className="text-sm text-ink/80">{item.title}</span>
+                {item.isPreorder && <PreorderBadge expectedReleaseDate={item.expectedReleaseDate} />}
               </button>
             </li>
           ))}
@@ -186,6 +216,7 @@ export function OrderItemBuilder({
                 <span className="text-sm text-ink/80">
                   {item.displayTitle} — {item.input.currency}
                 </span>
+                {item.isPreorder && <PreorderBadge expectedReleaseDate={item.expectedReleaseDate ?? null} />}
               </span>
               <button type="button" className="btn-danger px-2 py-1 text-xs" onClick={() => onRemove(index)}>
                 <TrashIcon size={13} /> Remove

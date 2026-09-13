@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { api } from '../lib/apiClient'
 import type { CreateOrderInput, CreateOrderItemInput, UpdateMyOrderItemInput } from './orders'
 import type {
+  CombineRequestDto,
   OrderDto,
   OrderItemStatus,
   OrderStatus,
@@ -180,6 +181,7 @@ export function useUpdateShipment() {
       shippingMethod,
       trackingNumber,
       notes,
+      title,
     }: {
       id: string
       status?: ShipmentStatus
@@ -187,6 +189,7 @@ export function useUpdateShipment() {
       shippingMethod?: ShippingMethod
       trackingNumber?: string
       notes?: string
+      title?: string
     }) =>
       api.patch<ShipmentDto>(`/api/admin/shipments/${id}`, {
         status,
@@ -194,7 +197,51 @@ export function useUpdateShipment() {
         shippingMethod,
         trackingNumber,
         notes,
+        title,
       }),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['admin', 'shipments'] }),
+  })
+}
+
+export function useCombineShipments() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: ({ shipmentIds, title }: { shipmentIds: string[]; title?: string }) =>
+      api.post<ShipmentDto>('/api/admin/shipments/combine', { shipmentIds, title }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin', 'shipments'] })
+      queryClient.invalidateQueries({ queryKey: ['admin', 'orders'] })
+    },
+  })
+}
+
+export function useSplitShipment() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: ({ shipmentId, orderIds, title }: { shipmentId: string; orderIds: string[]; title?: string }) =>
+      api.post<ShipmentDto>(`/api/admin/shipments/${shipmentId}/split`, { orderIds, title }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin', 'shipments'] })
+      queryClient.invalidateQueries({ queryKey: ['admin', 'orders'] })
+    },
+  })
+}
+
+export function useAdminCombineRequests() {
+  return useQuery({
+    queryKey: ['admin', 'combine-requests'],
+    queryFn: () => api.get<CombineRequestDto[]>('/api/admin/combine-requests'),
+  })
+}
+
+export function useAdminForceAcceptCombineRequest() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (id: string) => api.post<CombineRequestDto>(`/api/admin/combine-requests/${id}/force-accept`),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin', 'combine-requests'] })
+      queryClient.invalidateQueries({ queryKey: ['admin', 'shipments'] })
+      queryClient.invalidateQueries({ queryKey: ['admin', 'orders'] })
+    },
   })
 }
