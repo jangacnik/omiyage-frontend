@@ -13,6 +13,7 @@ export type OrderItemStatus = 'REQUESTED' | 'CONFIRMING' | 'BUYING' | 'BOUGHT' |
 export type ShipmentStatus = 'PREPARING' | 'SHIPPED' | 'DELIVERED'
 export type ShipmentDestination = 'SLOVENIA' | 'AUSTRIA'
 export type ShippingMethod = 'EMS' | 'SMALL_PACKET' | 'SURFACE_MAIL'
+export type CombineRequestStatus = 'PENDING' | 'ACCEPTED' | 'DECLINED' | 'CANCELLED'
 
 export interface Page<T> {
   content: T[]
@@ -40,6 +41,8 @@ export interface InventoryItem {
   status: 'ACTIVE' | 'ARCHIVED'
   images: string[]
   categories: Category[]
+  isPreorder: boolean
+  expectedReleaseDate: string | null
   // Admin-only cost basis - absent on any response a normal user can read.
   boughtPrice: number | null
 }
@@ -61,6 +64,8 @@ export interface OrderItemDto {
   link: string | null
   purchasedAt: string | null
   quantity: number
+  isPreorder: boolean
+  expectedReleaseDate: string | null
   // Admin-only - absent on any response a normal user can read.
   soldPrice: number | null
   profit: number | null
@@ -92,6 +97,7 @@ export interface OrderDto {
 export interface ShipmentDto {
   id: string
   status: ShipmentStatus
+  title: string | null
   destination: ShipmentDestination | null
   shippingMethod: ShippingMethod | null
   trackingNumber: string | null
@@ -105,11 +111,60 @@ export interface ShipmentDto {
   // show exactly this number, never derive it from shippingCostJpy on the frontend.
   shippingCostEur: number | null
   estimatedDays: number | null
+  shippedAt: string | null
+  arrivedAt: string | null
   createdAt: string
   updatedAt: string
   orders: OrderDto[]
   // Admin-only - every shipment endpoint is admin-only, so this is always populated.
   profit: number
+}
+
+export interface OrderSummaryDto {
+  id: string
+  nickname: string | null
+  itemCount: number
+}
+
+export interface CombineRequestDto {
+  id: string
+  requesterOrder: OrderSummaryDto
+  targetOrder: OrderSummaryDto
+  status: CombineRequestStatus
+  createdAt: string
+  respondedAt: string | null
+  resultingShipmentId: string | null
+}
+
+export interface ShipmentMemberDto {
+  userId: string
+  orders: OrderDto[]
+  itemTotals: PendingAmountDto[]
+  shippingShareJpy: number | null
+  shippingShareEur: number | null
+}
+
+export interface MemberShipmentDto {
+  id: string
+  title: string | null
+  status: ShipmentStatus
+  destination: ShipmentDestination | null
+  shippingMethod: ShippingMethod | null
+  trackingNumber: string | null
+  ownerUserId: string | null
+  totalWeightGrams: number
+  shippingCostJpy: number | null
+  shippingCostEur: number | null
+  estimatedDays: number | null
+  shippedAt: string | null
+  arrivedAt: string | null
+  members: ShipmentMemberDto[]
+  grandTotalItemTotals: PendingAmountDto[]
+}
+
+export interface SplitOrderResponseDto {
+  original: OrderDto
+  created: OrderDto
 }
 
 export interface ShippingRateDto {

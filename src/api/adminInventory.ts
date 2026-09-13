@@ -13,6 +13,8 @@ export interface InventoryItemInput {
   stockQuantity: number
   imageKeys?: string[]
   categoryIds?: string[]
+  isPreorder?: boolean
+  expectedReleaseDate?: string
 }
 
 export function useAdminInventory(page: number) {

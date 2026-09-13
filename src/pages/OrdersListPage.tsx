@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { orderDisplayName, useMergeMyOrders, useMyOrders } from '../api/orders'
+import { CombineRequestModal } from '../components/CombineRequestModal'
 import { useConfirm } from '../components/ConfirmDialog'
 import { OrderIdHint } from '../components/OrderIdHint'
 import { OrderStatusBadge } from '../components/OrderStatusBadge'
@@ -15,7 +16,9 @@ function ShipmentGroup({ orders }: { orders: OrderDto[] }) {
   return (
     <li className="card flex flex-col gap-3">
       <div className="flex items-center justify-between">
-        <span className="text-sm font-medium text-ink/60">Shipment {active.shipmentId?.slice(0, 8)}</span>
+        <Link to={`/shipments/${active.shipmentId}`} className="text-sm font-medium text-ink/60 hover:text-forest hover:underline">
+          Shipment {active.shipmentId?.slice(0, 8)}
+        </Link>
       </div>
       <div className="flex flex-wrap gap-1 border-b border-mist pb-2">
         {orders.map((order) => (
@@ -44,6 +47,7 @@ export function OrdersListPage() {
   const [page, setPage] = useState(0)
   const [selected, setSelected] = useState<string[]>([])
   const [mergeError, setMergeError] = useState<string | null>(null)
+  const [combiningOrderId, setCombiningOrderId] = useState<string | null>(null)
   const { data, isLoading, isError } = useMyOrders(page)
   const mergeOrders = useMergeMyOrders()
   const confirm = useConfirm()
@@ -90,9 +94,14 @@ export function OrdersListPage() {
     <div>
       <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <h1 className="page-title">My orders</h1>
-        <Link to="/orders/new" className="btn-primary self-start sm:self-auto">
-          New request
-        </Link>
+        <div className="flex gap-2 self-start sm:self-auto">
+          <Link to="/combine-requests" className="btn-secondary">
+            Combine requests
+          </Link>
+          <Link to="/orders/new" className="btn-primary">
+            New request
+          </Link>
+        </div>
       </div>
 
       {isLoading && <Spinner label="Fetching orders" />}
@@ -127,13 +136,22 @@ export function OrdersListPage() {
                   <OrderIdHint id={group[0].id} nickname={group[0].nickname} /> — {group[0].items.length} item(s)
                 </Link>
               </div>
-              <OrderStatusBadge status={group[0].status} />
+              <div className="flex items-center gap-2">
+                {group[0].open && (
+                  <button type="button" className="btn-secondary px-2 py-1 text-xs" onClick={() => setCombiningOrderId(group[0].id)}>
+                    Combine with…
+                  </button>
+                )}
+                <OrderStatusBadge status={group[0].status} />
+              </div>
             </li>
           ),
         )}
       </ul>
 
       {data && <Pagination page={data.page} totalPages={data.totalPages} onPageChange={setPage} />}
+
+      {combiningOrderId && <CombineRequestModal orderId={combiningOrderId} onClose={() => setCombiningOrderId(null)} />}
     </div>
   )
 }

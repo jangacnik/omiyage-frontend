@@ -80,6 +80,7 @@ export function Layout() {
                 <TopNavLink to="/admin/shipments">Shipments</TopNavLink>
                 <TopNavLink to="/admin/settings">Settings</TopNavLink>
                 <TopNavLink to="/admin/dashboard">Dashboard</TopNavLink>
+                <TopNavLink to="/admin/combine-requests">Combine requests</TopNavLink>
               </>
             )}
           </div>
@@ -143,6 +144,9 @@ export function Layout() {
                 </TopNavLink>
                 <TopNavLink to="/admin/dashboard" onClick={closeMenu}>
                   Dashboard
+                </TopNavLink>
+                <TopNavLink to="/admin/combine-requests" onClick={closeMenu}>
+                  Combine requests
                 </TopNavLink>
               </>
             )}

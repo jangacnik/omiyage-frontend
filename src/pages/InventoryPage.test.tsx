@@ -26,6 +26,8 @@ function item(overrides: Partial<InventoryItem> = {}): InventoryItem {
     status: 'ACTIVE',
     images: [],
     categories: [],
+    isPreorder: false,
+    expectedReleaseDate: null,
     boughtPrice: null,
     ...overrides,
   }

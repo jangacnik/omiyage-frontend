@@ -22,6 +22,8 @@ function item(): InventoryItem {
     status: 'ACTIVE',
     images: [],
     categories: [{ id: 'cat-1', name: 'Snacks', slug: 'snacks' }],
+    isPreorder: false,
+    expectedReleaseDate: null,
     boughtPrice: null,
   }
 }

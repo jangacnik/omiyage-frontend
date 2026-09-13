@@ -117,6 +117,8 @@ describe('OrdersNewPage', () => {
       status: 'ACTIVE',
       images: [],
       categories: [],
+      isPreorder: false,
+      expectedReleaseDate: null,
       boughtPrice: null,
     }
     server.use(http.get(`${BASE}/api/inventory/item-1`, () => HttpResponse.json(item)))
@@ -140,6 +142,8 @@ describe('OrdersNewPage', () => {
       status: 'ACTIVE',
       images: [],
       categories: [],
+      isPreorder: false,
+      expectedReleaseDate: null,
       boughtPrice: null,
     }
     let capturedBody: unknown = null
