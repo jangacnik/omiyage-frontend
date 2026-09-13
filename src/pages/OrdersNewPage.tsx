@@ -24,8 +24,12 @@ export function OrdersNewPage() {
   }, [preselectedItem, prefilledAdded])
 
   async function submit() {
-    const order = await createOrder.mutateAsync({ items: items.map((draft) => draft.input), nickname: nickname.trim() || undefined })
-    navigate(`/orders/${order.id}`)
+    try {
+      const order = await createOrder.mutateAsync({ items: items.map((draft) => draft.input), nickname: nickname.trim() || undefined })
+      navigate(`/orders/${order.id}`)
+    } catch {
+      // createOrder.isError renders the message below - stay on the page so the user can retry.
+    }
   }
 
   return (

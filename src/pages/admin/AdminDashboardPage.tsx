@@ -18,8 +18,12 @@ function CreateOrderForUser({ userId, onDone }: { userId: string; onDone: () => 
   const createOrder = useAdminCreateOrderForUser()
 
   async function submit() {
-    await createOrder.mutateAsync({ userId, items: items.map((draft) => draft.input), nickname: nickname.trim() || undefined })
-    onDone()
+    try {
+      await createOrder.mutateAsync({ userId, items: items.map((draft) => draft.input), nickname: nickname.trim() || undefined })
+      onDone()
+    } catch {
+      // createOrder.isError renders the message below - stay open so the admin can retry.
+    }
   }
 
   return (
