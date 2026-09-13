@@ -4,8 +4,26 @@ import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 import { useChangeMyPassword, useMyProfile, useUpdateMyNickname, useUpdateProfile } from '../api/profile'
 import { ApiError } from '../lib/apiClient'
+import { Avatar } from '../components/Avatar'
+import { ImageDropInput } from '../components/ImageDropInput'
 import { ButtonSpinner, Spinner } from '../components/Spinner'
 import type { UserProfileDto } from '../types/api'
+
+function AvatarEditor({ profile }: { profile: UserProfileDto }) {
+  const updateProfile = useUpdateProfile()
+
+  return (
+    <div className="mb-4 flex items-center gap-3">
+      <Avatar imageKey={profile.avatarKey} nickname={profile.nickname} size="lg" />
+      <ImageDropInput
+        label="Avatar"
+        initialImageKey={profile.avatarKey ?? undefined}
+        onUploaded={(key) => updateProfile.mutate({ avatarKey: key ?? null })}
+      />
+      {updateProfile.isError && <p className="error-text">Could not save avatar.</p>}
+    </div>
+  )
+}
 
 function NicknameEditor({ profile }: { profile: UserProfileDto }) {
   const [editing, setEditing] = useState(false)
@@ -194,6 +212,7 @@ export function ProfilePage() {
   return (
     <div className="mx-auto max-w-3xl">
       <h1 className="page-title mb-1">Profile</h1>
+      {profile && <AvatarEditor profile={profile} />}
       {profile && <NicknameEditor profile={profile} />}
 
       <form onSubmit={handleSubmit(onSubmit)} className="card grid grid-cols-1 gap-4 sm:grid-cols-2">

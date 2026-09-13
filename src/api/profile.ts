@@ -12,6 +12,7 @@ export interface UpdateProfileInput {
   postalCode?: string
   city?: string
   country?: string
+  avatarKey?: string | null
 }
 
 export function useMyProfile() {
