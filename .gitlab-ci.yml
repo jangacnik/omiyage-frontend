@@ -1,3 +1,8 @@
+# `test` runs automatically on every commit, every branch. `build`/`deploy`
+# run automatically too, but only on the default branch. Every job is
+# interruptible and the project has "auto-cancel redundant pipelines" on,
+# so pushing again while a pipeline is still running cancels the older one.
+
 stages:
   - test
   - build
@@ -6,6 +11,7 @@ stages:
 test:
   stage: test
   image: node:22-alpine
+  interruptible: true
   script:
     - npm ci
     - npm test
@@ -15,9 +21,9 @@ build:
   image:
     name: gcr.io/kaniko-project/executor:v1.23.2-debug
     entrypoint: [""]
+  interruptible: true
   rules:
     - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
-      when: manual
   before_script:
     - mkdir -p /kaniko/.docker
     - echo "{\"auths\":{\"$CI_REGISTRY\":{\"auth\":\"$(printf "%s:%s" "$CI_REGISTRY_USER" "$CI_REGISTRY_PASSWORD" | base64 | tr -d '\n')\"}}}" > /kaniko/.docker/config.json
@@ -35,9 +41,9 @@ build:
 deploy-production:
   stage: deploy
   image: alpine/k8s:1.31.13
+  interruptible: true
   rules:
     - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
-      when: manual
   environment: production
   variables:
     K8S_NAMESPACE: default
