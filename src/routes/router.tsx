@@ -9,6 +9,7 @@ import { OrdersListPage } from '../pages/OrdersListPage'
 import { OrderDetailPage } from '../pages/OrderDetailPage'
 import { CombineRequestsPage } from '../pages/CombineRequestsPage'
 import { MyShipmentPage } from '../pages/MyShipmentPage'
+import { MyShipmentsListPage } from '../pages/MyShipmentsListPage'
 import { ProfilePage } from '../pages/ProfilePage'
 import { AdminInventoryPage } from '../pages/admin/AdminInventoryPage'
 import { AdminSettingsPage } from '../pages/admin/AdminSettingsPage'
@@ -35,6 +36,7 @@ export const router = createBrowserRouter([
           { path: '/orders', element: <OrdersListPage /> },
           { path: '/orders/:id', element: <OrderDetailPage /> },
           { path: '/combine-requests', element: <CombineRequestsPage /> },
+          { path: '/shipments', element: <MyShipmentsListPage /> },
           { path: '/shipments/:id', element: <MyShipmentPage /> },
           { path: '/profile', element: <ProfilePage /> },
           {
