@@ -20,7 +20,8 @@ export interface DraftItem {
 
 export function draftFromInventoryItem(item: InventoryItem): DraftItem {
   return {
-    input: { inventoryItemId: item.id, currency: item.currency, quantity: 1 },
+    // Max price is always EUR - fixed by policy, not a per-item choice.
+    input: { inventoryItemId: item.id, currency: 'EUR', quantity: 1 },
     displayTitle: item.title,
     imageKey: item.images[0],
     isPreorder: item.isPreorder,
@@ -34,7 +35,6 @@ const customItemSchema = z
     description: z.string().optional(),
     link: z.string().optional(),
     condition: z.enum(['NEW', 'USED']),
-    currency: z.enum(['JPY', 'EUR']),
     maxPrice: z.string().optional(),
     quantity: z.string().optional(),
     isPreorder: z.boolean().optional(),
@@ -56,7 +56,7 @@ function CustomItemForm({ onAdd }: { onAdd: (item: DraftItem) => void }) {
     reset,
     watch,
     formState: { errors },
-  } = useForm<CustomItemForm>({ resolver: zodResolver(customItemSchema), defaultValues: { condition: 'NEW', currency: 'JPY' } })
+  } = useForm<CustomItemForm>({ resolver: zodResolver(customItemSchema), defaultValues: { condition: 'NEW' } })
   const isPreorder = watch('isPreorder')
 
   function onSubmit(data: CustomItemForm) {
@@ -66,7 +66,8 @@ function CustomItemForm({ onAdd }: { onAdd: (item: DraftItem) => void }) {
         description: data.description,
         link: data.link || undefined,
         condition: data.condition,
-        currency: data.currency,
+        // Max price is always EUR - fixed by policy, not a per-item choice.
+        currency: 'EUR',
         maxPrice: data.maxPrice ? Number(data.maxPrice) : undefined,
         quantity: data.quantity ? Number(data.quantity) : 1,
         imageKey,
@@ -92,16 +93,12 @@ function CustomItemForm({ onAdd }: { onAdd: (item: DraftItem) => void }) {
           <option value="NEW">New</option>
           <option value="USED">Used</option>
         </select>
-        <select {...register('currency')} aria-label="Currency" className="field-input">
-          <option value="JPY">JPY</option>
-          <option value="EUR">EUR</option>
-        </select>
       </div>
       <div className="flex flex-col gap-2 sm:flex-row">
         <input
           type="number"
           step="0.01"
-          placeholder="Max price (optional)"
+          placeholder="Max price in EUR (optional)"
           className="field-input"
           {...register('maxPrice')}
           aria-label="Max price"
@@ -213,9 +210,7 @@ export function OrderItemBuilder({
             <li key={index} className="card flex flex-col gap-2 py-2 sm:flex-row sm:items-center sm:justify-between">
               <span className="flex items-center gap-3">
                 <ThumbnailImage imageKey={item.imageKey} className="h-10 w-10 shrink-0 rounded-lg" />
-                <span className="text-sm text-ink/80">
-                  {item.displayTitle} — {item.input.currency}
-                </span>
+                <span className="text-sm text-ink/80">{item.displayTitle}</span>
                 {item.isPreorder && <PreorderBadge expectedReleaseDate={item.expectedReleaseDate ?? null} />}
               </span>
               <button type="button" className="btn-danger px-2 py-1 text-xs" onClick={() => onRemove(index)}>

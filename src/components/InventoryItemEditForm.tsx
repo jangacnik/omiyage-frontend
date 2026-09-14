@@ -15,7 +15,6 @@ const itemSchema = z
     description: z.string().optional(),
     link: z.string().optional(),
     condition: z.enum(['NEW', 'USED']),
-    currency: z.enum(['JPY', 'EUR']),
     priceAmount: z.string().min(1, 'Price is required'),
     boughtPrice: z.string().optional(),
     stockQuantity: z.string().min(1, 'Stock is required'),
@@ -72,7 +71,6 @@ export function InventoryItemEditForm({ item, onDone }: { item: InventoryItem; o
       description: item.description ?? '',
       link: item.link ?? '',
       condition: item.condition,
-      currency: item.currency,
       priceAmount: item.priceAmount.toString(),
       boughtPrice: item.boughtPrice?.toString() ?? '',
       stockQuantity: item.stockQuantity.toString(),
@@ -90,7 +88,9 @@ export function InventoryItemEditForm({ item, onDone }: { item: InventoryItem; o
         description: data.description,
         link: data.link || undefined,
         condition: data.condition,
-        currency: data.currency,
+        // Listed price is always EUR, bought price is always JPY - fixed by policy, see
+        // InventoryService.create/update on the backend.
+        currency: 'EUR',
         priceAmount: Number(data.priceAmount),
         boughtPrice: data.boughtPrice ? Number(data.boughtPrice) : undefined,
         stockQuantity: Number(data.stockQuantity),
@@ -117,14 +117,10 @@ export function InventoryItemEditForm({ item, onDone }: { item: InventoryItem; o
               <option value="NEW">New</option>
               <option value="USED">Used</option>
             </select>
-            <select {...register('currency')} aria-label={`Currency for ${item.title}`} className="field-input">
-              <option value="JPY">JPY</option>
-              <option value="EUR">EUR</option>
-            </select>
           </div>
           <div className="flex flex-col gap-2 sm:flex-row">
-            <input placeholder="Price" className="field-input" {...register('priceAmount')} aria-label={`Price for ${item.title}`} />
-            <input placeholder="Bought price (admin only)" className="field-input" {...register('boughtPrice')} aria-label={`Bought price for ${item.title}`} />
+            <input placeholder="Price (EUR)" className="field-input" {...register('priceAmount')} aria-label={`Price in EUR for ${item.title}`} />
+            <input placeholder="Bought price (JPY, admin only)" className="field-input" {...register('boughtPrice')} aria-label={`Bought price in JPY for ${item.title}`} />
             <input placeholder="Stock quantity" className="field-input" {...register('stockQuantity')} aria-label={`Stock quantity for ${item.title}`} />
           </div>
           <input

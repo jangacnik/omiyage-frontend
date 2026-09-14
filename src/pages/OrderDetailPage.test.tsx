@@ -269,11 +269,12 @@ describe('OrderDetailPage', () => {
     await user.type(screen.getByLabelText('Link to store page'), 'https://example.com/tote')
     await user.click(screen.getByText('Add item'))
 
+    // Max price is always EUR now - fixed by policy, no currency picker in this form anymore.
     await waitFor(() =>
       expect(capturedBody).toMatchObject({
         title: 'Studio Ghibli tote bag',
         condition: 'NEW',
-        currency: 'JPY',
+        currency: 'EUR',
         quantity: 1,
         link: 'https://example.com/tote',
       }),

@@ -43,8 +43,9 @@ describe('OrdersNewPage', () => {
     await user.click(screen.getByText('Submit request'))
 
     await waitFor(() => expect(screen.getByText('order detail page')).toBeInTheDocument())
+    // Max price is always EUR now - fixed by policy, no currency picker in this form anymore.
     expect(capturedBody).toMatchObject({
-      items: [{ title: 'Ghibli museum ticket', condition: 'NEW', currency: 'JPY', maxPrice: 2000 }],
+      items: [{ title: 'Ghibli museum ticket', condition: 'NEW', currency: 'EUR', maxPrice: 2000 }],
     })
   })
 
@@ -120,12 +121,13 @@ describe('OrdersNewPage', () => {
       isPreorder: false,
       expectedReleaseDate: null,
       boughtPrice: null,
+      profitEur: null,
     }
     server.use(http.get(`${BASE}/api/inventory/item-1`, () => HttpResponse.json(item)))
 
     renderPage(['/orders/new?inventoryItemId=item-1'])
 
-    expect(await screen.findByText(/Kit Kat matcha — JPY/)).toBeInTheDocument()
+    expect(await screen.findByText('Kit Kat matcha')).toBeInTheDocument()
   })
 
   it('adds an inventory item found via search, without opening the custom form', async () => {
@@ -145,6 +147,7 @@ describe('OrdersNewPage', () => {
       isPreorder: false,
       expectedReleaseDate: null,
       boughtPrice: null,
+      profitEur: null,
     }
     let capturedBody: unknown = null
     server.use(
@@ -159,7 +162,7 @@ describe('OrdersNewPage', () => {
     await user.type(screen.getByLabelText('Search inventory'), 'Kit Kat')
     await user.click(await screen.findByText('Kit Kat matcha'))
 
-    expect(screen.getByText(/Kit Kat matcha — JPY/)).toBeInTheDocument()
+    expect(screen.getByText('Kit Kat matcha')).toBeInTheDocument()
     expect(screen.queryByLabelText('Title')).not.toBeInTheDocument()
 
     await user.click(screen.getByText('Submit request'))

@@ -3,9 +3,7 @@ import { useAdminUpdateOrderItemContent, useUpdateOrderItem } from '../../api/ad
 import { ImageDropInput } from '../../components/ImageDropInput'
 import { ORDER_ITEM_STATUSES } from '../../components/OrderItemStatusBadge'
 import { ButtonSpinner } from '../../components/Spinner'
-import type { Currency, OrderItemDto, OrderItemStatus } from '../../types/api'
-
-const CURRENCIES: Currency[] = ['JPY', 'EUR']
+import type { OrderItemDto, OrderItemStatus } from '../../types/api'
 
 export function AdminOrderItemEditDialog({
   orderId,
@@ -24,9 +22,7 @@ export function AdminOrderItemEditDialog({
   const [imageKey, setImageKey] = useState(item.imageKey ?? undefined)
   const [status, setStatus] = useState<OrderItemStatus>(item.status)
   const [actualPrice, setActualPrice] = useState(item.actualPrice?.toString() ?? '')
-  const [actualPriceCurrency, setActualPriceCurrency] = useState<Currency>(item.actualPriceCurrency ?? item.currency)
   const [soldPrice, setSoldPrice] = useState(item.soldPrice?.toString() ?? '')
-  const [soldPriceCurrency, setSoldPriceCurrency] = useState<Currency>(item.soldPriceCurrency ?? item.currency)
   const [weight, setWeight] = useState(item.weight?.toString() ?? '')
 
   const updateContent = useAdminUpdateOrderItemContent()
@@ -51,9 +47,7 @@ export function AdminOrderItemEditDialog({
           itemId: item.id,
           status,
           actualPrice: actualPrice ? Number(actualPrice) : undefined,
-          actualPriceCurrency: actualPrice ? actualPriceCurrency : undefined,
           soldPrice: soldPrice ? Number(soldPrice) : undefined,
-          soldPriceCurrency: soldPrice ? soldPriceCurrency : undefined,
           weight: weight ? Number(weight) : undefined,
         }),
       ])
@@ -81,13 +75,17 @@ export function AdminOrderItemEditDialog({
 
         <div className="flex flex-col gap-2 sm:flex-row">
           <input
+            type="number"
+            step="0.01"
             className="field-input sm:w-32"
             value={maxPrice}
             onChange={(e) => setMaxPrice(e.target.value)}
-            aria-label="Max price"
-            placeholder="Max price"
+            aria-label="Max price, in EUR"
+            placeholder="Max price (EUR)"
           />
           <input
+            type="number"
+            min={1}
             className="field-input sm:w-24"
             value={quantity}
             onChange={(e) => setQuantity(e.target.value)}
@@ -125,57 +123,33 @@ export function AdminOrderItemEditDialog({
 
         <div className="flex flex-col gap-2 sm:flex-row">
           <label className="flex flex-1 flex-col gap-1">
-            <span className="text-xs text-ink/50">Bought for (how much I paid for the item)</span>
-            <div className="flex gap-1">
-              <input
-                value={actualPrice}
-                onChange={(e) => setActualPrice(e.target.value)}
-                aria-label="Bought for"
-                className="field-input"
-              />
-              <select
-                value={actualPriceCurrency}
-                onChange={(e) => setActualPriceCurrency(e.target.value as Currency)}
-                aria-label="Bought for currency"
-                className="field-input w-20"
-              >
-                {CURRENCIES.map((c) => (
-                  <option key={c} value={c}>
-                    {c}
-                  </option>
-                ))}
-              </select>
-            </div>
+            <span className="text-xs text-ink/50">Bought for, in JPY (how much I paid for the item)</span>
+            <input
+              type="number"
+              step="1"
+              value={actualPrice}
+              onChange={(e) => setActualPrice(e.target.value)}
+              aria-label="Bought for, in JPY"
+              className="field-input"
+            />
           </label>
 
           <label className="flex flex-1 flex-col gap-1">
-            <span className="text-xs text-ink/50">Sold for (how much I charged for it)</span>
-            <div className="flex gap-1">
-              <input
-                value={soldPrice}
-                onChange={(e) => setSoldPrice(e.target.value)}
-                aria-label="Sold for"
-                className="field-input"
-              />
-              <select
-                value={soldPriceCurrency}
-                onChange={(e) => setSoldPriceCurrency(e.target.value as Currency)}
-                aria-label="Sold for currency"
-                className="field-input w-20"
-              >
-                {CURRENCIES.map((c) => (
-                  <option key={c} value={c}>
-                    {c}
-                  </option>
-                ))}
-              </select>
-            </div>
+            <span className="text-xs text-ink/50">Sold for, in EUR (how much I charged for it)</span>
+            <input
+              type="number"
+              step="0.01"
+              value={soldPrice}
+              onChange={(e) => setSoldPrice(e.target.value)}
+              aria-label="Sold for, in EUR"
+              className="field-input"
+            />
           </label>
         </div>
 
         <label className="flex flex-col gap-1">
           <span className="text-xs text-ink/50">Weight (g)</span>
-          <input value={weight} onChange={(e) => setWeight(e.target.value)} aria-label="Weight" className="field-input sm:w-32" />
+          <input type="number" min={0} value={weight} onChange={(e) => setWeight(e.target.value)} aria-label="Weight" className="field-input sm:w-32" />
         </label>
 
         {(updateContent.isError || updateItem.isError) && <p className="error-text">Could not save changes.</p>}

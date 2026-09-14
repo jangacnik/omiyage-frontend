@@ -200,7 +200,6 @@ function AddItemForm({ orderId }: { orderId: string }) {
   const [open, setOpen] = useState(false)
   const [title, setTitle] = useState('')
   const [condition, setCondition] = useState<'NEW' | 'USED'>('NEW')
-  const [currency, setCurrency] = useState<'JPY' | 'EUR'>('JPY')
   const [maxPrice, setMaxPrice] = useState('')
   const [quantity, setQuantity] = useState('1')
   const [link, setLink] = useState('')
@@ -221,7 +220,8 @@ function AddItemForm({ orderId }: { orderId: string }) {
         orderId,
         title,
         condition,
-        currency,
+        // Max price is always EUR - fixed by policy, not a per-item choice.
+        currency: 'EUR',
         maxPrice: maxPrice ? Number(maxPrice) : undefined,
         quantity: quantity ? Number(quantity) : 1,
         link: link || undefined,
@@ -246,16 +246,12 @@ function AddItemForm({ orderId }: { orderId: string }) {
           <option value="NEW">New</option>
           <option value="USED">Used</option>
         </select>
-        <select value={currency} onChange={(e) => setCurrency(e.target.value as 'JPY' | 'EUR')} className="field-input" aria-label="Currency">
-          <option value="JPY">JPY</option>
-          <option value="EUR">EUR</option>
-        </select>
       </div>
       <div className="flex flex-col gap-2 sm:flex-row">
         <input
           type="number"
           step="0.01"
-          placeholder="Max price (optional)"
+          placeholder="Max price in EUR (optional)"
           className="field-input"
           value={maxPrice}
           onChange={(e) => setMaxPrice(e.target.value)}

@@ -4,7 +4,6 @@ import type { CreateOrderInput, CreateOrderItemInput, UpdateMyOrderItemInput } f
 import type {
   AdminOrderSortBy,
   CombineRequestDto,
-  Currency,
   OrderDto,
   OrderItemStatus,
   OrderStatus,
@@ -65,31 +64,27 @@ export function useUpdateOrderStatus() {
 export function useUpdateOrderItem() {
   const queryClient = useQueryClient()
   return useMutation({
+    // actualPrice is always JPY and soldPrice is always EUR - fixed by policy, see
+    // OrderService.updateItem on the backend, which ignores any currency sent here anyway.
     mutationFn: ({
       orderId,
       itemId,
       status,
       actualPrice,
-      actualPriceCurrency,
       soldPrice,
-      soldPriceCurrency,
       weight,
     }: {
       orderId: string
       itemId: string
       status: OrderItemStatus
       actualPrice?: number
-      actualPriceCurrency?: Currency
       soldPrice?: number
-      soldPriceCurrency?: Currency
       weight?: number
     }) =>
       api.patch<OrderDto>(`/api/admin/orders/${orderId}/items/${itemId}`, {
         status,
         actualPrice,
-        actualPriceCurrency,
         soldPrice,
-        soldPriceCurrency,
         weight,
       }),
     onSuccess: (_, { orderId }) => {

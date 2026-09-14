@@ -45,8 +45,12 @@ export interface InventoryItem {
   categories: Category[]
   isPreorder: boolean
   expectedReleaseDate: string | null
-  // Admin-only cost basis - absent on any response a normal user can read.
+  // Admin-only cost basis - absent on any response a normal user can read. Always JPY;
+  // priceAmount above is always EUR.
   boughtPrice: number | null
+  // priceAmount[EUR] - toEur(boughtPrice[JPY]), pre-converted server-side. Admin-only, same
+  // convention as boughtPrice.
+  profitEur: number | null
 }
 
 export interface OrderItemDto {

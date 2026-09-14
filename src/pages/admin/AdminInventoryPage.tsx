@@ -31,7 +31,7 @@ export function AdminInventoryPage() {
     reset,
     watch,
     formState: { errors },
-  } = useForm<InventoryItemForm>({ resolver: zodResolver(itemSchema), defaultValues: { condition: 'NEW', currency: 'JPY' } })
+  } = useForm<InventoryItemForm>({ resolver: zodResolver(itemSchema), defaultValues: { condition: 'NEW' } })
   const isPreorder = watch('isPreorder')
 
   function toggleCategory(id: string) {
@@ -44,7 +44,9 @@ export function AdminInventoryPage() {
       description: data.description,
       link: data.link || undefined,
       condition: data.condition,
-      currency: data.currency,
+      // Listed price is always EUR, bought price is always JPY - fixed by policy, see
+      // InventoryService.create/update on the backend.
+      currency: 'EUR',
       priceAmount: Number(data.priceAmount),
       boughtPrice: data.boughtPrice ? Number(data.boughtPrice) : undefined,
       stockQuantity: Number(data.stockQuantity),
@@ -83,14 +85,10 @@ export function AdminInventoryPage() {
             <option value="NEW">New</option>
             <option value="USED">Used</option>
           </select>
-          <select {...register('currency')} aria-label="Currency" className="field-input">
-            <option value="JPY">JPY</option>
-            <option value="EUR">EUR</option>
-          </select>
         </div>
         <div className="flex flex-col gap-2 sm:flex-row">
-          <input placeholder="Price" className="field-input" {...register('priceAmount')} aria-label="Price" />
-          <input placeholder="Bought price (admin only)" className="field-input" {...register('boughtPrice')} aria-label="Bought price" />
+          <input placeholder="Price (EUR)" className="field-input" {...register('priceAmount')} aria-label="Price in EUR" />
+          <input placeholder="Bought price (JPY, admin only)" className="field-input" {...register('boughtPrice')} aria-label="Bought price in JPY" />
           <input placeholder="Stock quantity" className="field-input" {...register('stockQuantity')} aria-label="Stock quantity" />
         </div>
         {errors.priceAmount && <p className="error-text">{errors.priceAmount.message}</p>}

@@ -92,7 +92,10 @@ function PaidToggleButton({ orderId, item }: { orderId: string; item: OrderItemD
 }
 
 function OrderItemRow({ orderId, item }: { orderId: string; item: OrderItemDto }) {
+  // actualPrice is always JPY and maxPrice is always EUR - pick the matching currency, don't
+  // assume item.currency (which only ever describes maxPrice).
   const price = item.actualPrice ?? item.maxPrice
+  const priceCurrency = item.actualPrice != null ? (item.actualPriceCurrency ?? item.currency) : item.currency
 
   return (
     <li className="flex flex-wrap items-center justify-between gap-2 rounded-lg bg-paper/60 px-2.5 py-1.5">
@@ -100,7 +103,7 @@ function OrderItemRow({ orderId, item }: { orderId: string; item: OrderItemDto }
         <ThumbnailImage imageKey={item.imageKey} className="h-10 w-10 shrink-0 rounded-lg" />
         <span className="truncate text-sm text-ink/80">{item.title}</span>
         <OrderItemStatusBadge status={item.status} />
-        {price != null && <span className="text-sm text-ink/60">{formatMoney(price, item.currency)}</span>}
+        {price != null && <span className="text-sm text-ink/60">{formatMoney(price, priceCurrency)}</span>}
       </div>
       <PaidToggleButton orderId={orderId} item={item} />
     </li>

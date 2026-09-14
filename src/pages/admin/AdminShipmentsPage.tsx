@@ -260,7 +260,8 @@ function ShipmentCard({
           )}
         </span>
         {shipment.estimatedDays != null && <span>Estimated: ~{shipment.estimatedDays} days</span>}
-        <span>Profit: <strong className="text-ink">{formatMoney(shipment.profit, 'JPY')}</strong></span>
+        {/* profit sums each order's profit, which is always EUR - see OrderDtos.profit() */}
+        <span>Profit: <strong className="text-ink">{formatMoney(shipment.profit, 'EUR')}</strong></span>
         {shipment.shippedAt && <span>Shipped: {new Date(shipment.shippedAt).toLocaleString()}</span>}
         {shipment.arrivedAt && <span>Arrived: {new Date(shipment.arrivedAt).toLocaleString()}</span>}
       </div>
