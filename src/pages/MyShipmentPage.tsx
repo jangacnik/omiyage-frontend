@@ -10,6 +10,22 @@ import { ButtonSpinner, Spinner } from '../components/Spinner'
 import { formatGrams, formatMoney } from '../lib/currency'
 import type { OrderDto, PendingAmountDto, ShipmentMemberDto } from '../types/api'
 
+function CopyTrackingNumber({ trackingNumber }: { trackingNumber: string }) {
+  const [copied, setCopied] = useState(false)
+
+  async function copy() {
+    await navigator.clipboard.writeText(trackingNumber)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+  }
+
+  return (
+    <button type="button" className="btn-secondary px-2 py-0.5 text-xs" onClick={copy}>
+      {copied ? 'Copied' : 'Copy'}
+    </button>
+  )
+}
+
 function AmountList({ amounts }: { amounts: PendingAmountDto[] }) {
   if (amounts.length === 0) return <span className="text-ink/50">—</span>
   return <>{amounts.map((a) => formatMoney(a.amount, a.currency)).join(' + ')}</>
@@ -44,7 +60,7 @@ function MemberSection({ member, isMe }: { member: ShipmentMemberDto; isMe: bool
         <p className="text-sm font-medium text-ink/60">{isMe ? 'You' : `Member ${member.userId.slice(0, 8)}`}</p>
         <p className="text-sm font-medium text-ink" style={{ fontVariantNumeric: 'tabular-nums' }}>
           <AmountList amounts={member.itemTotals} />
-          {member.shippingShareJpy != null && <> + {formatMoney(member.shippingShareJpy, 'JPY')} shipping</>}
+          {member.shippingShareEur != null && <> + {formatMoney(member.shippingShareEur, 'EUR')} shipping</>}
         </p>
       </div>
       <div className="flex flex-col divide-y divide-mist">
@@ -115,7 +131,10 @@ export function MyShipmentPage() {
       <div className="flex flex-wrap gap-6 text-sm text-ink/80" style={{ fontVariantNumeric: 'tabular-nums' }}>
         <span>Destination: {shipment.destination ?? '—'}</span>
         <span>Method: {shipment.shippingMethod ?? '—'}</span>
-        <span>Tracking: {shipment.trackingNumber ?? '—'}</span>
+        <span className="flex items-center gap-2">
+          Tracking: {shipment.trackingNumber ?? '—'}
+          {shipment.trackingNumber && <CopyTrackingNumber trackingNumber={shipment.trackingNumber} />}
+        </span>
         <span>Weight: {formatGrams(shipment.totalWeightGrams)}</span>
         <span>
           Shipping cost: {shipment.shippingCostEur != null ? formatMoney(shipment.shippingCostEur, 'EUR') : '—'}

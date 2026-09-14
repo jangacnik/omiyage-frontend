@@ -283,6 +283,11 @@ function ShipmentCard({
 
       {deleteShipment.isError && <p className="error-text">Could not delete this shipment.</p>}
       {markShipmentPaid.isError && <p className="error-text">Could not update paid status for this shipment.</p>}
+      {updateShipment.isError && (
+        <p className="error-text">
+          {updateShipment.error instanceof Error ? updateShipment.error.message : 'Could not update this shipment.'}
+        </p>
+      )}
 
       {expanded && (
         <div className="flex flex-col divide-y divide-mist border-t border-mist pt-2">
