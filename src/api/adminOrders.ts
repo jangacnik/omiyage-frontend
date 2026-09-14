@@ -223,6 +223,24 @@ export function useAdminShipments() {
   })
 }
 
+// Delivered shipments are settled history - fetched separately, only once an admin actually asks
+// to see them, instead of loading them alongside every other shipment on every page visit.
+export function useAdminDeliveredShipments(enabled: boolean) {
+  return useQuery({
+    queryKey: ['admin', 'shipments', 'delivered'],
+    queryFn: () => api.get<ShipmentDto[]>('/api/admin/shipments/delivered'),
+    enabled,
+  })
+}
+
+export function useAdminShipmentById(id: string | undefined) {
+  return useQuery({
+    queryKey: ['admin', 'shipments', id],
+    queryFn: () => api.get<ShipmentDto>(`/api/admin/shipments/${id}`),
+    enabled: id !== undefined,
+  })
+}
+
 export function useCreateShipment() {
   const queryClient = useQueryClient()
   return useMutation({

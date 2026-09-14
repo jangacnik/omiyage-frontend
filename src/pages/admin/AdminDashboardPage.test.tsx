@@ -72,6 +72,7 @@ function entry(overrides: Partial<UserDashboardEntryDto> = {}): UserDashboardEnt
   return {
     user: userProfile(),
     orders: [order()],
+    deliveredOrderCount: 0,
     pendingAmounts: [{ currency: 'JPY', amount: 2000 }],
     ...overrides,
   }
@@ -140,6 +141,30 @@ describe('AdminDashboardPage', () => {
 
     expect(await screen.findByText('Ghibli museum ticket')).toBeInTheDocument()
     expect(screen.getByText('Mark paid')).toBeInTheDocument()
+  })
+
+  it('lazily fetches delivered orders only once the accordion is opened', async () => {
+    const user = userEvent.setup()
+    let deliveredFetched = false
+    server.use(
+      http.get(`${BASE}/api/admin/dashboard/users`, () => HttpResponse.json([entry({ deliveredOrderCount: 2 })])),
+      http.get(`${BASE}/api/admin/dashboard/users/user-1/delivered-orders`, () => {
+        deliveredFetched = true
+        return HttpResponse.json([order({ id: 'order-delivered', status: 'DELIVERED', nickname: 'Old order' })])
+      }),
+    )
+
+    renderWithProviders(<AdminDashboardPage />)
+    await screen.findByText('Alice')
+    await user.click(screen.getByText('Alice'))
+
+    expect(await screen.findByText('2 delivered order(s)')).toBeInTheDocument()
+    expect(deliveredFetched).toBe(false)
+
+    await user.click(screen.getByText('2 delivered order(s)'))
+
+    await waitFor(() => expect(deliveredFetched).toBe(true))
+    expect(await screen.findByText(/Old order/)).toBeInTheDocument()
   })
 
   it('shows an error when marking an item paid fails', async () => {

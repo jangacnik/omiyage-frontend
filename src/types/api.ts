@@ -229,6 +229,7 @@ export interface PendingAmountDto {
 export interface UserDashboardEntryDto {
   user: UserProfileDto
   orders: OrderDto[]
+  deliveredOrderCount: number
   pendingAmounts: PendingAmountDto[]
 }
 

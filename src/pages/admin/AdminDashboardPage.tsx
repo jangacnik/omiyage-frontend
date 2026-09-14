@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { useUserDashboard } from '../../api/adminDashboard'
+import { useUserDashboard, useUserDeliveredOrders } from '../../api/adminDashboard'
 import { useAdminCreateOrderForUser, useAdminMarkItemPaid } from '../../api/adminOrders'
 import { orderDisplayName } from '../../api/orders'
 import { Avatar } from '../../components/Avatar'
@@ -128,6 +128,35 @@ function DashboardOrderRow({ order }: { order: OrderDto }) {
   )
 }
 
+function DeliveredOrdersAccordion({ userId, count }: { userId: string; count: number }) {
+  const [open, setOpen] = useState(false)
+  const { data: deliveredOrders, isLoading } = useUserDeliveredOrders(userId, open)
+
+  if (count === 0) return null
+
+  return (
+    <div className="border-t border-mist pt-1">
+      <button
+        type="button"
+        className="flex items-center gap-2 py-1 text-sm text-ink/60 hover:text-ink"
+        onClick={() => setOpen((v) => !v)}
+        aria-expanded={open}
+      >
+        <span aria-hidden="true">{open ? '▲' : '▼'}</span>
+        {count} delivered order(s)
+      </button>
+      {open && (
+        <div className="flex flex-col divide-y divide-mist">
+          {isLoading && <Spinner label="Fetching delivered orders" />}
+          {deliveredOrders?.map((order) => (
+            <DashboardOrderRow key={order.id} order={order} />
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
 function UserDashboardCard({ entry }: { entry: UserDashboardEntryDto }) {
   const [expanded, setExpanded] = useState(false)
   const [creatingOrder, setCreatingOrder] = useState(false)
@@ -166,6 +195,8 @@ function UserDashboardCard({ entry }: { entry: UserDashboardEntryDto }) {
           ))}
         </div>
       )}
+
+      {expanded && <DeliveredOrdersAccordion userId={entry.user.id} count={entry.deliveredOrderCount} />}
     </li>
   )
 }

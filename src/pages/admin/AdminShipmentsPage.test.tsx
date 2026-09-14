@@ -161,6 +161,29 @@ describe('AdminShipmentsPage', () => {
     expect(await screen.findByText('Could not delete this shipment.')).toBeInTheDocument()
   })
 
+  it('lazily fetches delivered shipments only once that section is opened', async () => {
+    const user = userEvent.setup()
+    let deliveredFetched = false
+    server.use(
+      http.get(`${BASE}/api/admin/shipments`, () => HttpResponse.json([shipment()])),
+      http.get(`${BASE}/api/admin/shipments/delivered`, () => {
+        deliveredFetched = true
+        return HttpResponse.json([shipment({ id: 'ship-old', status: 'DELIVERED', title: 'Old shipment' })])
+      }),
+    )
+
+    renderWithProviders(<AdminShipmentsPage />)
+    await screen.findByText(/Shipment ship-1/)
+
+    expect(deliveredFetched).toBe(false)
+    expect(screen.queryByText('Old shipment')).not.toBeInTheDocument()
+
+    await user.click(screen.getByText('Delivered shipments'))
+
+    await waitFor(() => expect(deliveredFetched).toBe(true))
+    expect(await screen.findByText('Old shipment')).toBeInTheDocument()
+  })
+
   it('shows a back button only when viewing a single shipment via its own route', async () => {
     server.use(http.get(`${BASE}/api/admin/shipments`, () => HttpResponse.json([shipment()])))
 
@@ -171,7 +194,10 @@ describe('AdminShipmentsPage', () => {
 
   it('shows a working back button when reached via /admin/shipments/:id', async () => {
     const user = userEvent.setup()
-    server.use(http.get(`${BASE}/api/admin/shipments`, () => HttpResponse.json([shipment()])))
+    server.use(
+      http.get(`${BASE}/api/admin/shipments/ship-1`, () => HttpResponse.json(shipment())),
+      http.get(`${BASE}/api/admin/shipments`, () => HttpResponse.json([shipment()])),
+    )
 
     renderAt('/admin/shipments/ship-1')
     await screen.findByText(/Shipment ship-1/)

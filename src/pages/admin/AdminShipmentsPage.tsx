@@ -2,7 +2,9 @@ import { useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import {
   useAdminDeleteShipment,
+  useAdminDeliveredShipments,
   useAdminMarkShipmentPaid,
+  useAdminShipmentById,
   useAdminShipments,
   useCombineShipments,
   useSplitShipment,
@@ -337,16 +339,65 @@ function ShipmentCard({
   )
 }
 
-export function AdminShipmentsPage() {
-  const { id } = useParams<{ id: string }>()
-  const { data: shipments, isLoading } = useAdminShipments()
+function DeliveredShipmentsSection() {
+  const [open, setOpen] = useState(false)
+  const { data: delivered, isLoading } = useAdminDeliveredShipments(open)
+
+  return (
+    <div className="mt-6 border-t border-mist pt-3">
+      <button
+        type="button"
+        className="flex items-center gap-2 text-sm text-ink/60 hover:text-ink"
+        onClick={() => setOpen((v) => !v)}
+        aria-expanded={open}
+      >
+        <span aria-hidden="true">{open ? '▲' : '▼'}</span>
+        Delivered shipments
+      </button>
+      {open && (
+        <div className="mt-3">
+          {isLoading && <Spinner label="Fetching delivered shipments" />}
+          {delivered?.length === 0 && <p className="text-ink/50">No delivered shipments yet.</p>}
+          <ul className="flex flex-col gap-3">
+            {delivered?.map((shipment) => (
+              <ShipmentCard key={shipment.id} shipment={shipment} expanded />
+            ))}
+          </ul>
+        </div>
+      )}
+    </div>
+  )
+}
+
+function SingleShipmentView({ id }: { id: string }) {
   const navigate = useNavigate()
+  const { data: shipment, isLoading, isError } = useAdminShipmentById(id)
+
+  return (
+    <div>
+      <div className="mb-4 flex items-center gap-3">
+        <button type="button" className="btn-secondary px-3 py-1.5 text-sm" onClick={() => navigate('/admin/shipments')}>
+          ← Back to shipments
+        </button>
+        <h1 className="page-title">Admin: Shipments</h1>
+      </div>
+      {isLoading && <Spinner label="Fetching shipment" />}
+      {isError && <p className="error-text">Shipment not found.</p>}
+      {shipment && (
+        <ul className="flex flex-col gap-3">
+          <ShipmentCard shipment={shipment} expanded />
+        </ul>
+      )}
+    </div>
+  )
+}
+
+function ShipmentsListView() {
+  const { data: shipments, isLoading } = useAdminShipments()
   const combineShipments = useCombineShipments()
   const [selectedShipmentIds, setSelectedShipmentIds] = useState<string[]>([])
 
   if (isLoading) return <Spinner fullPage label="Fetching shipments" />
-
-  const visible = id ? shipments?.filter((s) => s.id === id) : shipments
 
   function toggleShipment(shipmentId: string) {
     setSelectedShipmentIds((current) =>
@@ -363,22 +414,16 @@ export function AdminShipmentsPage() {
 
   return (
     <div>
-      <div className="mb-4 flex items-center gap-3">
-        {id && (
-          <button type="button" className="btn-secondary px-3 py-1.5 text-sm" onClick={() => navigate('/admin/shipments')}>
-            ← Back to shipments
-          </button>
-        )}
-        <h1 className="page-title">Admin: Shipments</h1>
-      </div>
-      {visible && visible.length === 0 && (
+      <h1 className="page-title mb-4">Admin: Shipments</h1>
+
+      {shipments && shipments.length === 0 && (
         <p className="text-ink/50">
-          No shipments yet — select orders on the <Link to="/admin/orders" className="text-forest hover:underline">Orders</Link> page
+          No active shipments — select orders on the <Link to="/admin/orders" className="text-forest hover:underline">Orders</Link> page
           and combine them into one.
         </p>
       )}
 
-      {!id && selectedShipmentIds.length >= 2 && (
+      {selectedShipmentIds.length >= 2 && (
         <div className="mb-3 flex items-center justify-between rounded-lg bg-mist px-3 py-2">
           <span className="text-sm text-ink">{selectedShipmentIds.length} shipments selected</span>
           <button type="button" className="btn-primary px-3 py-1.5 text-sm" onClick={handleCombine} disabled={combineShipments.isPending}>
@@ -389,16 +434,23 @@ export function AdminShipmentsPage() {
       {combineShipments.isError && <p className="error-text mb-2">Could not combine these shipments.</p>}
 
       <ul className="flex flex-col gap-3">
-        {visible?.map((shipment) => (
+        {shipments?.map((shipment) => (
           <ShipmentCard
             key={shipment.id}
             shipment={shipment}
             expanded
             selected={selectedShipmentIds.includes(shipment.id)}
-            onToggleSelect={id ? undefined : () => toggleShipment(shipment.id)}
+            onToggleSelect={() => toggleShipment(shipment.id)}
           />
         ))}
       </ul>
+
+      <DeliveredShipmentsSection />
     </div>
   )
+}
+
+export function AdminShipmentsPage() {
+  const { id } = useParams<{ id: string }>()
+  return id ? <SingleShipmentView id={id} /> : <ShipmentsListView />
 }
