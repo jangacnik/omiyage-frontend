@@ -42,16 +42,7 @@ export function OrderItemCard({ item, children }: { item: OrderItemDto; children
 
       <p className="mt-1 text-sm text-ink/60">
         {item.condition && `${CONDITION_LABELS[item.condition]} · `}
-        {item.maxPrice != null || item.soldPrice != null ? (
-          <>
-            {item.maxPrice != null && priceLabel(item.maxPrice, item.currency, 'max', item.quantity)}
-            {item.maxPrice != null && item.soldPrice != null && ' · '}
-            {item.soldPrice != null &&
-              priceLabel(item.soldPrice, item.soldPriceCurrency ?? item.currency, 'actual price', item.quantity)}
-          </>
-        ) : (
-          '—'
-        )}{' '}
+        {item.maxPrice != null ? priceLabel(item.maxPrice, item.currency, 'max', item.quantity) : '—'}{' '}
         · qty {item.quantity}
         {item.weight != null && ` · ${item.weight} g`}
       </p>

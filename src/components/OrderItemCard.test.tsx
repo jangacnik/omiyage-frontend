@@ -37,10 +37,11 @@ describe('OrderItemCard', () => {
     expect(screen.getByText(/€10\.00 max/)).toBeInTheDocument()
   })
 
-  it('shows both max price and actual price, never "sold for"', () => {
+  it('shows only the max price, never the actual/sold price', () => {
     render(<OrderItemCard item={item({ maxPrice: 10, soldPrice: 12, soldPriceCurrency: 'EUR' })} />)
     expect(screen.getByText(/€10\.00 max/)).toBeInTheDocument()
-    expect(screen.getByText(/€12\.00 actual price/)).toBeInTheDocument()
+    expect(screen.queryByText(/€12\.00/)).not.toBeInTheDocument()
+    expect(screen.queryByText(/actual price/)).not.toBeInTheDocument()
     expect(screen.queryByText(/sold for/)).not.toBeInTheDocument()
   })
 
