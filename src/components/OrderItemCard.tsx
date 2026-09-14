@@ -31,10 +31,20 @@ export function OrderItemCard({ item, children }: { item: OrderItemDto; children
       <p className="mt-1 text-sm text-ink/60">
         {item.condition && `${CONDITION_LABELS[item.condition]} · `}
         {item.soldPrice ?? item.maxPrice ? (
-          <>
-            {formatMoney(item.soldPrice ?? item.maxPrice!, item.soldPrice != null ? item.soldPriceCurrency ?? item.currency : item.currency)}{' '}
-            {item.soldPrice != null ? 'sold for' : 'max'}
-          </>
+          (() => {
+            const unitPrice = item.soldPrice ?? item.maxPrice!
+            const currency = item.soldPrice != null ? item.soldPriceCurrency ?? item.currency : item.currency
+            const label = item.soldPrice != null ? 'sold for' : 'max'
+            return item.quantity > 1 ? (
+              <>
+                {formatMoney(unitPrice, currency)} {label} each · {formatMoney(unitPrice * item.quantity, currency)} total
+              </>
+            ) : (
+              <>
+                {formatMoney(unitPrice, currency)} {label}
+              </>
+            )
+          })()
         ) : (
           '—'
         )}{' '}
