@@ -169,6 +169,7 @@ export interface CombineRequestDto {
 
 export interface ShipmentMemberDto {
   userId: string
+  nickname: string | null
   orders: OrderDto[]
   itemTotals: PendingAmountDto[]
   shippingShareJpy: number | null

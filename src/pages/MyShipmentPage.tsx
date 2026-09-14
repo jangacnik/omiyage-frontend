@@ -62,7 +62,7 @@ function MemberOrderRow({ order }: { order: OrderDto }) {
 function MemberSection({ member, isMe }: { member: ShipmentMemberDto; isMe: boolean }) {
   return (
     <div className="flex flex-col gap-2 border-t border-mist pt-3 first:border-t-0 first:pt-0">
-      <p className="text-sm font-medium text-ink/60">{isMe ? 'You' : `Member ${member.userId.slice(0, 8)}`}</p>
+      <p className="text-sm font-medium text-ink/60">{isMe ? 'You' : member.nickname ?? `Member ${member.userId.slice(0, 8)}`}</p>
       <p className="text-sm font-medium text-ink" style={{ fontVariantNumeric: 'tabular-nums' }}>
         <AmountList amounts={member.itemTotals} />
         {member.shippingShareEur != null && (
