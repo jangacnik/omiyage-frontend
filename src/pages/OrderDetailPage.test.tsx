@@ -6,7 +6,7 @@ import { Route, Routes } from 'react-router-dom'
 import { server } from '../test/server'
 import { renderWithProviders } from '../test/renderWithProviders'
 import { OrderDetailPage } from './OrderDetailPage'
-import type { OrderDto } from '../types/api'
+import type { InventoryItem, OrderDto } from '../types/api'
 
 const BASE = 'http://localhost:8081'
 
@@ -283,6 +283,7 @@ describe('OrderDetailPage', () => {
     )
 
     await user.click(await screen.findByText('Add item'))
+    await user.click(screen.getByText("Can't find it? Create a custom request"))
     await user.type(screen.getByLabelText('Title'), 'Studio Ghibli tote bag')
     await user.type(screen.getByLabelText('Link to store page'), 'https://example.com/tote')
     await user.click(screen.getByText('Add item'))
@@ -297,5 +298,53 @@ describe('OrderDetailPage', () => {
         link: 'https://example.com/tote',
       }),
     )
+  })
+
+  it('adds an inventory item found via search, without opening the custom form', async () => {
+    const user = userEvent.setup()
+    const inventoryItem: InventoryItem = {
+      id: 'inv-1',
+      title: 'Kit Kat matcha',
+      description: null,
+      link: null,
+      condition: 'NEW',
+      priceAmount: 1200,
+      currency: 'EUR',
+      stockQuantity: 3,
+      status: 'ACTIVE',
+      images: [],
+      categories: [],
+      tags: [],
+      isPreorder: false,
+      expectedReleaseDate: null,
+      boughtPrice: null,
+      profitEur: null,
+    }
+    let capturedBody: unknown = null
+    server.use(
+      http.get(`${BASE}/api/orders/order-1`, () => HttpResponse.json(order())),
+      http.get(`${BASE}/api/inventory`, () =>
+        HttpResponse.json({ content: [inventoryItem], page: 0, size: 20, totalElements: 1, totalPages: 1 }),
+      ),
+      http.post(`${BASE}/api/orders/order-1/items`, async ({ request }) => {
+        capturedBody = await request.json()
+        return HttpResponse.json(order())
+      }),
+    )
+
+    renderWithProviders(
+      <Routes>
+        <Route path="/orders/:id" element={<OrderDetailPage />} />
+      </Routes>,
+      ['/orders/order-1'],
+    )
+
+    await user.click(await screen.findByText('Add item'))
+    await user.type(screen.getByLabelText('Search inventory'), 'Kit Kat')
+    await user.click(await screen.findByText('Kit Kat matcha'))
+
+    expect(screen.queryByLabelText('Title')).not.toBeInTheDocument()
+
+    await waitFor(() => expect(capturedBody).toMatchObject({ inventoryItemId: 'inv-1' }))
   })
 })
