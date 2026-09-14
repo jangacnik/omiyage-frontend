@@ -1,5 +1,6 @@
 import { http, HttpResponse } from 'msw'
-import { screen } from '@testing-library/react'
+import { screen, waitFor } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it } from 'vitest'
 import { Route, Routes } from 'react-router-dom'
 import { server } from '../test/server'
@@ -61,5 +62,47 @@ describe('MyShipmentPage', () => {
 
     // 25 (items) + 32.34 (shipping) = 57.34, shown for both the member and the shipment overall.
     expect(await screen.findAllByText(/€57\.34 total/)).toHaveLength(2)
+  })
+
+  it('lets the owner change destination/method but only saves on an explicit Save click', async () => {
+    const user = userEvent.setup()
+    let patched: unknown = null
+    server.use(
+      http.get(`${BASE}/api/shipments/mine/ship-1`, () => HttpResponse.json(shipment())),
+      http.patch(`${BASE}/api/shipments/mine/ship-1/shipping`, async ({ request }) => {
+        patched = await request.json()
+        return HttpResponse.json(shipment({ destination: 'AUSTRIA' }))
+      }),
+    )
+
+    renderWithProviders(
+      <Routes>
+        <Route path="/shipments/:id" element={<MyShipmentPage />} />
+      </Routes>,
+      ['/shipments/ship-1'],
+    )
+
+    await screen.findByLabelText('Destination')
+    expect(screen.queryByText('Save')).not.toBeInTheDocument()
+
+    await user.selectOptions(screen.getByLabelText('Destination'), 'AUSTRIA')
+    expect(patched).toBeNull()
+
+    await user.click(await screen.findByText('Save'))
+    await waitFor(() => expect(patched).toEqual({ destination: 'AUSTRIA', shippingMethod: 'EMS' }))
+  })
+
+  it('shows destination/method as read-only text once the shipment is no longer preparing', async () => {
+    server.use(http.get(`${BASE}/api/shipments/mine/ship-1`, () => HttpResponse.json(shipment({ status: 'SHIPPED', shippedAt: '2026-01-01T00:00:00Z' }))))
+
+    renderWithProviders(
+      <Routes>
+        <Route path="/shipments/:id" element={<MyShipmentPage />} />
+      </Routes>,
+      ['/shipments/ship-1'],
+    )
+
+    expect(await screen.findByText('Destination: SLOVENIA')).toBeInTheDocument()
+    expect(screen.queryByLabelText('Destination')).not.toBeInTheDocument()
   })
 })

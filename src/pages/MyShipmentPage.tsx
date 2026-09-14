@@ -1,6 +1,11 @@
 import { useState } from 'react'
 import { useParams } from 'react-router-dom'
-import { useMarkShipmentArrived, useMyShipmentDetail, useUpdateMyShipmentTitle } from '../api/myShipments'
+import {
+  useMarkShipmentArrived,
+  useMyShipmentDetail,
+  useUpdateMyShipmentShipping,
+  useUpdateMyShipmentTitle,
+} from '../api/myShipments'
 import { useAuthStore } from '../store/authStore'
 import { orderDisplayName } from '../api/orders'
 import { OrderIdHint } from '../components/OrderIdHint'
@@ -8,7 +13,15 @@ import { OrderStatusBadge } from '../components/OrderStatusBadge'
 import { OrderItemStatusBadge } from '../components/OrderItemStatusBadge'
 import { ButtonSpinner, Spinner } from '../components/Spinner'
 import { formatGrams, formatMoney } from '../lib/currency'
-import type { OrderDto, PendingAmountDto, ShipmentMemberDto } from '../types/api'
+import type { MemberShipmentDto, OrderDto, PendingAmountDto, ShipmentDestination, ShipmentMemberDto, ShippingMethod } from '../types/api'
+
+const DESTINATIONS: ShipmentDestination[] = ['SLOVENIA', 'AUSTRIA']
+const SHIPPING_METHODS: ShippingMethod[] = ['EMS', 'SMALL_PACKET', 'SURFACE_MAIL']
+const METHOD_LABELS: Record<ShippingMethod, string> = {
+  EMS: 'EMS',
+  SMALL_PACKET: 'Small Packet (air, up to 2kg)',
+  SURFACE_MAIL: 'Surface Mail (up to 2kg)',
+}
 
 function CopyTrackingNumber({ trackingNumber }: { trackingNumber: string }) {
   const [copied, setCopied] = useState(false)
@@ -120,6 +133,78 @@ function TitleEditor({ id, title, editable }: { id: string; title: string | null
   )
 }
 
+function ShippingEditor({ shipment, editable }: { shipment: MemberShipmentDto; editable: boolean }) {
+  const [destination, setDestination] = useState<ShipmentDestination | ''>(shipment.destination ?? '')
+  const [shippingMethod, setShippingMethod] = useState<ShippingMethod | ''>(shipment.shippingMethod ?? '')
+  const updateShipping = useUpdateMyShipmentShipping()
+
+  const dirty = destination !== (shipment.destination ?? '') || shippingMethod !== (shipment.shippingMethod ?? '')
+
+  function save() {
+    updateShipping.mutate({
+      id: shipment.id,
+      destination: destination || undefined,
+      shippingMethod: shippingMethod || undefined,
+    })
+  }
+
+  if (!editable) {
+    return (
+      <>
+        <span>Destination: {shipment.destination ?? '—'}</span>
+        <span>Method: {shipment.shippingMethod ?? '—'}</span>
+      </>
+    )
+  }
+
+  return (
+    <>
+      <label className="flex items-center gap-1.5">
+        Destination:
+        <select
+          value={destination}
+          onChange={(e) => setDestination(e.target.value as ShipmentDestination)}
+          aria-label="Destination"
+          className="field-input py-1 text-sm"
+        >
+          <option value="" disabled>
+            Not set
+          </option>
+          {DESTINATIONS.map((d) => (
+            <option key={d} value={d}>
+              {d[0] + d.slice(1).toLowerCase()}
+            </option>
+          ))}
+        </select>
+      </label>
+      <label className="flex items-center gap-1.5">
+        Method:
+        <select
+          value={shippingMethod}
+          onChange={(e) => setShippingMethod(e.target.value as ShippingMethod)}
+          aria-label="Shipping method"
+          className="field-input py-1 text-sm"
+        >
+          <option value="" disabled>
+            Not set
+          </option>
+          {SHIPPING_METHODS.map((m) => (
+            <option key={m} value={m}>
+              {METHOD_LABELS[m]}
+            </option>
+          ))}
+        </select>
+      </label>
+      {dirty && (
+        <button type="button" className="btn-primary px-3 py-1.5 text-sm" onClick={save} disabled={updateShipping.isPending}>
+          {updateShipping.isPending ? <ButtonSpinner /> : 'Save'}
+        </button>
+      )}
+      {updateShipping.isError && <p className="error-text w-full">Could not save destination/shipping method.</p>}
+    </>
+  )
+}
+
 export function MyShipmentPage() {
   const { id } = useParams<{ id: string }>()
   const { data: shipment, isLoading, isError } = useMyShipmentDetail(id)
@@ -138,9 +223,8 @@ export function MyShipmentPage() {
         <span className="rounded-full bg-mist px-2.5 py-0.5 text-sm font-medium text-ink">{shipment.status}</span>
       </div>
 
-      <div className="flex flex-wrap gap-6 text-sm text-ink/80" style={{ fontVariantNumeric: 'tabular-nums' }}>
-        <span>Destination: {shipment.destination ?? '—'}</span>
-        <span>Method: {shipment.shippingMethod ?? '—'}</span>
+      <div className="flex flex-wrap items-center gap-6 text-sm text-ink/80" style={{ fontVariantNumeric: 'tabular-nums' }}>
+        <ShippingEditor shipment={shipment} editable={isOwner && shipment.status === 'PREPARING'} />
         <span className="flex items-center gap-2">
           Tracking: {shipment.trackingNumber ?? '—'}
           {shipment.trackingNumber && <CopyTrackingNumber trackingNumber={shipment.trackingNumber} />}

@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { api } from '../lib/apiClient'
-import type { MemberShipmentDto } from '../types/api'
+import type { MemberShipmentDto, ShipmentDestination, ShippingMethod } from '../types/api'
 
 export function useMyShipments() {
   return useQuery({
@@ -22,6 +22,22 @@ export function useUpdateMyShipmentTitle() {
   return useMutation({
     mutationFn: ({ id, title }: { id: string; title: string | null }) =>
       api.patch<MemberShipmentDto>(`/api/shipments/mine/${id}/title`, { title }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['shipments', 'mine'] }),
+  })
+}
+
+export function useUpdateMyShipmentShipping() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: ({
+      id,
+      destination,
+      shippingMethod,
+    }: {
+      id: string
+      destination?: ShipmentDestination
+      shippingMethod?: ShippingMethod
+    }) => api.patch<MemberShipmentDto>(`/api/shipments/mine/${id}/shipping`, { destination, shippingMethod }),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['shipments', 'mine'] }),
   })
 }
