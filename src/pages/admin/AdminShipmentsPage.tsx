@@ -262,7 +262,10 @@ function ShipmentCard({
         <span>
           Shipping cost:{' '}
           {shipment.shippingCostJpy != null ? (
-            <strong className="text-ink">{formatMoney(shipment.shippingCostJpy, 'JPY')}</strong>
+            <strong className="text-ink">
+              {formatMoney(shipment.shippingCostJpy, 'JPY')}
+              {shipment.shippingCostEur != null && <> ({formatMoney(shipment.shippingCostEur, 'EUR')})</>}
+            </strong>
           ) : (
             <span className="text-ink/50">
               {shipment.destination && shipment.shippingMethod

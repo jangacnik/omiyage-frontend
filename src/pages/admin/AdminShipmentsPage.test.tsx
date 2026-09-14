@@ -94,6 +94,15 @@ describe('AdminShipmentsPage', () => {
     expect(await screen.findByText(/Shipment ship-1/)).toBeInTheDocument()
   })
 
+  it('shows the shipping cost in both JPY and EUR', async () => {
+    server.use(http.get(`${BASE}/api/admin/shipments`, () => HttpResponse.json([shipment()])))
+
+    renderWithProviders(<AdminShipmentsPage />)
+
+    expect(await screen.findByText(/¥4,400/)).toBeInTheDocument()
+    expect(screen.getByText(/€32.34/)).toBeInTheDocument()
+  })
+
   it('deletes a shipment after confirming', async () => {
     const user = userEvent.setup()
     let deleteCalled = false
