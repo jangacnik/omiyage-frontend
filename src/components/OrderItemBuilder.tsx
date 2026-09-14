@@ -224,7 +224,12 @@ export function OrderItemBuilder({
       <InventorySearch onSelect={(item) => onAdd(draftFromInventoryItem(item))} onCreateCustom={() => setShowCustomForm(true)} />
 
       {showCustomForm ? (
-        <CustomItemForm onAdd={onAdd} />
+        <CustomItemForm
+          onAdd={(item) => {
+            onAdd(item)
+            setShowCustomForm(false)
+          }}
+        />
       ) : (
         <button type="button" className="btn-secondary self-start" onClick={() => setShowCustomForm(true)}>
           Can't find it? Create a custom request

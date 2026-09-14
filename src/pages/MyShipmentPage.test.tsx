@@ -29,6 +29,7 @@ function shipment(overrides: Partial<MemberShipmentDto> = {}): MemberShipmentDto
     members: [
       {
         userId: 'u1',
+        nickname: 'me',
         orders: [],
         itemTotals: [{ currency: 'EUR', amount: 25 }],
         shippingShareJpy: 4400,

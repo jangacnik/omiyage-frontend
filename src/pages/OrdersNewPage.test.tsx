@@ -49,6 +49,20 @@ describe('OrdersNewPage', () => {
     })
   })
 
+  it('collapses the custom item form after adding an item', async () => {
+    const user = userEvent.setup()
+
+    renderPage(['/orders/new'])
+    await user.click(screen.getByText("Can't find it? Create a custom request"))
+
+    await user.type(screen.getByLabelText('Title'), 'Ghibli museum ticket')
+    await user.click(screen.getByText('Add item'))
+
+    expect(await screen.findByText(/Ghibli museum ticket/)).toBeInTheDocument()
+    expect(screen.queryByLabelText('Title')).not.toBeInTheDocument()
+    expect(screen.getByText("Can't find it? Create a custom request")).toBeInTheDocument()
+  })
+
   it('sends the entered nickname when submitting', async () => {
     const user = userEvent.setup()
     let capturedBody: unknown = null
