@@ -6,6 +6,7 @@ import { OrderIdHint } from '../../components/OrderIdHint'
 import { OrderStatusBadge } from '../../components/OrderStatusBadge'
 import { Spinner, ButtonSpinner } from '../../components/Spinner'
 import { TrashIcon } from '../../components/icons'
+import { formatMoney } from '../../lib/currency'
 import { AdminOrderEditor } from './AdminOrderEditor'
 
 export function AdminOrderDetailPage() {
@@ -20,7 +21,8 @@ export function AdminOrderDetailPage() {
   if (isLoading) return <Spinner fullPage label="Fetching order" />
   if (isError || !order) return <p className="error-text">Order not found.</p>
 
-  const totalPrice = order.items.reduce((sum, item) => sum + (item.actualPrice ?? item.maxPrice ?? 0) * item.quantity, 0)
+  // soldPrice and maxPrice are both always EUR, unlike actualPrice (the JPY bought-for cost).
+  const totalPrice = order.items.reduce((sum, item) => sum + (item.soldPrice ?? item.maxPrice ?? 0) * item.quantity, 0)
   const totalWeight = order.items.reduce((sum, item) => sum + (item.weight ?? 0) * item.quantity, 0)
 
   async function handleDelete() {
@@ -80,7 +82,7 @@ export function AdminOrderDetailPage() {
       <AdminOrderEditor order={order} />
 
       <div className="card flex flex-wrap gap-6 font-medium text-ink" style={{ fontVariantNumeric: 'tabular-nums' }}>
-        <span>Total price: {totalPrice.toFixed(2)}</span>
+        <span>Total price: {formatMoney(totalPrice, 'EUR')}</span>
         <span>Total weight: {totalWeight.toFixed(0)} g</span>
       </div>
     </div>

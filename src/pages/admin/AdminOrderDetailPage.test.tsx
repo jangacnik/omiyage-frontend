@@ -70,7 +70,7 @@ describe('AdminOrderDetailPage', () => {
     renderPage()
 
     expect(await screen.findByText('Ghibli museum ticket')).toBeInTheDocument()
-    expect(screen.getByText('Total price: 2000.00')).toBeInTheDocument()
+    expect(screen.getByText('Total price: €2,000.00')).toBeInTheDocument()
     expect(screen.getByText('Total weight: 0 g')).toBeInTheDocument()
   })
 
