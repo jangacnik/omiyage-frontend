@@ -85,7 +85,7 @@ describe('InventoryPage', () => {
     await waitFor(() => expect(capturedTitle).toBe('kitkat'))
   })
 
-  it('shows an out-of-stock badge for a zero-quantity item', async () => {
+  it('shows a request-only badge for a zero-quantity item', async () => {
     server.use(
       http.get(`${BASE}/api/inventory`, () => HttpResponse.json(page([item({ stockQuantity: 0 })]))),
       http.get(`${BASE}/api/categories`, () => HttpResponse.json([])),
@@ -93,7 +93,18 @@ describe('InventoryPage', () => {
 
     renderWithProviders(<InventoryPage />)
 
-    expect(await screen.findByText('Out of stock')).toBeInTheDocument()
+    expect(await screen.findByText('Request only')).toBeInTheDocument()
+  })
+
+  it('shows the stock quantity for an available item', async () => {
+    server.use(
+      http.get(`${BASE}/api/inventory`, () => HttpResponse.json(page([item({ stockQuantity: 3 })]))),
+      http.get(`${BASE}/api/categories`, () => HttpResponse.json([])),
+    )
+
+    renderWithProviders(<InventoryPage />)
+
+    expect(await screen.findByText('3 in stock')).toBeInTheDocument()
   })
 
   it('does not show edit or delete controls to a regular user', async () => {

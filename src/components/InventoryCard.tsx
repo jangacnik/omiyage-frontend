@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
 import { PreorderBadge } from './PreorderBadge'
+import { StatusPill } from './StatusPill'
 import { ThumbnailImage } from './ThumbnailImage'
 import { formatMoney } from '../lib/currency'
 import { TrashIcon } from './icons'
@@ -41,11 +42,13 @@ export function InventoryCard({
         </div>
       </Link>
 
-      {item.stockQuantity === 0 && (
-        <span className="absolute left-2 top-2 rounded-full bg-ink/80 px-2 py-0.5 text-xs font-medium text-paper">
-          Out of stock
-        </span>
-      )}
+      <div className="absolute left-2 top-2">
+        {item.stockQuantity > 0 ? (
+          <StatusPill tone="idle" label={`${item.stockQuantity} in stock`} size="sm" />
+        ) : (
+          <StatusPill tone="early" label="Request only" size="sm" />
+        )}
+      </div>
 
       {(onEdit || onDelete) && (
         <div className="absolute inset-x-0 bottom-0 flex justify-end gap-1 bg-gradient-to-t from-ink/70 to-transparent p-2 opacity-0 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100">

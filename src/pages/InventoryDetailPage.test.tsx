@@ -45,6 +45,19 @@ describe('InventoryDetailPage', () => {
     expect(screen.getByText('Request this item')).toHaveAttribute('href', '/orders/new?inventoryItemId=item-1')
   })
 
+  it('shows a request-only badge next to zero stock', async () => {
+    server.use(http.get(`${BASE}/api/inventory/item-1`, () => HttpResponse.json({ ...item(), stockQuantity: 0 })))
+
+    renderWithProviders(
+      <Routes>
+        <Route path="/inventory/:id" element={<InventoryDetailPage />} />
+      </Routes>,
+      ['/inventory/item-1'],
+    )
+
+    expect(await screen.findByText('Request only')).toBeInTheDocument()
+  })
+
   it('shows a not-found message for a missing item', async () => {
     server.use(http.get(`${BASE}/api/inventory/missing`, () => new HttpResponse(null, { status: 404 })))
 

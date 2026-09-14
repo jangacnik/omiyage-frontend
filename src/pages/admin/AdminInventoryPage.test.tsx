@@ -126,7 +126,7 @@ describe('AdminInventoryPage', () => {
     expect(screen.queryByText('Activate')).not.toBeInTheDocument()
   })
 
-  it('shows an out-of-stock badge when quantity is zero', async () => {
+  it('shows a request-only badge when quantity is zero', async () => {
     server.use(
       http.get(`${BASE}/api/admin/inventory`, () => HttpResponse.json(page([item({ stockQuantity: 0 })]))),
       http.get(`${BASE}/api/categories`, () => HttpResponse.json([])),
@@ -134,7 +134,7 @@ describe('AdminInventoryPage', () => {
 
     renderWithProviders(<AdminInventoryPage />)
 
-    expect(await screen.findByText('Out of stock')).toBeInTheDocument()
+    expect(await screen.findByText('Request only')).toBeInTheDocument()
   })
 
   it('deletes an item after confirming', async () => {

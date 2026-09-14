@@ -2,6 +2,7 @@ import { Link, useParams } from 'react-router-dom'
 import { useInventoryItem } from '../api/inventory'
 import { PreorderBadge } from '../components/PreorderBadge'
 import { Spinner } from '../components/Spinner'
+import { StatusPill } from '../components/StatusPill'
 import { ThumbnailImage } from '../components/ThumbnailImage'
 import { formatMoney } from '../lib/currency'
 
@@ -30,7 +31,10 @@ export function InventoryDetailPage() {
           <dt className="font-medium text-ink/50">Condition</dt>
           <dd>{item.condition}</dd>
           <dt className="font-medium text-ink/50">In stock</dt>
-          <dd>{item.stockQuantity === 0 ? 'Out of stock' : item.stockQuantity}</dd>
+          <dd className="flex items-center gap-2">
+            {item.stockQuantity}
+            {item.stockQuantity === 0 && <StatusPill tone="early" label="Request only" size="sm" />}
+          </dd>
           <dt className="font-medium text-ink/50">Categories</dt>
           <dd>{item.categories.map((c) => c.name).join(', ') || 'None'}</dd>
         </dl>
