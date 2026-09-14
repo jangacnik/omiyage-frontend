@@ -152,6 +152,20 @@ export function useAdminMarkItemPaid() {
   })
 }
 
+export function useAdminMarkOrderPaid() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: ({ orderId, paid }: { orderId: string; paid: boolean }) =>
+      api.patch<OrderDto>(`/api/admin/orders/${orderId}/paid`, { paid }),
+    onSuccess: (_, { orderId }) => {
+      queryClient.invalidateQueries({ queryKey: ['admin', 'orders'] })
+      queryClient.invalidateQueries({ queryKey: ['admin', 'shipments'] })
+      queryClient.invalidateQueries({ queryKey: ['admin', 'dashboard'] })
+      queryClient.invalidateQueries({ queryKey: ['orders', orderId] })
+    },
+  })
+}
+
 export function useAdminDeleteOrder() {
   const queryClient = useQueryClient()
   return useMutation({
@@ -246,6 +260,20 @@ export function useCombineShipments() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin', 'shipments'] })
       queryClient.invalidateQueries({ queryKey: ['admin', 'orders'] })
+    },
+  })
+}
+
+export function useAdminMarkShipmentPaid() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: ({ shipmentId, paid }: { shipmentId: string; paid: boolean }) =>
+      api.patch<ShipmentDto>(`/api/admin/shipments/${shipmentId}/paid`, { paid }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin', 'shipments'] })
+      queryClient.invalidateQueries({ queryKey: ['admin', 'orders'] })
+      queryClient.invalidateQueries({ queryKey: ['admin', 'dashboard'] })
+      queryClient.invalidateQueries({ queryKey: ['orders'] })
     },
   })
 }

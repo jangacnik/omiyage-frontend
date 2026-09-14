@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import {
   useAdminDeleteShipment,
+  useAdminMarkShipmentPaid,
   useAdminShipments,
   useCombineShipments,
   useSplitShipment,
@@ -93,8 +94,11 @@ function ShipmentCard({
   const updateShipment = useUpdateShipment()
   const deleteShipment = useAdminDeleteShipment()
   const splitShipment = useSplitShipment()
+  const markShipmentPaid = useAdminMarkShipmentPaid()
   const confirm = useConfirm()
   const [splitSelection, setSplitSelection] = useState<string[]>([])
+  const items = shipment.orders.flatMap((order) => order.items)
+  const allPaid = items.length > 0 && items.every((item) => item.paid)
 
   async function handleDelete() {
     const ok = await confirm({
@@ -158,6 +162,14 @@ function ShipmentCard({
             ))}
           </select>
           {updateShipment.isPending && <ButtonSpinner />}
+          <button
+            type="button"
+            className="btn-secondary px-2 py-1 text-xs"
+            onClick={() => markShipmentPaid.mutate({ shipmentId: shipment.id, paid: !allPaid })}
+            disabled={markShipmentPaid.isPending || items.length === 0}
+          >
+            {markShipmentPaid.isPending ? <ButtonSpinner /> : allPaid ? 'Mark shipment unpaid' : 'Mark shipment paid'}
+          </button>
           <button
             type="button"
             className="btn-danger px-2 py-1 text-xs"
@@ -267,6 +279,7 @@ function ShipmentCard({
       </div>
 
       {deleteShipment.isError && <p className="error-text">Could not delete this shipment.</p>}
+      {markShipmentPaid.isError && <p className="error-text">Could not update paid status for this shipment.</p>}
 
       {expanded && (
         <div className="flex flex-col divide-y divide-mist border-t border-mist pt-2">

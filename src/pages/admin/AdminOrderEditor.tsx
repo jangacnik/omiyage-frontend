@@ -2,6 +2,7 @@ import { useState } from 'react'
 import {
   useAdminAddOrderItem,
   useAdminMarkItemPaid,
+  useAdminMarkOrderPaid,
   useAdminRemoveOrderItem,
   useUpdateOrderStatus,
 } from '../../api/adminOrders'
@@ -177,27 +178,41 @@ function AdminAddItemForm({ orderId }: { orderId: string }) {
  *  surface, shared by the full order detail page and the inline editor on the shipment page. */
 export function AdminOrderEditor({ order }: { order: OrderDto }) {
   const updateStatus = useUpdateOrderStatus()
+  const markOrderPaid = useAdminMarkOrderPaid()
+  const allPaid = order.items.length > 0 && order.items.every((item) => item.paid)
 
   return (
     <div className="flex flex-col gap-4">
-      <label className="flex flex-col gap-1">
-        <span className="field-label">Order status</span>
-        <span className="flex items-center gap-2">
-          <select
-            value={order.status}
-            onChange={(e) => updateStatus.mutate({ id: order.id, status: e.target.value as OrderStatus })}
-            aria-label="Update order status"
-            className="field-input max-w-xs"
-          >
-            {STATUSES.map((s) => (
-              <option key={s} value={s}>
-                {s}
-              </option>
-            ))}
-          </select>
-          {updateStatus.isPending && <ButtonSpinner />}
-        </span>
-      </label>
+      <div className="flex flex-wrap items-end gap-4">
+        <label className="flex flex-col gap-1">
+          <span className="field-label">Order status</span>
+          <span className="flex items-center gap-2">
+            <select
+              value={order.status}
+              onChange={(e) => updateStatus.mutate({ id: order.id, status: e.target.value as OrderStatus })}
+              aria-label="Update order status"
+              className="field-input max-w-xs"
+            >
+              {STATUSES.map((s) => (
+                <option key={s} value={s}>
+                  {s}
+                </option>
+              ))}
+            </select>
+            {updateStatus.isPending && <ButtonSpinner />}
+          </span>
+        </label>
+
+        <button
+          type="button"
+          className="btn-secondary px-3 py-1.5 text-sm"
+          onClick={() => markOrderPaid.mutate({ orderId: order.id, paid: !allPaid })}
+          disabled={markOrderPaid.isPending || order.items.length === 0}
+        >
+          {markOrderPaid.isPending ? <ButtonSpinner /> : allPaid ? 'Mark order unpaid' : 'Mark order paid'}
+        </button>
+      </div>
+      {markOrderPaid.isError && <p className="error-text">Could not update paid status for this order.</p>}
 
       {/* profit = soldPrice[EUR] - toEur(actualPrice[JPY]), always EUR - see OrderDtos.profit() */}
       {order.profit != null && <p className="text-sm text-ink/60">Order profit: {formatMoney(order.profit, 'EUR')}</p>}
