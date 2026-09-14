@@ -108,7 +108,7 @@ describe('AdminOrderDetailPage', () => {
     )
   })
 
-  it('shows an item and order profit once soldPrice is set', async () => {
+  it('shows only the order-level total profit, not a per-item breakdown', async () => {
     // soldPrice/soldPriceCurrency are always EUR, actualPrice/actualPriceCurrency always JPY -
     // profit itself is always EUR (converted server-side before subtracting).
     const withProfit: OrderDto = {
@@ -125,8 +125,30 @@ describe('AdminOrderDetailPage', () => {
 
     renderPage()
 
-    expect(await screen.findByText('Profit: €400.00')).toBeInTheDocument()
-    expect(screen.getByText('Order profit: €400.00')).toBeInTheDocument()
+    expect(await screen.findByText('Order profit: €400.00')).toBeInTheDocument()
+    expect(screen.queryByText(/^Profit: /)).not.toBeInTheDocument()
+  })
+
+  it('lets an admin set a nickname on the order', async () => {
+    const user = userEvent.setup()
+    let capturedBody: unknown = null
+    server.use(
+      http.get(`${BASE}/api/orders/order-12345678`, () => HttpResponse.json(order())),
+      mockShipments(),
+      http.patch(`${BASE}/api/admin/orders/order-12345678/nickname`, async ({ request }) => {
+        capturedBody = await request.json()
+        return HttpResponse.json({ ...order(), nickname: "Grandma's Gifts" })
+      }),
+    )
+
+    renderPage()
+    await screen.findByText('Ghibli museum ticket')
+
+    await user.click(screen.getByText('Rename'))
+    await user.type(screen.getByLabelText('Order nickname'), "Grandma's Gifts")
+    await user.click(screen.getByText('Save'))
+
+    await waitFor(() => expect(capturedBody).toEqual({ nickname: "Grandma's Gifts" }))
   })
 
   it('advances the order status', async () => {

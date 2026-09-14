@@ -4,6 +4,7 @@ import {
   useAdminMarkItemPaid,
   useAdminMarkOrderPaid,
   useAdminRemoveOrderItem,
+  useAdminUpdateOrderNickname,
   useUpdateOrderStatus,
 } from '../../api/adminOrders'
 import { useConfirm } from '../../components/ConfirmDialog'
@@ -64,9 +65,6 @@ function AdminItemRow({ orderId, item }: { orderId: string; item: OrderItemDto }
               )}
             </button>
           </div>
-          {item.profit != null && (
-            <p className="text-xs text-ink/50">Profit: {formatMoney(item.profit, item.soldPriceCurrency ?? item.currency)}</p>
-          )}
           {(removeItem.isError || markPaid.isError) && (
             <p className="error-text">
               {removeItem.isError && 'Could not remove this item. '}
@@ -174,6 +172,54 @@ function AdminAddItemForm({ orderId }: { orderId: string }) {
   )
 }
 
+function AdminOrderNicknameEditor({ order }: { order: OrderDto }) {
+  const [editing, setEditing] = useState(false)
+  const [nickname, setNickname] = useState(order.nickname ?? '')
+  const updateNickname = useAdminUpdateOrderNickname()
+
+  function save() {
+    updateNickname.mutate(
+      { id: order.id, nickname: nickname.trim() || null },
+      { onSuccess: () => setEditing(false) },
+    )
+  }
+
+  if (!editing) {
+    return (
+      <button type="button" className="btn-secondary self-start px-2 py-1 text-xs" onClick={() => setEditing(true)}>
+        Rename
+      </button>
+    )
+  }
+
+  return (
+    <div className="flex flex-wrap items-center gap-2">
+      <input
+        className="field-input sm:w-64"
+        value={nickname}
+        onChange={(e) => setNickname(e.target.value)}
+        placeholder={order.id.slice(0, 8)}
+        aria-label="Order nickname"
+        autoFocus
+      />
+      <button type="button" className="btn-primary px-3 py-1.5 text-sm" onClick={save} disabled={updateNickname.isPending}>
+        {updateNickname.isPending ? <ButtonSpinner /> : 'Save'}
+      </button>
+      <button
+        type="button"
+        className="btn-secondary px-3 py-1.5 text-sm"
+        onClick={() => {
+          setNickname(order.nickname ?? '')
+          setEditing(false)
+        }}
+      >
+        Cancel
+      </button>
+      {updateNickname.isError && <p className="error-text">Could not save the nickname.</p>}
+    </div>
+  )
+}
+
 /** Order status select + item rows + add-item form - the admin's unrestricted order-editing
  *  surface, shared by the full order detail page and the inline editor on the shipment page. */
 export function AdminOrderEditor({ order }: { order: OrderDto }) {
@@ -183,6 +229,8 @@ export function AdminOrderEditor({ order }: { order: OrderDto }) {
 
   return (
     <div className="flex flex-col gap-4">
+      <AdminOrderNicknameEditor order={order} />
+
       <div className="flex flex-wrap items-end gap-4">
         <label className="flex flex-col gap-1">
           <span className="field-label">Order status</span>

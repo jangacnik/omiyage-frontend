@@ -61,6 +61,19 @@ export function useUpdateOrderStatus() {
   })
 }
 
+export function useAdminUpdateOrderNickname() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: ({ id, nickname }: { id: string; nickname: string | null }) =>
+      api.patch<OrderDto>(`/api/admin/orders/${id}/nickname`, { nickname }),
+    onSuccess: (_, { id }) => {
+      queryClient.invalidateQueries({ queryKey: ['admin', 'orders'] })
+      queryClient.invalidateQueries({ queryKey: ['admin', 'shipments'] })
+      queryClient.invalidateQueries({ queryKey: ['orders', id] })
+    },
+  })
+}
+
 export function useUpdateOrderItem() {
   const queryClient = useQueryClient()
   return useMutation({
