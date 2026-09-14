@@ -118,7 +118,7 @@ export function MyShipmentPage() {
         <span>Tracking: {shipment.trackingNumber ?? '—'}</span>
         <span>Weight: {formatGrams(shipment.totalWeightGrams)}</span>
         <span>
-          Shipping cost: {shipment.shippingCostJpy != null ? formatMoney(shipment.shippingCostJpy, 'JPY') : '—'}
+          Shipping cost: {shipment.shippingCostEur != null ? formatMoney(shipment.shippingCostEur, 'EUR') : '—'}
         </span>
         {shipment.shippedAt && <span>Shipped: {new Date(shipment.shippedAt).toLocaleString()}</span>}
         {shipment.arrivedAt && <span>Arrived: {new Date(shipment.arrivedAt).toLocaleString()}</span>}
@@ -146,7 +146,7 @@ export function MyShipmentPage() {
         <span className="font-medium text-ink">Shipment grand total</span>
         <span className="font-semibold text-ink" style={{ fontVariantNumeric: 'tabular-nums' }}>
           <AmountList amounts={shipment.grandTotalItemTotals} />
-          {shipment.shippingCostJpy != null && <> + {formatMoney(shipment.shippingCostJpy, 'JPY')} shipping</>}
+          {shipment.shippingCostEur != null && <> + {formatMoney(shipment.shippingCostEur, 'EUR')} shipping</>}
         </span>
       </div>
     </div>

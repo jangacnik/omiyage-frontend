@@ -29,7 +29,7 @@ export function MyShipmentsListPage() {
                 <span className="rounded-full bg-mist px-2 py-0.5 text-xs font-medium text-ink">{shipment.status}</span>
                 {shipment.members.length > 1 && <span>{shipment.members.length} members</span>}
                 <span>{formatGrams(shipment.totalWeightGrams)}</span>
-                {shipment.shippingCostJpy != null && <span>{formatMoney(shipment.shippingCostJpy, 'JPY')}</span>}
+                {shipment.shippingCostEur != null && <span>{formatMoney(shipment.shippingCostEur, 'EUR')}</span>}
               </span>
             </Link>
           </li>
