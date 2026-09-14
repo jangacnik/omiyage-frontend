@@ -37,6 +37,12 @@ export function InventoryDetailPage() {
           </dd>
           <dt className="font-medium text-ink/50">Categories</dt>
           <dd>{item.categories.map((c) => c.name).join(', ') || 'None'}</dd>
+          {item.tags.length > 0 && (
+            <>
+              <dt className="font-medium text-ink/50">Tags</dt>
+              <dd>{item.tags.join(', ')}</dd>
+            </>
+          )}
         </dl>
         <Link to={`/orders/new?inventoryItemId=${item.id}`} className="btn-primary mt-2 self-start">
           Request this item

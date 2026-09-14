@@ -26,6 +26,7 @@ function item(overrides: Partial<InventoryItem> = {}): InventoryItem {
     status: 'ACTIVE',
     images: [],
     categories: [],
+    tags: [],
     isPreorder: false,
     expectedReleaseDate: null,
     boughtPrice: null,
@@ -83,6 +84,28 @@ describe('InventoryPage', () => {
     await user.type(screen.getByLabelText('Search by title'), 'kitkat')
 
     await waitFor(() => expect(capturedTitle).toBe('kitkat'))
+  })
+
+  it('toggling "In stock only" sends inStockOnly=true, and off omits it', async () => {
+    const user = userEvent.setup()
+    let capturedParam: string | null = null
+    server.use(
+      http.get(`${BASE}/api/inventory`, ({ request }) => {
+        capturedParam = new URL(request.url).searchParams.get('inStockOnly')
+        return HttpResponse.json(page([item()]))
+      }),
+      http.get(`${BASE}/api/categories`, () => HttpResponse.json([])),
+    )
+
+    renderWithProviders(<InventoryPage />)
+    await screen.findByText('Kit Kat matcha')
+    expect(capturedParam).toBeNull()
+
+    await user.click(screen.getByLabelText('In stock only'))
+    await waitFor(() => expect(capturedParam).toBe('true'))
+
+    await user.click(screen.getByLabelText('In stock only'))
+    await waitFor(() => expect(capturedParam).toBeNull())
   })
 
   it('shows a request-only badge for a zero-quantity item', async () => {

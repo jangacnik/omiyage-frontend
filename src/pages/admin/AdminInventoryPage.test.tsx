@@ -22,6 +22,7 @@ function item(overrides: Partial<InventoryItem> = {}): InventoryItem {
     status: 'ACTIVE',
     images: [],
     categories: [],
+    tags: [],
     isPreorder: false,
     expectedReleaseDate: null,
     boughtPrice: null,
@@ -100,6 +101,29 @@ describe('AdminInventoryPage', () => {
     await waitFor(() => expect(capturedBody).toMatchObject({ priceAmount: 500, boughtPrice: 300 }))
   })
 
+  it('creates an item with tags, trimmed and split on commas', async () => {
+    const user = userEvent.setup()
+    let capturedBody: unknown = null
+    server.use(
+      http.get(`${BASE}/api/admin/inventory`, () => HttpResponse.json(page([]))),
+      http.get(`${BASE}/api/categories`, () => HttpResponse.json([])),
+      http.post(`${BASE}/api/admin/inventory`, async ({ request }) => {
+        capturedBody = await request.json()
+        return HttpResponse.json(item(), { status: 201 })
+      }),
+    )
+
+    renderWithProviders(<AdminInventoryPage />)
+
+    await user.type(screen.getByLabelText('Title'), 'Pocky strawberry')
+    await user.type(screen.getByLabelText('Price in EUR'), '500')
+    await user.type(screen.getByLabelText('Stock quantity'), '10')
+    await user.type(screen.getByLabelText('Tags'), 'limited, seasonal ,  matcha')
+    await user.click(screen.getByText('Create item'))
+
+    await waitFor(() => expect(capturedBody).toMatchObject({ tags: ['limited', 'seasonal', 'matcha'] }))
+  })
+
   it('shows profit for an item once a bought price is set', async () => {
     // boughtPrice (JPY) and profitEur (priceAmount[EUR] - converted boughtPrice) are computed
     // server-side - the component just renders profitEur, it never subtracts the two itself.
@@ -164,6 +188,7 @@ describe('AdminInventoryPage', () => {
     const existing = item({
       images: ['img-key-1', 'img-key-2'],
       categories: [{ id: 'cat-1', name: 'Snacks', slug: 'snacks' }],
+      tags: [],
     })
     let capturedBody: unknown = null
     server.use(
@@ -191,6 +216,32 @@ describe('AdminInventoryPage', () => {
         categoryIds: ['cat-1'],
       }),
     )
+  })
+
+  it('edits tags on an existing item, pre-filled and re-parsed on save', async () => {
+    const user = userEvent.setup()
+    const existing = item({ tags: ['limited', 'matcha'] })
+    let capturedBody: unknown = null
+    server.use(
+      http.get(`${BASE}/api/admin/inventory`, () => HttpResponse.json(page([existing]))),
+      http.get(`${BASE}/api/categories`, () => HttpResponse.json([])),
+      http.put(`${BASE}/api/admin/inventory/item-1`, async ({ request }) => {
+        capturedBody = await request.json()
+        return HttpResponse.json(existing)
+      }),
+    )
+
+    renderWithProviders(<AdminInventoryPage />)
+    await screen.findByText(/Kit Kat matcha/)
+    await user.click(screen.getByText('Edit'))
+
+    const tagsInput = screen.getByLabelText('Tags for Kit Kat matcha')
+    expect(tagsInput).toHaveValue('limited, matcha')
+    await user.clear(tagsInput)
+    await user.type(tagsInput, 'clearance')
+    await user.click(screen.getByText('Save'))
+
+    await waitFor(() => expect(capturedBody).toMatchObject({ tags: ['clearance'] }))
   })
 
   it('shows an error and stays open when saving an edit fails', async () => {

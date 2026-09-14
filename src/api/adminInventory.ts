@@ -13,6 +13,7 @@ export interface InventoryItemInput {
   stockQuantity: number
   imageKeys?: string[]
   categoryIds?: string[]
+  tags?: string[]
   isPreorder?: boolean
   expectedReleaseDate?: string
 }
