@@ -100,7 +100,25 @@ describe('AdminShipmentsPage', () => {
     renderWithProviders(<AdminShipmentsPage />)
 
     expect(await screen.findByText(/¥4,400/)).toBeInTheDocument()
-    expect(screen.getByText(/€32.34/)).toBeInTheDocument()
+    // Appears twice: once as the shipping-cost EUR conversion, once as the combined items+shipping
+    // total (no items on this fixture, so the two figures happen to match).
+    expect(screen.getAllByText(/€32.34/).length).toBeGreaterThanOrEqual(1)
+  })
+
+  it('shows the combined items+shipping total, per order and for the whole shipment', async () => {
+    const priced = order({
+      items: [{ ...order().items[0], maxPrice: 20, soldPrice: 25, soldPriceCurrency: 'EUR' }],
+      shippingCostShareJpy: 4400,
+      shippingCostShareEur: 32.34,
+    })
+    server.use(http.get(`${BASE}/api/admin/shipments`, () => HttpResponse.json([shipment({ orders: [priced] })])))
+
+    renderWithProviders(<AdminShipmentsPage />)
+
+    // Per-order: soldPrice (25) takes priority over maxPrice, + its shipping share (32.34) = 57.34.
+    expect(await screen.findByText(/€57\.34 total/)).toBeInTheDocument()
+    // Shipment-wide: same one order's items (25) + the shipment's total shipping cost (32.34).
+    expect(screen.getByText(/€57\.34/, { selector: 'strong' })).toBeInTheDocument()
   })
 
   it('deletes a shipment after confirming', async () => {

@@ -28,6 +28,12 @@ const METHOD_LABELS: Record<ShippingMethod, string> = {
   SURFACE_MAIL: 'Surface Mail (up to 2kg)',
 }
 
+// soldPrice and maxPrice are both always EUR (per the currency policy - see OrderService.updateItem),
+// so this needs no conversion, unlike shippingCostShareJpy alongside it.
+function orderItemsTotalEur(order: OrderDto): number {
+  return order.items.reduce((sum, item) => sum + (item.soldPrice ?? item.maxPrice ?? 0) * item.quantity, 0)
+}
+
 function ShipmentOrderRow({
   order,
   splitSelected,
@@ -61,6 +67,9 @@ function ShipmentOrderRow({
         {order.shippingCostShareJpy != null && (
           <span className="text-xs font-medium text-ink">{formatMoney(order.shippingCostShareJpy, 'JPY')} shipping</span>
         )}
+        <span className="text-xs font-medium text-ink">
+          {formatMoney(orderItemsTotalEur(order) + (order.shippingCostShareEur ?? 0), 'EUR')} total
+        </span>
         <button type="button" className="btn-secondary ml-auto px-2 py-1 text-xs" onClick={() => setEditing((v) => !v)}>
           {editing ? 'Done' : 'Edit'}
         </button>
@@ -277,6 +286,15 @@ function ShipmentCard({
         {shipment.estimatedDays != null && <span>Estimated: ~{shipment.estimatedDays} days</span>}
         {/* profit sums each order's profit, which is always EUR - see OrderDtos.profit() */}
         <span>Profit: <strong className="text-ink">{formatMoney(shipment.profit, 'EUR')}</strong></span>
+        <span>
+          Total (items + shipping):{' '}
+          <strong className="text-ink">
+            {formatMoney(
+              shipment.orders.reduce((sum, order) => sum + orderItemsTotalEur(order), 0) + (shipment.shippingCostEur ?? 0),
+              'EUR',
+            )}
+          </strong>
+        </span>
         {shipment.shippedAt && <span>Shipped: {new Date(shipment.shippedAt).toLocaleString()}</span>}
         {shipment.arrivedAt && <span>Arrived: {new Date(shipment.arrivedAt).toLocaleString()}</span>}
       </div>

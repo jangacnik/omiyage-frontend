@@ -6,9 +6,21 @@ import { StatusPill } from './StatusPill'
 import { ThumbnailImage } from './ThumbnailImage'
 import { ExternalLinkIcon } from './icons'
 import { formatMoney } from '../lib/currency'
-import type { OrderItemDto } from '../types/api'
+import type { Currency, OrderItemDto } from '../types/api'
 
 const CONDITION_LABELS: Record<'NEW' | 'USED', string> = { NEW: 'New', USED: 'Used' }
+
+function priceLabel(unitPrice: number, currency: Currency, label: string, quantity: number) {
+  return quantity > 1 ? (
+    <>
+      {formatMoney(unitPrice, currency)} {label} each · {formatMoney(unitPrice * quantity, currency)} total
+    </>
+  ) : (
+    <>
+      {formatMoney(unitPrice, currency)} {label}
+    </>
+  )
+}
 
 /** Thumbnail-left, info-right template for an order item - shared by the user's own order view
  *  and the admin order view so both show the same information in the same place. `children` is
@@ -30,21 +42,13 @@ export function OrderItemCard({ item, children }: { item: OrderItemDto; children
 
       <p className="mt-1 text-sm text-ink/60">
         {item.condition && `${CONDITION_LABELS[item.condition]} · `}
-        {item.soldPrice ?? item.maxPrice ? (
-          (() => {
-            const unitPrice = item.soldPrice ?? item.maxPrice!
-            const currency = item.soldPrice != null ? item.soldPriceCurrency ?? item.currency : item.currency
-            const label = item.soldPrice != null ? 'sold for' : 'max'
-            return item.quantity > 1 ? (
-              <>
-                {formatMoney(unitPrice, currency)} {label} each · {formatMoney(unitPrice * item.quantity, currency)} total
-              </>
-            ) : (
-              <>
-                {formatMoney(unitPrice, currency)} {label}
-              </>
-            )
-          })()
+        {item.maxPrice != null || item.soldPrice != null ? (
+          <>
+            {item.maxPrice != null && priceLabel(item.maxPrice, item.currency, 'max', item.quantity)}
+            {item.maxPrice != null && item.soldPrice != null && ' · '}
+            {item.soldPrice != null &&
+              priceLabel(item.soldPrice, item.soldPriceCurrency ?? item.currency, 'actual price', item.quantity)}
+          </>
         ) : (
           '—'
         )}{' '}

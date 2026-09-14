@@ -62,6 +62,8 @@ export interface OrderItemDto {
   condition: Condition | null
   currency: Currency
   maxPrice: number | null
+  // What the admin actually paid, always JPY - admin-only, null on any response a normal user
+  // can read (see OrderDtos.kt toDto(includeProfit)). A normal user only sees maxPrice/soldPrice.
   actualPrice: number | null
   // Currency the item was actually bought in - can differ from `currency` above. Null on a row
   // written before per-price currencies existed; treat as `currency` in that case.

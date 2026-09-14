@@ -31,6 +31,12 @@ function AmountList({ amounts }: { amounts: PendingAmountDto[] }) {
   return <>{amounts.map((a) => formatMoney(a.amount, a.currency)).join(' + ')}</>
 }
 
+// Item totals here are always EUR (see MemberShipmentDtos.kt) - safe to sum with the EUR shipping
+// share/cost into one combined figure.
+function eurAmount(amounts: PendingAmountDto[]): number {
+  return amounts.filter((a) => a.currency === 'EUR').reduce((sum, a) => sum + a.amount, 0)
+}
+
 function MemberOrderRow({ order }: { order: OrderDto }) {
   return (
     <div className="flex flex-col gap-1 py-2">
@@ -60,7 +66,13 @@ function MemberSection({ member, isMe }: { member: ShipmentMemberDto; isMe: bool
         <p className="text-sm font-medium text-ink/60">{isMe ? 'You' : `Member ${member.userId.slice(0, 8)}`}</p>
         <p className="text-sm font-medium text-ink" style={{ fontVariantNumeric: 'tabular-nums' }}>
           <AmountList amounts={member.itemTotals} />
-          {member.shippingShareEur != null && <> + {formatMoney(member.shippingShareEur, 'EUR')} shipping</>}
+          {member.shippingShareEur != null && (
+            <>
+              {' '}
+              + {formatMoney(member.shippingShareEur, 'EUR')} shipping ={' '}
+              {formatMoney(eurAmount(member.itemTotals) + member.shippingShareEur, 'EUR')} total
+            </>
+          )}
         </p>
       </div>
       <div className="flex flex-col divide-y divide-mist">
@@ -165,7 +177,13 @@ export function MyShipmentPage() {
         <span className="font-medium text-ink">Shipment grand total</span>
         <span className="font-semibold text-ink" style={{ fontVariantNumeric: 'tabular-nums' }}>
           <AmountList amounts={shipment.grandTotalItemTotals} />
-          {shipment.shippingCostEur != null && <> + {formatMoney(shipment.shippingCostEur, 'EUR')} shipping</>}
+          {shipment.shippingCostEur != null && (
+            <>
+              {' '}
+              + {formatMoney(shipment.shippingCostEur, 'EUR')} shipping ={' '}
+              {formatMoney(eurAmount(shipment.grandTotalItemTotals) + shipment.shippingCostEur, 'EUR')} total
+            </>
+          )}
         </span>
       </div>
     </div>
