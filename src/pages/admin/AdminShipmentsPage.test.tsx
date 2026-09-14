@@ -117,8 +117,10 @@ describe('AdminShipmentsPage', () => {
 
     // Per-order: soldPrice (25) takes priority over maxPrice, + its shipping share (32.34) = 57.34.
     expect(await screen.findByText(/€57\.34 total/)).toBeInTheDocument()
-    // Shipment-wide: same one order's items (25) + the shipment's total shipping cost (32.34).
-    expect(screen.getByText(/€57\.34/, { selector: 'strong' })).toBeInTheDocument()
+    // Shipment-wide: same one order's items (25) + the shipment's total shipping cost (32.34),
+    // shown on its own row next to the "Total (items + shipping)" label.
+    const totalRow = screen.getByText('Total (items + shipping)').closest('div')!
+    expect(within(totalRow).getByText('€57.34')).toBeInTheDocument()
   })
 
   it('deletes a shipment after confirming', async () => {

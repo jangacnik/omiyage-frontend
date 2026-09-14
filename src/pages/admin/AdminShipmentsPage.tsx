@@ -67,13 +67,13 @@ function ShipmentOrderRow({
         {order.shippingCostShareJpy != null && (
           <span className="text-xs font-medium text-ink">{formatMoney(order.shippingCostShareJpy, 'JPY')} shipping</span>
         )}
-        <span className="text-xs font-medium text-ink">
-          {formatMoney(orderItemsTotalEur(order) + (order.shippingCostShareEur ?? 0), 'EUR')} total
-        </span>
         <button type="button" className="btn-secondary ml-auto px-2 py-1 text-xs" onClick={() => setEditing((v) => !v)}>
           {editing ? 'Done' : 'Edit'}
         </button>
       </div>
+      <p className="text-xs font-medium text-ink">
+        {formatMoney(orderItemsTotalEur(order) + (order.shippingCostShareEur ?? 0), 'EUR')} total
+      </p>
       {editing ? (
         <AdminOrderEditor order={order} />
       ) : (
@@ -286,17 +286,18 @@ function ShipmentCard({
         {shipment.estimatedDays != null && <span>Estimated: ~{shipment.estimatedDays} days</span>}
         {/* profit sums each order's profit, which is always EUR - see OrderDtos.profit() */}
         <span>Profit: <strong className="text-ink">{formatMoney(shipment.profit, 'EUR')}</strong></span>
-        <span>
-          Total (items + shipping):{' '}
-          <strong className="text-ink">
-            {formatMoney(
-              shipment.orders.reduce((sum, order) => sum + orderItemsTotalEur(order), 0) + (shipment.shippingCostEur ?? 0),
-              'EUR',
-            )}
-          </strong>
-        </span>
         {shipment.shippedAt && <span>Shipped: {new Date(shipment.shippedAt).toLocaleString()}</span>}
         {shipment.arrivedAt && <span>Arrived: {new Date(shipment.arrivedAt).toLocaleString()}</span>}
+      </div>
+
+      <div className="flex items-center justify-between border-t border-mist pt-2">
+        <span className="font-medium text-ink">Total (items + shipping)</span>
+        <span className="font-semibold text-ink" style={{ fontVariantNumeric: 'tabular-nums' }}>
+          {formatMoney(
+            shipment.orders.reduce((sum, order) => sum + orderItemsTotalEur(order), 0) + (shipment.shippingCostEur ?? 0),
+            'EUR',
+          )}
+        </span>
       </div>
 
       {deleteShipment.isError && <p className="error-text">Could not delete this shipment.</p>}
