@@ -200,6 +200,24 @@ describe('OrderDetailPage', () => {
     await waitFor(() => expect(cancelled).toBe(true))
   })
 
+  it('disables submit for shipping, with a hint, when an item is a preorder', async () => {
+    server.use(http.get(`${BASE}/api/orders/order-1`, () => HttpResponse.json({
+      ...order(),
+      items: [{ ...order().items[0], isPreorder: true, expectedReleaseDate: '2026-06-01' }],
+    })))
+
+    renderWithProviders(
+      <Routes>
+        <Route path="/orders/:id" element={<OrderDetailPage />} />
+      </Routes>,
+      ['/orders/order-1'],
+    )
+
+    const button = await screen.findByText('Submit for shipping')
+    expect(button).toBeDisabled()
+    expect(button).toHaveAttribute('title', expect.stringContaining('preorder'))
+  })
+
   it('submits for shipping after confirming', async () => {
     const user = userEvent.setup()
     let submitted = false

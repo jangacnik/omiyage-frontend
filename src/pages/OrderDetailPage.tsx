@@ -355,6 +355,7 @@ export function OrderDetailPage() {
   if (isError || !order) return <p className="error-text">Order not found.</p>
 
   const hasLockedItem = order.items.some(isItemLocked)
+  const hasPreorderItem = order.items.some((item) => item.isPreorder)
 
   async function handleCancel() {
     if (!order) return
@@ -391,7 +392,13 @@ export function OrderDetailPage() {
         </p>
       ) : (
         <div className="flex flex-wrap gap-2">
-          <button type="button" className="btn-secondary px-3 py-1.5 text-sm" onClick={handleSubmitForShipping} disabled={submitForShipping.isPending}>
+          <button
+            type="button"
+            className="btn-secondary px-3 py-1.5 text-sm"
+            onClick={handleSubmitForShipping}
+            disabled={submitForShipping.isPending || hasPreorderItem}
+            title={hasPreorderItem ? 'This order has a preorder item that has not released yet - it cannot be submitted for shipping until it does.' : undefined}
+          >
             {submitForShipping.isPending ? <ButtonSpinner /> : 'Submit for shipping'}
           </button>
           {order.shipmentId && (
