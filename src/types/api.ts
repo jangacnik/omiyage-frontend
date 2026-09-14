@@ -75,9 +75,10 @@ export interface OrderItemDto {
   quantity: number
   isPreorder: boolean
   expectedReleaseDate: string | null
-  // Admin-only - absent on any response a normal user can read.
+  // What the customer is charged - populated for the order's own owner too, not just admins.
   soldPrice: number | null
   soldPriceCurrency: Currency | null
+  // Admin-only - absent on any response a normal user can read.
   profit: number | null
 }
 

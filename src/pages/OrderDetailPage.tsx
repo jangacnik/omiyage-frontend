@@ -149,9 +149,16 @@ function EditableItem({ orderId, item, locked }: { orderId: string; item: OrderI
 
   return (
     <li className="flex flex-col gap-2 rounded-lg border border-mist p-3">
-      <input className="field-input" value={title} onChange={(e) => setTitle(e.target.value)} aria-label={`Title for ${item.title}`} />
+      <input
+        className="field-input"
+        placeholder="Title"
+        value={title}
+        onChange={(e) => setTitle(e.target.value)}
+        aria-label={`Title for ${item.title}`}
+      />
       <textarea
         className="field-input"
+        placeholder="Description"
         value={description}
         onChange={(e) => setDescription(e.target.value)}
         aria-label={`Description for ${item.title}`}
@@ -160,19 +167,23 @@ function EditableItem({ orderId, item, locked }: { orderId: string; item: OrderI
         <input
           type="number"
           step="0.01"
+          placeholder="Max price (EUR)"
           className="field-input sm:w-32"
           value={maxPrice}
           onChange={(e) => setMaxPrice(e.target.value)}
           aria-label={`Max price for ${item.title}`}
         />
-        <input
-          type="number"
-          min={1}
-          className="field-input sm:w-24"
-          value={quantity}
-          onChange={(e) => setQuantity(e.target.value)}
-          aria-label={`Quantity for ${item.title}`}
-        />
+        <label className="flex items-center gap-2 sm:w-24">
+          <span className="text-sm text-ink/60">Qty</span>
+          <input
+            type="number"
+            min={1}
+            className="field-input"
+            value={quantity}
+            onChange={(e) => setQuantity(e.target.value)}
+            aria-label={`Quantity for ${item.title}`}
+          />
+        </label>
       </div>
       <input
         type="url"
