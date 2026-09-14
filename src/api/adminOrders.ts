@@ -220,6 +220,17 @@ export function useCreateShipment() {
   })
 }
 
+export function useAdminMergeOrders() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (orderIds: string[]) => api.post<OrderDto>('/api/admin/orders/merge', { orderIds }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin', 'orders'] })
+      queryClient.invalidateQueries({ queryKey: ['admin', 'shipments'] })
+    },
+  })
+}
+
 export function useUpdateShipment() {
   const queryClient = useQueryClient()
   return useMutation({

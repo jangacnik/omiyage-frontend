@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { useAdminDeleteOrder, useAdminOrders, useCreateShipment } from '../../api/adminOrders'
+import { useAdminDeleteOrder, useAdminMergeOrders, useAdminOrders, useCreateShipment } from '../../api/adminOrders'
 import { orderDisplayName } from '../../api/orders'
 import { useConfirm } from '../../components/ConfirmDialog'
 import { OrderIdHint } from '../../components/OrderIdHint'
@@ -29,9 +29,15 @@ export function AdminOrdersPage() {
   const [sortBy, direction] = sort.split(':') as [AdminOrderSortBy, SortDirection]
   const { data, isLoading } = useAdminOrders(status, page, sortBy, direction)
   const createShipment = useCreateShipment()
+  const mergeOrders = useAdminMergeOrders()
   const deleteOrder = useAdminDeleteOrder()
   const confirm = useConfirm()
   const navigate = useNavigate()
+
+  const selectedOrders = data?.content.filter((o) => selected.includes(o.id)) ?? []
+  // Only meaningful once every selected order is resolvable on the current page - a selection
+  // spanning pages can't be checked here, same limitation "combine into shipment" above already has.
+  const canMerge = selected.length >= 2 && selectedOrders.length === selected.length && new Set(selectedOrders.map((o) => o.userId)).size === 1
 
   function toggle(id: string) {
     setSelected((current) => (current.includes(id) ? current.filter((c) => c !== id) : [...current, id]))
@@ -41,6 +47,12 @@ export function AdminOrdersPage() {
     const shipment = await createShipment.mutateAsync(selected)
     setSelected([])
     navigate(`/admin/shipments/${shipment.id}`)
+  }
+
+  async function merge() {
+    const merged = await mergeOrders.mutateAsync(selected)
+    setSelected([])
+    navigate(`/admin/orders/${merged.id}`)
   }
 
   async function handleDelete(orderId: string) {
@@ -58,11 +70,25 @@ export function AdminOrdersPage() {
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <h1 className="page-title">Admin: Orders</h1>
         {selected.length > 0 && (
-          <button type="button" className="btn-primary" onClick={combine} disabled={createShipment.isPending}>
-            {createShipment.isPending ? <ButtonSpinner /> : `Combine ${selected.length} into shipment`}
-          </button>
+          <div className="flex flex-wrap gap-2">
+            <button type="button" className="btn-primary" onClick={combine} disabled={createShipment.isPending}>
+              {createShipment.isPending ? <ButtonSpinner /> : `Combine ${selected.length} into shipment`}
+            </button>
+            {selected.length >= 2 && (
+              <button
+                type="button"
+                className="btn-secondary"
+                onClick={merge}
+                disabled={mergeOrders.isPending || !canMerge}
+                title={canMerge ? undefined : 'Selected orders must all belong to the same user to merge into one order.'}
+              >
+                {mergeOrders.isPending ? <ButtonSpinner /> : `Merge ${selected.length} into one order`}
+              </button>
+            )}
+          </div>
         )}
       </div>
+      {mergeOrders.isError && <p className="error-text mb-2">Could not merge these orders.</p>}
 
       <div className="mb-4 flex flex-wrap gap-3">
         <select

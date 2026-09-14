@@ -121,4 +121,47 @@ describe('AdminOrdersPage', () => {
 
     expect(await screen.findByText('Could not delete that order.')).toBeInTheDocument()
   })
+
+  it('disables merge, with a hint, when selected orders belong to different users', async () => {
+    const user = userEvent.setup()
+    const a = { ...order(), id: 'order-aaaaaaaa', userId: 'user-1' }
+    const b = { ...order(), id: 'order-bbbbbbbb', userId: 'user-2' }
+    server.use(http.get(`${BASE}/api/admin/orders`, () => HttpResponse.json(page([a, b]))))
+
+    renderWithProviders(<AdminOrdersPage />)
+    await screen.findByText(/Order order-aa/)
+
+    await user.click(screen.getByLabelText('Select order order-aa'))
+    await user.click(screen.getByLabelText('Select order order-bb'))
+
+    const mergeButton = screen.getByText('Merge 2 into one order')
+    expect(mergeButton).toBeDisabled()
+    expect(mergeButton).toHaveAttribute('title', expect.stringContaining('same user'))
+  })
+
+  it('merges selected orders belonging to the same user', async () => {
+    const user = userEvent.setup()
+    let mergedIds: string[] = []
+    const a = { ...order(), id: 'order-aaaaaaaa', userId: 'user-1' }
+    const b = { ...order(), id: 'order-bbbbbbbb', userId: 'user-1' }
+    server.use(
+      http.get(`${BASE}/api/admin/orders`, () => HttpResponse.json(page([a, b]))),
+      http.post(`${BASE}/api/admin/orders/merge`, async ({ request }) => {
+        mergedIds = ((await request.json()) as { orderIds: string[] }).orderIds
+        return HttpResponse.json({ ...a, items: [...a.items, ...b.items] })
+      }),
+    )
+
+    renderWithProviders(<AdminOrdersPage />)
+    await screen.findByText(/Order order-aa/)
+
+    await user.click(screen.getByLabelText('Select order order-aa'))
+    await user.click(screen.getByLabelText('Select order order-bb'))
+
+    const mergeButton = screen.getByText('Merge 2 into one order')
+    expect(mergeButton).not.toBeDisabled()
+    await user.click(mergeButton)
+
+    await waitFor(() => expect(mergedIds.sort()).toEqual(['order-aaaaaaaa', 'order-bbbbbbbb']))
+  })
 })
