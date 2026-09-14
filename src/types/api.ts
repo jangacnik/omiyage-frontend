@@ -199,6 +199,11 @@ export interface SplitOrderResponseDto {
   created: OrderDto
 }
 
+export interface MoveItemsResponseDto {
+  source: OrderDto
+  target: OrderDto
+}
+
 export interface ShippingRateDto {
   id: string
   destination: ShipmentDestination

@@ -198,6 +198,29 @@ describe('AdminOrderDetailPage', () => {
     await waitFor(() => expect(capturedBody).toEqual({ paid: true }))
   })
 
+  it('moves an item onto another of the same user\'s orders', async () => {
+    const user = userEvent.setup()
+    let capturedBody: unknown = null
+    server.use(
+      http.get(`${BASE}/api/orders/order-12345678`, () => HttpResponse.json(order())),
+      mockShipments(),
+      http.get(`${BASE}/api/admin/orders/by-user/user-1`, () =>
+        HttpResponse.json([order(), { ...order(), id: 'order-other', status: 'IN_PROGRESS' }]),
+      ),
+      http.post(`${BASE}/api/admin/orders/order-12345678/items/move`, async ({ request }) => {
+        capturedBody = await request.json()
+        return HttpResponse.json({ source: order(), target: order() })
+      }),
+    )
+
+    renderPage()
+    await user.click(await screen.findByText('Move'))
+    await user.selectOptions(await screen.findByLabelText('Move to order'), 'order-other')
+    await user.click(screen.getByText('Move', { selector: 'button.btn-primary' }))
+
+    await waitFor(() => expect(capturedBody).toEqual({ itemIds: ['item-1'], targetOrderId: 'order-other' }))
+  })
+
   it('adds a new item to the order', async () => {
     const user = userEvent.setup()
     let capturedBody: unknown = null

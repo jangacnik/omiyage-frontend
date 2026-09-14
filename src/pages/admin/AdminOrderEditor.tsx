@@ -3,6 +3,8 @@ import {
   useAdminAddOrderItem,
   useAdminMarkItemPaid,
   useAdminMarkOrderPaid,
+  useAdminMoveOrderItems,
+  useAdminOrdersForUser,
   useAdminRemoveOrderItem,
   useAdminUpdateOrderNickname,
   useUpdateOrderStatus,
@@ -25,8 +27,74 @@ const STATUSES: OrderStatus[] = [
   'CANCELLED',
 ]
 
-function AdminItemRow({ orderId, item }: { orderId: string; item: OrderItemDto }) {
+function AdminMoveItemDialog({
+  orderId,
+  userId,
+  item,
+  onClose,
+}: {
+  orderId: string
+  userId: string
+  item: OrderItemDto
+  onClose: () => void
+}) {
+  const { data: userOrders } = useAdminOrdersForUser(userId)
+  const [targetOrderId, setTargetOrderId] = useState('')
+  const moveItems = useAdminMoveOrderItems()
+  const otherOrders = (userOrders ?? []).filter((o) => o.id !== orderId)
+
+  function move() {
+    moveItems.mutate(
+      { orderId, itemIds: [item.id], targetOrderId: targetOrderId || undefined },
+      { onSuccess: onClose },
+    )
+  }
+
+  return (
+    <div className="fixed inset-0 z-40 flex items-center justify-center bg-ink/40 p-4" onClick={onClose}>
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="move-item-title"
+        className="card flex w-full max-w-sm flex-col gap-3"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <h2 id="move-item-title" className="page-title text-lg">
+          Move &quot;{item.title}&quot;
+        </h2>
+        <label className="flex flex-col gap-1">
+          <span className="field-label">Move to</span>
+          <select
+            value={targetOrderId}
+            onChange={(e) => setTargetOrderId(e.target.value)}
+            aria-label="Move to order"
+            className="field-input"
+          >
+            <option value="">New order</option>
+            {otherOrders.map((o) => (
+              <option key={o.id} value={o.id}>
+                Order {o.id.slice(0, 8)} ({o.status})
+              </option>
+            ))}
+          </select>
+        </label>
+        {moveItems.isError && <p className="error-text">Could not move this item.</p>}
+        <div className="flex justify-end gap-2">
+          <button type="button" className="btn-secondary px-3 py-1.5 text-sm" onClick={onClose}>
+            Cancel
+          </button>
+          <button type="button" className="btn-primary px-3 py-1.5 text-sm" onClick={move} disabled={moveItems.isPending}>
+            {moveItems.isPending ? <ButtonSpinner /> : 'Move'}
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function AdminItemRow({ orderId, userId, item }: { orderId: string; userId: string; item: OrderItemDto }) {
   const [editing, setEditing] = useState(false)
+  const [moving, setMoving] = useState(false)
   const removeItem = useAdminRemoveOrderItem()
   const markPaid = useAdminMarkItemPaid()
   const confirm = useConfirm()
@@ -57,6 +125,9 @@ function AdminItemRow({ orderId, item }: { orderId: string; item: OrderItemDto }
             <button type="button" className="btn-secondary px-2 py-1 text-xs" onClick={() => setEditing(true)}>
               Edit
             </button>
+            <button type="button" className="btn-secondary px-2 py-1 text-xs" onClick={() => setMoving(true)}>
+              Move
+            </button>
             <button type="button" className="btn-danger px-2 py-1 text-xs" onClick={remove} disabled={removeItem.isPending}>
               {removeItem.isPending ? <ButtonSpinner /> : (
                 <>
@@ -74,6 +145,7 @@ function AdminItemRow({ orderId, item }: { orderId: string; item: OrderItemDto }
         </div>
       </OrderItemCard>
       {editing && <AdminOrderItemEditDialog orderId={orderId} item={item} onClose={() => setEditing(false)} />}
+      {moving && <AdminMoveItemDialog orderId={orderId} userId={userId} item={item} onClose={() => setMoving(false)} />}
     </li>
   )
 }
@@ -267,7 +339,7 @@ export function AdminOrderEditor({ order }: { order: OrderDto }) {
 
       <ul className="card divide-y divide-mist">
         {order.items.map((item) => (
-          <AdminItemRow key={item.id} orderId={order.id} item={item} />
+          <AdminItemRow key={item.id} orderId={order.id} userId={order.userId} item={item} />
         ))}
       </ul>
 

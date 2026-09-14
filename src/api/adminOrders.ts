@@ -4,6 +4,7 @@ import type { CreateOrderInput, CreateOrderItemInput, UpdateMyOrderItemInput } f
 import type {
   AdminOrderSortBy,
   CombineRequestDto,
+  MoveItemsResponseDto,
   OrderDto,
   OrderItemStatus,
   OrderStatus,
@@ -240,6 +241,36 @@ export function useAdminMergeOrders() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin', 'orders'] })
       queryClient.invalidateQueries({ queryKey: ['admin', 'shipments'] })
+    },
+  })
+}
+
+export function useAdminOrdersForUser(userId: string | undefined) {
+  return useQuery({
+    queryKey: ['admin', 'orders', 'by-user', userId],
+    queryFn: () => api.get<OrderDto[]>(`/api/admin/orders/by-user/${userId}`),
+    enabled: userId !== undefined,
+  })
+}
+
+export function useAdminMoveOrderItems() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: ({
+      orderId,
+      itemIds,
+      targetOrderId,
+    }: {
+      orderId: string
+      itemIds: string[]
+      targetOrderId?: string
+    }) => api.post<MoveItemsResponseDto>(`/api/admin/orders/${orderId}/items/move`, { itemIds, targetOrderId }),
+    onSuccess: (_, { orderId, targetOrderId }) => {
+      queryClient.invalidateQueries({ queryKey: ['admin', 'orders'] })
+      queryClient.invalidateQueries({ queryKey: ['admin', 'shipments'] })
+      queryClient.invalidateQueries({ queryKey: ['admin', 'dashboard'] })
+      queryClient.invalidateQueries({ queryKey: ['orders', orderId] })
+      if (targetOrderId) queryClient.invalidateQueries({ queryKey: ['orders', targetOrderId] })
     },
   })
 }
