@@ -34,9 +34,9 @@ export function InventoryCard({
           )}
           <p className="text-sm text-ink/60">
             {formatMoney(item.priceAmount, item.currency)}
-            {item.boughtPrice != null && (
-              <> · profit {formatMoney(item.priceAmount - item.boughtPrice, item.currency)}</>
-            )}
+            {/* profitEur is pre-converted server-side: priceAmount[EUR] - boughtPrice[JPY] can't
+                be subtracted directly, they're different currencies. */}
+            {item.profitEur != null && <> · profit {formatMoney(item.profitEur, 'EUR')}</>}
           </p>
         </div>
       </Link>

@@ -25,6 +25,7 @@ function item(): InventoryItem {
     isPreorder: false,
     expectedReleaseDate: null,
     boughtPrice: null,
+    profitEur: null,
   }
 }
 

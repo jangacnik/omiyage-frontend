@@ -25,6 +25,7 @@ function item(overrides: Partial<InventoryItem> = {}): InventoryItem {
     isPreorder: false,
     expectedReleaseDate: null,
     boughtPrice: null,
+    profitEur: null,
     ...overrides,
   }
 }
@@ -61,7 +62,7 @@ describe('AdminInventoryPage', () => {
     await screen.findByText('Snacks')
 
     await user.type(screen.getByLabelText('Title'), 'Pocky strawberry')
-    await user.type(screen.getByLabelText('Price'), '500')
+    await user.type(screen.getByLabelText('Price in EUR'), '500')
     await user.type(screen.getByLabelText('Stock quantity'), '10')
     await user.click(screen.getByLabelText('Snacks'))
     await user.click(screen.getByText('Create item'))
@@ -91,8 +92,8 @@ describe('AdminInventoryPage', () => {
     renderWithProviders(<AdminInventoryPage />)
 
     await user.type(screen.getByLabelText('Title'), 'Pocky strawberry')
-    await user.type(screen.getByLabelText('Price'), '500')
-    await user.type(screen.getByLabelText('Bought price'), '300')
+    await user.type(screen.getByLabelText('Price in EUR'), '500')
+    await user.type(screen.getByLabelText('Bought price in JPY'), '300')
     await user.type(screen.getByLabelText('Stock quantity'), '10')
     await user.click(screen.getByText('Create item'))
 
@@ -100,14 +101,16 @@ describe('AdminInventoryPage', () => {
   })
 
   it('shows profit for an item once a bought price is set', async () => {
+    // boughtPrice (JPY) and profitEur (priceAmount[EUR] - converted boughtPrice) are computed
+    // server-side - the component just renders profitEur, it never subtracts the two itself.
     server.use(
-      http.get(`${BASE}/api/admin/inventory`, () => HttpResponse.json(page([item({ boughtPrice: 500 })]))),
+      http.get(`${BASE}/api/admin/inventory`, () => HttpResponse.json(page([item({ boughtPrice: 500, profitEur: 700 })]))),
       http.get(`${BASE}/api/categories`, () => HttpResponse.json([])),
     )
 
     renderWithProviders(<AdminInventoryPage />)
 
-    expect(await screen.findByText(/profit ¥700/)).toBeInTheDocument()
+    expect(await screen.findByText(/profit €700/)).toBeInTheDocument()
   })
 
   it('has no archive control', async () => {

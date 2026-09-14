@@ -91,18 +91,17 @@ describe('AdminOrderDetailPage', () => {
     await screen.findByText('Ghibli museum ticket')
     await user.click(screen.getByText('Edit'))
 
-    await user.type(await screen.findByLabelText('Bought for'), '1800')
-    await user.selectOptions(screen.getByLabelText('Bought for currency'), 'EUR')
-    await user.type(screen.getByLabelText('Sold for'), '2200')
+    await user.type(await screen.findByLabelText('Bought for, in JPY'), '1800')
+    await user.type(screen.getByLabelText('Sold for, in EUR'), '2200')
     await user.type(screen.getByLabelText('Weight'), '250')
     await user.selectOptions(screen.getByLabelText('Status'), 'BOUGHT')
     await user.click(screen.getByText('Save'))
 
+    // actualPrice is always JPY and soldPrice is always EUR now - no currency to send.
     await waitFor(() =>
       expect(capturedBody).toMatchObject({
         status: 'BOUGHT',
         actualPrice: 1800,
-        actualPriceCurrency: 'EUR',
         soldPrice: 2200,
         weight: 250,
       }),
@@ -110,10 +109,14 @@ describe('AdminOrderDetailPage', () => {
   })
 
   it('shows an item and order profit once soldPrice is set', async () => {
+    // soldPrice/soldPriceCurrency are always EUR, actualPrice/actualPriceCurrency always JPY -
+    // profit itself is always EUR (converted server-side before subtracting).
     const withProfit: OrderDto = {
       ...order(),
       profit: 400,
-      items: [{ ...order().items[0], soldPrice: 2200, actualPrice: 1800, profit: 400 }],
+      items: [
+        { ...order().items[0], soldPrice: 2200, soldPriceCurrency: 'EUR', actualPrice: 1800, actualPriceCurrency: 'JPY', profit: 400 },
+      ],
     }
     server.use(
       http.get(`${BASE}/api/orders/order-12345678`, () => HttpResponse.json(withProfit)),
@@ -122,8 +125,8 @@ describe('AdminOrderDetailPage', () => {
 
     renderPage()
 
-    expect(await screen.findByText('Profit: ¥400')).toBeInTheDocument()
-    expect(screen.getByText('Order profit: ¥400')).toBeInTheDocument()
+    expect(await screen.findByText('Profit: €400.00')).toBeInTheDocument()
+    expect(screen.getByText('Order profit: €400.00')).toBeInTheDocument()
   })
 
   it('advances the order status', async () => {
@@ -190,7 +193,8 @@ describe('AdminOrderDetailPage', () => {
     await user.type(screen.getByLabelText('Title'), 'Extra souvenir')
     await user.click(screen.getByText('Add item'))
 
-    await waitFor(() => expect(capturedBody).toMatchObject({ title: 'Extra souvenir', condition: 'NEW', currency: 'JPY' }))
+    // Max price is always EUR now - fixed by policy, no currency picker in this form anymore.
+    await waitFor(() => expect(capturedBody).toMatchObject({ title: 'Extra souvenir', condition: 'NEW', currency: 'EUR' }))
   })
 
   it('deletes the order after confirming, then navigates away', async () => {

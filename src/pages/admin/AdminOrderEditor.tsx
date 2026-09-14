@@ -83,7 +83,6 @@ function AdminAddItemForm({ orderId }: { orderId: string }) {
   const [open, setOpen] = useState(false)
   const [title, setTitle] = useState('')
   const [condition, setCondition] = useState<'NEW' | 'USED'>('NEW')
-  const [currency, setCurrency] = useState<'JPY' | 'EUR'>('JPY')
   const [maxPrice, setMaxPrice] = useState('')
   const [quantity, setQuantity] = useState('1')
   const [link, setLink] = useState('')
@@ -104,7 +103,8 @@ function AdminAddItemForm({ orderId }: { orderId: string }) {
         orderId,
         title,
         condition,
-        currency,
+        // Max price is always EUR - fixed by policy, not a per-item choice.
+        currency: 'EUR',
         maxPrice: maxPrice ? Number(maxPrice) : undefined,
         quantity: quantity ? Number(quantity) : 1,
         link: link || undefined,
@@ -129,16 +129,12 @@ function AdminAddItemForm({ orderId }: { orderId: string }) {
           <option value="NEW">New</option>
           <option value="USED">Used</option>
         </select>
-        <select value={currency} onChange={(e) => setCurrency(e.target.value as 'JPY' | 'EUR')} className="field-input" aria-label="Currency">
-          <option value="JPY">JPY</option>
-          <option value="EUR">EUR</option>
-        </select>
       </div>
       <div className="flex flex-col gap-2 sm:flex-row">
         <input
           type="number"
           step="0.01"
-          placeholder="Max price (optional)"
+          placeholder="Max price in EUR (optional)"
           className="field-input"
           value={maxPrice}
           onChange={(e) => setMaxPrice(e.target.value)}
@@ -203,9 +199,8 @@ export function AdminOrderEditor({ order }: { order: OrderDto }) {
         </span>
       </label>
 
-      {order.profit != null && (
-        <p className="text-sm text-ink/60">Order profit: {formatMoney(order.profit, order.items[0]?.currency ?? 'JPY')}</p>
-      )}
+      {/* profit = soldPrice[EUR] - toEur(actualPrice[JPY]), always EUR - see OrderDtos.profit() */}
+      {order.profit != null && <p className="text-sm text-ink/60">Order profit: {formatMoney(order.profit, 'EUR')}</p>}
 
       <ul className="card divide-y divide-mist">
         {order.items.map((item) => (

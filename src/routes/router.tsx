@@ -14,6 +14,7 @@ import { ProfilePage } from '../pages/ProfilePage'
 import { AdminInventoryPage } from '../pages/admin/AdminInventoryPage'
 import { AdminSettingsPage } from '../pages/admin/AdminSettingsPage'
 import { AdminCategoriesPage } from '../pages/admin/AdminCategoriesPage'
+import { AdminExchangeRatePage } from '../pages/admin/AdminExchangeRatePage'
 import { AdminOrdersPage } from '../pages/admin/AdminOrdersPage'
 import { AdminOrderDetailPage } from '../pages/admin/AdminOrderDetailPage'
 import { AdminShipmentsPage } from '../pages/admin/AdminShipmentsPage'
@@ -55,6 +56,7 @@ export const router = createBrowserRouter([
                   { index: true, element: <Navigate to="/admin/settings/categories" replace /> },
                   { path: 'categories', element: <AdminCategoriesPage /> },
                   { path: 'shipping-rates', element: <AdminShippingRatesPage /> },
+                  { path: 'exchange-rate', element: <AdminExchangeRatePage /> },
                 ],
               },
               { path: '/admin/dashboard', element: <AdminDashboardPage /> },
