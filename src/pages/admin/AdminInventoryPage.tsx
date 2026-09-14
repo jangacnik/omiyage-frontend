@@ -11,12 +11,14 @@ import { Pagination } from '../../components/Pagination'
 import { Spinner } from '../../components/Spinner'
 import { ImageDropInput } from '../../components/ImageDropInput'
 import { InventoryCard } from '../../components/InventoryCard'
-import { InventoryItemEditForm, itemSchema, type InventoryItemForm } from '../../components/InventoryItemEditForm'
+import { InventoryItemEditForm, itemSchema, parseTags, type InventoryItemForm } from '../../components/InventoryItemEditForm'
 import { useConfirm } from '../../components/ConfirmDialog'
 
 export function AdminInventoryPage() {
   const [page, setPage] = useState(0)
   const { data, isLoading } = useAdminInventory(page)
+  const [editingId, setEditingId] = useState<string | null>(null)
+  const editingItem = data?.content.find((item) => item.id === editingId)
   const { data: categories } = useAdminCategories()
   const createItem = useCreateInventoryItem()
   const deleteItem = useDeleteInventoryItem()
@@ -52,6 +54,7 @@ export function AdminInventoryPage() {
       stockQuantity: Number(data.stockQuantity),
       imageKeys,
       categoryIds: selectedCategoryIds,
+      tags: parseTags(data.tags),
       isPreorder: data.isPreorder,
       expectedReleaseDate: data.isPreorder ? data.expectedReleaseDate : undefined,
     })
@@ -59,8 +62,6 @@ export function AdminInventoryPage() {
     setImageKeys([])
     setSelectedCategoryIds([])
   }
-
-  const [editingId, setEditingId] = useState<string | null>(null)
 
   async function handleDelete(id: string, title: string) {
     const ok = await confirm({
@@ -94,6 +95,7 @@ export function AdminInventoryPage() {
         {errors.priceAmount && <p className="error-text">{errors.priceAmount.message}</p>}
         {errors.stockQuantity && <p className="error-text">{errors.stockQuantity.message}</p>}
         <input type="url" placeholder="Link to store page (optional)" className="field-input" {...register('link')} aria-label="Link to store page" />
+        <input placeholder="Tags, comma separated (optional)" className="field-input" {...register('tags')} aria-label="Tags" />
         <ImageDropInput label="Photo" onUploaded={(key) => setImageKeys(key ? (current) => [...current, key] : (current) => current)} />
         {imageKeys.length > 0 && <p className="text-xs text-ink/50">{imageKeys.length} photo(s) added.</p>}
 
@@ -129,23 +131,25 @@ export function AdminInventoryPage() {
       {isLoading && <Spinner label="Fetching inventory" />}
 
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 md:grid-cols-4">
-        {data?.content.map((item) =>
-          editingId === item.id ? (
-            <div key={item.id} className="col-span-2 sm:col-span-3 md:col-span-4">
-              <InventoryItemEditForm item={item} onDone={() => setEditingId(null)} />
-            </div>
-          ) : (
-            <InventoryCard
-              key={item.id}
-              item={item}
-              onEdit={() => setEditingId(item.id)}
-              onDelete={() => handleDelete(item.id, item.title)}
-            />
-          ),
-        )}
+        {data?.content.map((item) => (
+          <InventoryCard
+            key={item.id}
+            item={item}
+            onEdit={() => setEditingId(item.id)}
+            onDelete={() => handleDelete(item.id, item.title)}
+          />
+        ))}
       </div>
 
       {data && <Pagination page={data.page} totalPages={data.totalPages} onPageChange={setPage} />}
+
+      {editingItem && (
+        <div className="fixed inset-0 z-40 flex items-center justify-center bg-ink/40 p-4" onClick={() => setEditingId(null)}>
+          <div onClick={(e) => e.stopPropagation()}>
+            <InventoryItemEditForm item={editingItem} onDone={() => setEditingId(null)} />
+          </div>
+        </div>
+      )}
     </div>
   )
 }

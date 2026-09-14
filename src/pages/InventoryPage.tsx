@@ -13,6 +13,7 @@ export function InventoryPage() {
   const [titleInput, setTitleInput] = useState('')
   const [title, setTitle] = useState('')
   const [categoryId, setCategoryId] = useState('')
+  const [inStockOnly, setInStockOnly] = useState(false)
   const [page, setPage] = useState(0)
   const [editingId, setEditingId] = useState<string | null>(null)
   const deleteItem = useDeleteInventoryItem()
@@ -27,7 +28,8 @@ export function InventoryPage() {
   }, [titleInput])
 
   const { data: categories } = useCategories()
-  const { data, isLoading, isError } = useInventory({ title, categoryId: categoryId || undefined, page })
+  const { data, isLoading, isError } = useInventory({ title, categoryId: categoryId || undefined, inStockOnly, page })
+  const editingItem = data?.content.find((item) => item.id === editingId)
 
   async function handleDelete(id: string, itemTitle: string) {
     const ok = await confirm({
@@ -75,6 +77,17 @@ export function InventoryPage() {
             </option>
           ))}
         </select>
+        <label className="flex items-center gap-2 text-sm text-ink/80">
+          <input
+            type="checkbox"
+            checked={inStockOnly}
+            onChange={(e) => {
+              setInStockOnly(e.target.checked)
+              setPage(0)
+            }}
+          />
+          In stock only
+        </label>
       </div>
 
       {isLoading && <Spinner label="Fetching inventory" />}
@@ -87,24 +100,26 @@ export function InventoryPage() {
       )}
 
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 md:grid-cols-4">
-        {data?.content.map((item, i) =>
-          editingId === item.id ? (
-            <div key={item.id} className="col-span-2 sm:col-span-3 md:col-span-4">
-              <InventoryItemEditForm item={item} onDone={() => setEditingId(null)} />
-            </div>
-          ) : (
-            <div key={item.id} className="animate-rise" style={{ animationDelay: `${Math.min(i, 11) * 0.04}s` }}>
-              <InventoryCard
-                item={item}
-                onEdit={isAdmin ? () => setEditingId(item.id) : undefined}
-                onDelete={isAdmin ? () => handleDelete(item.id, item.title) : undefined}
-              />
-            </div>
-          ),
-        )}
+        {data?.content.map((item, i) => (
+          <div key={item.id} className="animate-rise" style={{ animationDelay: `${Math.min(i, 11) * 0.04}s` }}>
+            <InventoryCard
+              item={item}
+              onEdit={isAdmin ? () => setEditingId(item.id) : undefined}
+              onDelete={isAdmin ? () => handleDelete(item.id, item.title) : undefined}
+            />
+          </div>
+        ))}
       </div>
 
       {data && <Pagination page={data.page} totalPages={data.totalPages} onPageChange={setPage} />}
+
+      {editingItem && (
+        <div className="fixed inset-0 z-40 flex items-center justify-center bg-ink/40 p-4" onClick={() => setEditingId(null)}>
+          <div onClick={(e) => e.stopPropagation()}>
+            <InventoryItemEditForm item={editingItem} onDone={() => setEditingId(null)} />
+          </div>
+        </div>
+      )}
     </div>
   )
 }

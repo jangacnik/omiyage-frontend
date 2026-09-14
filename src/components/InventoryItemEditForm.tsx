@@ -18,6 +18,7 @@ const itemSchema = z
     priceAmount: z.string().min(1, 'Price is required'),
     boughtPrice: z.string().optional(),
     stockQuantity: z.string().min(1, 'Stock is required'),
+    tags: z.string().optional(),
     isPreorder: z.boolean().optional(),
     expectedReleaseDate: z.string().optional(),
   })
@@ -28,6 +29,10 @@ const itemSchema = z
 
 export type InventoryItemForm = z.infer<typeof itemSchema>
 export { itemSchema }
+
+export function parseTags(input: string | undefined): string[] {
+  return (input ?? '').split(',').map((t) => t.trim()).filter(Boolean)
+}
 
 function ImageGallery({ images, onChange }: { images: string[]; onChange: Dispatch<SetStateAction<string[]>> }) {
   return (
@@ -55,7 +60,8 @@ function ImageGallery({ images, onChange }: { images: string[]; onChange: Dispat
 }
 
 /** Edit form for one inventory item, shared by the admin inventory page and the public homepage
- *  (which shows the same edit/delete controls to admin viewers). */
+ *  (which shows the same edit/delete controls to admin viewers). Rendered as a modal dialog by
+ *  both callers - the backdrop/centering wrapper is theirs, this is just the dialog panel. */
 export function InventoryItemEditForm({ item, onDone }: { item: InventoryItem; onDone: () => void }) {
   const updateItem = useUpdateInventoryItem()
   const [images, setImages] = useState<string[]>(item.images)
@@ -74,6 +80,7 @@ export function InventoryItemEditForm({ item, onDone }: { item: InventoryItem; o
       priceAmount: item.priceAmount.toString(),
       boughtPrice: item.boughtPrice?.toString() ?? '',
       stockQuantity: item.stockQuantity.toString(),
+      tags: item.tags.join(', '),
       isPreorder: item.isPreorder,
       expectedReleaseDate: item.expectedReleaseDate ?? '',
     },
@@ -96,6 +103,7 @@ export function InventoryItemEditForm({ item, onDone }: { item: InventoryItem; o
         stockQuantity: Number(data.stockQuantity),
         imageKeys: images,
         categoryIds: item.categories.map((c) => c.id),
+        tags: parseTags(data.tags),
         isPreorder: data.isPreorder,
         expectedReleaseDate: data.isPreorder ? data.expectedReleaseDate : undefined,
       })
@@ -106,7 +114,16 @@ export function InventoryItemEditForm({ item, onDone }: { item: InventoryItem; o
   }
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="card">
+    <form
+      onSubmit={handleSubmit(onSubmit)}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="edit-inventory-item-title"
+      className="card max-h-[90vh] w-full max-w-2xl overflow-y-auto"
+    >
+      <h2 id="edit-inventory-item-title" className="page-title mb-3 text-lg">
+        Edit item
+      </h2>
       <ItemCardShell thumbnail={<ImageGallery images={images} onChange={setImages} />}>
         <div className="flex flex-col gap-2">
           <input placeholder="Title" className="field-input" {...register('title')} aria-label={`Title for ${item.title}`} />
@@ -129,6 +146,12 @@ export function InventoryItemEditForm({ item, onDone }: { item: InventoryItem; o
             className="field-input"
             {...register('link')}
             aria-label={`Link for ${item.title}`}
+          />
+          <input
+            placeholder="Tags, comma separated (optional)"
+            className="field-input"
+            {...register('tags')}
+            aria-label={`Tags for ${item.title}`}
           />
           <label className="flex items-center gap-2 text-sm text-ink/80">
             <input type="checkbox" {...register('isPreorder')} />

@@ -28,12 +28,12 @@ export function InventoryCard({
         />
         <div className="p-3">
           <p className="truncate font-medium text-ink">{item.title}</p>
-          {item.isPreorder && (
-            <div className="mb-1">
-              <PreorderBadge expectedReleaseDate={item.expectedReleaseDate} />
-            </div>
-          )}
-          <p className="text-sm text-ink/60">
+          {/* Fixed-height slot, rendered whether or not this item preorders - otherwise cards
+              with and without a preorder badge end up different heights. */}
+          <div className="mb-1 flex h-6 items-center">
+            {item.isPreorder && <PreorderBadge expectedReleaseDate={item.expectedReleaseDate} />}
+          </div>
+          <p className="truncate text-sm text-ink/60">
             {formatMoney(item.priceAmount, item.currency)}
             {/* profitEur is pre-converted server-side: priceAmount[EUR] - boughtPrice[JPY] can't
                 be subtracted directly, they're different currencies. */}
