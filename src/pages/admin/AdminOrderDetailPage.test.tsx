@@ -235,6 +235,7 @@ describe('AdminOrderDetailPage', () => {
 
     renderPage()
     await user.click(await screen.findByText('Add item'))
+    await user.click(screen.getByText("Can't find it? Create a custom request"))
     await user.type(screen.getByLabelText('Title'), 'Extra souvenir')
     await user.click(screen.getByText('Add item'))
 

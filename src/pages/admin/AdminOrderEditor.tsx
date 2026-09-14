@@ -11,6 +11,7 @@ import {
 } from '../../api/adminOrders'
 import { useConfirm } from '../../components/ConfirmDialog'
 import { OrderItemCard } from '../../components/OrderItemCard'
+import { CustomItemForm, InventorySearch, draftFromInventoryItem, type DraftItem } from '../../components/OrderItemBuilder'
 import { ButtonSpinner } from '../../components/Spinner'
 import { TrashIcon } from '../../components/icons'
 import { formatMoney } from '../../lib/currency'
@@ -152,11 +153,7 @@ function AdminItemRow({ orderId, userId, item }: { orderId: string; userId: stri
 
 function AdminAddItemForm({ orderId }: { orderId: string }) {
   const [open, setOpen] = useState(false)
-  const [title, setTitle] = useState('')
-  const [condition, setCondition] = useState<'NEW' | 'USED'>('NEW')
-  const [maxPrice, setMaxPrice] = useState('')
-  const [quantity, setQuantity] = useState('1')
-  const [link, setLink] = useState('')
+  const [showCustomForm, setShowCustomForm] = useState(false)
   const addItem = useAdminAddOrderItem()
 
   if (!open) {
@@ -167,78 +164,28 @@ function AdminAddItemForm({ orderId }: { orderId: string }) {
     )
   }
 
-  function submit() {
-    if (!title.trim()) return
+  function add(draft: DraftItem) {
     addItem.mutate(
-      {
-        orderId,
-        title,
-        condition,
-        // Max price is always EUR - fixed by policy, not a per-item choice.
-        currency: 'EUR',
-        maxPrice: maxPrice ? Number(maxPrice) : undefined,
-        quantity: quantity ? Number(quantity) : 1,
-        link: link || undefined,
-      },
-      {
-        onSuccess: () => {
-          setTitle('')
-          setMaxPrice('')
-          setQuantity('1')
-          setLink('')
-          setOpen(false)
-        },
-      },
+      { orderId, ...draft.input },
+      { onSuccess: () => setOpen(false) },
     )
   }
 
   return (
-    <div className="card flex flex-col gap-2">
-      <input placeholder="Title" className="field-input" value={title} onChange={(e) => setTitle(e.target.value)} aria-label="Title" />
-      <div className="flex flex-col gap-2 sm:flex-row">
-        <select value={condition} onChange={(e) => setCondition(e.target.value as 'NEW' | 'USED')} className="field-input" aria-label="Condition">
-          <option value="NEW">New</option>
-          <option value="USED">Used</option>
-        </select>
-      </div>
-      <div className="flex flex-col gap-2 sm:flex-row">
-        <input
-          type="number"
-          step="0.01"
-          placeholder="Max price in EUR (optional)"
-          className="field-input"
-          value={maxPrice}
-          onChange={(e) => setMaxPrice(e.target.value)}
-          aria-label="Max price"
-        />
-        <label className="flex items-center gap-2 sm:w-32">
-          <span className="text-sm text-ink/60">Qty</span>
-          <input
-            type="number"
-            min={1}
-            className="field-input"
-            value={quantity}
-            onChange={(e) => setQuantity(e.target.value)}
-            aria-label="Quantity"
-          />
-        </label>
-      </div>
-      <input
-        type="url"
-        placeholder="Link to store page (optional)"
-        className="field-input"
-        value={link}
-        onChange={(e) => setLink(e.target.value)}
-        aria-label="Link to store page"
-      />
-      <div className="flex gap-2">
-        <button type="button" className="btn-primary px-3 py-1.5 text-sm" onClick={submit} disabled={addItem.isPending || !title.trim()}>
-          {addItem.isPending ? <ButtonSpinner /> : 'Add item'}
+    <div className="flex flex-col gap-2">
+      <InventorySearch onSelect={(item) => add(draftFromInventoryItem(item))} onCreateCustom={() => setShowCustomForm(true)} />
+
+      {showCustomForm ? (
+        <CustomItemForm onAdd={add} />
+      ) : (
+        <button type="button" className="btn-secondary self-start" onClick={() => setShowCustomForm(true)}>
+          Can't find it? Create a custom request
         </button>
-        <button type="button" className="btn-secondary px-3 py-1.5 text-sm" onClick={() => setOpen(false)}>
-          Cancel
-        </button>
-      </div>
+      )}
+
+      <button type="button" className="btn-secondary self-start px-3 py-1.5 text-sm" onClick={() => setOpen(false)}>
+        Cancel
+      </button>
       {addItem.isError && <p className="error-text">Could not add item.</p>}
     </div>
   )

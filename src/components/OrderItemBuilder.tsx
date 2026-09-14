@@ -47,7 +47,7 @@ const customItemSchema = z
 
 type CustomItemForm = z.infer<typeof customItemSchema>
 
-function CustomItemForm({ onAdd }: { onAdd: (item: DraftItem) => void }) {
+export function CustomItemForm({ onAdd }: { onAdd: (item: DraftItem) => void }) {
   const [imageKey, setImageKey] = useState<string | undefined>()
   const [uploading, setUploading] = useState(false)
   const {
@@ -141,7 +141,7 @@ function CustomItemForm({ onAdd }: { onAdd: (item: DraftItem) => void }) {
   )
 }
 
-function InventorySearch({ onSelect, onCreateCustom }: { onSelect: (item: InventoryItem) => void; onCreateCustom: () => void }) {
+export function InventorySearch({ onSelect, onCreateCustom }: { onSelect: (item: InventoryItem) => void; onCreateCustom: () => void }) {
   const [search, setSearch] = useState('')
   const query = search.trim()
   const { data } = useInventory({ title: query, page: 0, enabled: query.length > 0 })
