@@ -1,5 +1,6 @@
+import { useEffect, useRef, useState } from 'react'
 import { create } from 'zustand'
-import type { Currency } from '../types/api'
+import type { Currency, InventoryItem } from '../types/api'
 
 const STORAGE_KEY = 'omiyage.cart'
 
@@ -10,6 +11,12 @@ export interface CartItem {
   priceAmount: number
   currency: Currency
   quantity: number
+  isPreorder?: boolean
+  expectedReleaseDate?: string | null
+  // Stock at add-time, for a soft "more than we have" nudge in the cart - never blocks checkout,
+  // since a 0-or-low-stock item is still requestable (see OrderService.buildOrderItem on the
+  // backend), it's just a signal the admin will need to restock/rebuy.
+  stockQuantity?: number
 }
 
 interface CartState {
@@ -67,4 +74,36 @@ export const useCartStore = create<CartState>((set, get) => ({
 
 export function cartItemCount(items: CartItem[]): number {
   return items.reduce((sum, item) => sum + item.quantity, 0)
+}
+
+/** Shared by every "Add to cart" call site (InventoryCard, InventoryDetailPage) so the fields sent
+ *  to addItem() can't drift between them. */
+export function cartItemFromInventoryItem(item: InventoryItem): Omit<CartItem, 'quantity'> {
+  return {
+    inventoryItemId: item.id,
+    title: item.title,
+    imageKey: item.images[0],
+    priceAmount: item.priceAmount,
+    currency: item.currency,
+    isPreorder: item.isPreorder,
+    expectedReleaseDate: item.expectedReleaseDate,
+    stockQuantity: item.stockQuantity,
+  }
+}
+
+/** Transient "added" state for an Add to cart button - self-clearing, no setup beyond calling
+ *  `announce()` in the click handler alongside the actual `addItem` call. */
+export function useAddToCartFeedback() {
+  const [justAdded, setJustAdded] = useState(false)
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
+
+  useEffect(() => () => clearTimeout(timeoutRef.current), [])
+
+  function announce() {
+    clearTimeout(timeoutRef.current)
+    setJustAdded(true)
+    timeoutRef.current = setTimeout(() => setJustAdded(false), 1800)
+  }
+
+  return { justAdded, announce }
 }

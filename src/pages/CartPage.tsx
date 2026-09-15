@@ -3,9 +3,11 @@ import { Link, useNavigate } from 'react-router-dom'
 import { useCartStore } from '../store/cartStore'
 import { useCreateOrder } from '../api/orders'
 import { Field } from '../components/Field'
+import { PreorderBadge } from '../components/PreorderBadge'
 import { ButtonSpinner } from '../components/Spinner'
 import { ThumbnailImage } from '../components/ThumbnailImage'
 import { TrashIcon } from '../components/icons'
+import { errorMessage } from '../lib/apiClient'
 import { formatMoney } from '../lib/currency'
 
 export function CartPage() {
@@ -57,13 +59,27 @@ export function CartPage() {
             <div className="flex items-center gap-3">
               <ThumbnailImage imageKey={item.imageKey} alt={item.title} className="h-16 w-16 shrink-0 rounded-lg" />
               <div className="flex-1 sm:hidden">
-                <p className="font-medium text-ink">{item.title}</p>
+                <p className="flex items-center gap-2 font-medium text-ink">
+                  {item.title}
+                  {item.isPreorder && <PreorderBadge expectedReleaseDate={item.expectedReleaseDate ?? null} />}
+                </p>
                 <p className="text-sm text-ink/60">{formatMoney(item.priceAmount, item.currency)} each</p>
+                {item.stockQuantity != null && item.quantity > item.stockQuantity && (
+                  <p className="text-xs text-ink/45">
+                    Only {item.stockQuantity} in stock - the rest will be requested for you
+                  </p>
+                )}
               </div>
             </div>
             <div className="hidden flex-1 sm:block">
-              <p className="font-medium text-ink">{item.title}</p>
+              <p className="flex items-center gap-2 font-medium text-ink">
+                {item.title}
+                {item.isPreorder && <PreorderBadge expectedReleaseDate={item.expectedReleaseDate ?? null} />}
+              </p>
               <p className="text-sm text-ink/60">{formatMoney(item.priceAmount, item.currency)} each</p>
+              {item.stockQuantity != null && item.quantity > item.stockQuantity && (
+                <p className="text-xs text-ink/45">Only {item.stockQuantity} in stock - the rest will be requested for you</p>
+              )}
             </div>
             <div className="flex items-center justify-between gap-3 sm:justify-end">
               <Field label="Qty" className="w-20">
@@ -73,8 +89,14 @@ export function CartPage() {
                   step={1}
                   value={item.quantity}
                   onChange={(e) => {
+                    // Don't clamp an empty field back to 1 immediately - see the identical note on
+                    // OrderItemBuilder's quantity input.
+                    if (e.target.value === '') return
                     const parsed = Math.floor(Number(e.target.value))
-                    setQuantity(item.inventoryItemId, Number.isFinite(parsed) ? Math.max(1, parsed) : 1)
+                    if (Number.isFinite(parsed)) setQuantity(item.inventoryItemId, Math.max(1, parsed))
+                  }}
+                  onBlur={(e) => {
+                    if (e.target.value === '') setQuantity(item.inventoryItemId, 1)
                   }}
                   aria-label={`Quantity for ${item.title}`}
                   className="field-input text-center"
@@ -112,7 +134,11 @@ export function CartPage() {
           )}
         </button>
       </div>
-      {createOrder.isError && <p className="error-text mt-2">Could not submit order.</p>}
+      {createOrder.isError && (
+        <p className="error-text mt-2">
+          {errorMessage(createOrder.error, 'Could not submit order. Please try again.')}
+        </p>
+      )}
     </div>
   )
 }

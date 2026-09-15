@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useInventoryItem } from '../api/inventory'
 import { useCreateOrder } from '../api/orders'
+import { errorMessage } from '../lib/apiClient'
 import { ButtonSpinner } from '../components/Spinner'
 import { OrderItemBuilder, draftFromInventoryItem, type DraftItem } from '../components/OrderItemBuilder'
 import { Field } from '../components/Field'
@@ -45,6 +46,9 @@ export function OrdersNewPage() {
         items={items}
         onAdd={(item) => setItems((current) => [...current, item])}
         onRemove={(index) => setItems((current) => current.filter((_, i) => i !== index))}
+        onUpdateQuantity={(index, quantity) =>
+          setItems((current) => current.map((item, i) => (i === index ? { ...item, input: { ...item.input, quantity } } : item)))
+        }
       />
 
       <button
@@ -61,7 +65,11 @@ export function OrdersNewPage() {
           'Submit request'
         )}
       </button>
-      {createOrder.isError && <p className="error-text mt-2">Could not submit request.</p>}
+      {createOrder.isError && (
+        <p className="error-text mt-2">
+          {errorMessage(createOrder.error, 'Could not submit request. Please try again.')}
+        </p>
+      )}
     </div>
   )
 }

@@ -8,7 +8,7 @@ import { ExternalLinkIcon } from './icons'
 import { formatMoney } from '../lib/currency'
 import type { Currency, OrderItemDto } from '../types/api'
 
-const CONDITION_LABELS: Record<'NEW' | 'USED', string> = { NEW: 'New', USED: 'Used' }
+export const CONDITION_LABELS: Record<'NEW' | 'USED', string> = { NEW: 'New', USED: 'Used' }
 
 function priceLabel(unitPrice: number, currency: Currency, label: string, quantity: number) {
   const suffix = label ? ` ${label}` : ''

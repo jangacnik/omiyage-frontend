@@ -161,6 +161,7 @@ describe('AdminOrdersPage', () => {
     const mergeButton = screen.getByText('Merge 2 into one order')
     expect(mergeButton).not.toBeDisabled()
     await user.click(mergeButton)
+    await user.click(await screen.findByRole('button', { name: 'Merge' }))
 
     await waitFor(() => expect(mergedIds.sort()).toEqual(['order-aaaaaaaa', 'order-bbbbbbbb']))
   })

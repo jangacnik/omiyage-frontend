@@ -215,7 +215,7 @@ describe('OrderDetailPage', () => {
 
     const button = await screen.findByText('Submit for shipping')
     expect(button).toBeDisabled()
-    expect(button).toHaveAttribute('title', expect.stringContaining('preorder'))
+    expect(await screen.findByText(/preorder item/)).toBeInTheDocument()
   })
 
   it('submits for shipping after confirming', async () => {

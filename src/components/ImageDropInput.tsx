@@ -91,7 +91,7 @@ export function ImageDropInput({ label = 'Photo', initialImageKey, disabled, onU
 
   return (
     <div className="flex flex-col gap-1">
-      <span className="field-label">{label}</span>
+      <span className="field-label">{label} <span className="font-normal text-ink/45">(optional)</span></span>
       <div
         className={`flex flex-col items-start gap-2 rounded-lg border border-dashed px-3 py-3 focus-within:ring-2 focus-within:ring-forest ${
           dragActive ? 'border-forest bg-forest/5' : 'border-mist bg-surface'

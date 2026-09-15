@@ -133,6 +133,18 @@ function ShipmentCard({
     updateShipment.mutate({ id: shipment.id, status: newStatus })
   }
 
+  async function handleMarkShipmentPaid() {
+    const count = items.length
+    const ok = await confirm({
+      title: allPaid ? 'Mark shipment unpaid' : 'Mark shipment paid',
+      message: allPaid
+        ? `Mark all ${count} item${count === 1 ? '' : 's'} across this shipment's orders unpaid?`
+        : `Mark all ${count} item${count === 1 ? '' : 's'} across this shipment's orders paid? This overwrites any items that were only individually marked paid or unpaid.`,
+      confirmLabel: allPaid ? 'Mark unpaid' : 'Mark paid',
+    })
+    if (ok) markShipmentPaid.mutate({ shipmentId: shipment.id, paid: !allPaid })
+  }
+
   function toggleSplitOrder(orderId: string) {
     setSplitSelection((current) => (current.includes(orderId) ? current.filter((id) => id !== orderId) : [...current, orderId]))
   }
@@ -176,7 +188,7 @@ function ShipmentCard({
           <button
             type="button"
             className="btn-secondary px-2 py-1 text-xs"
-            onClick={() => markShipmentPaid.mutate({ shipmentId: shipment.id, paid: !allPaid })}
+            onClick={handleMarkShipmentPaid}
             disabled={markShipmentPaid.isPending || items.length === 0}
           >
             {markShipmentPaid.isPending ? <ButtonSpinner /> : allPaid ? 'Mark shipment unpaid' : 'Mark shipment paid'}

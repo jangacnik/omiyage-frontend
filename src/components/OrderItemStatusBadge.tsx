@@ -1,7 +1,7 @@
 import type { OrderItemStatus } from '../types/api'
 import { StatusPill, type StatusTone } from './StatusPill'
 
-const LABELS: Record<OrderItemStatus, string> = {
+export const ORDER_ITEM_STATUS_LABELS: Record<OrderItemStatus, string> = {
   REQUESTED: 'Requested',
   CONFIRMING: 'Confirming',
   BUYING: 'Buying',
@@ -20,5 +20,5 @@ const TONES: Record<OrderItemStatus, StatusTone> = {
 export const ORDER_ITEM_STATUSES: OrderItemStatus[] = ['REQUESTED', 'CONFIRMING', 'BUYING', 'BOUGHT', 'SHIPPED']
 
 export function OrderItemStatusBadge({ status }: { status: OrderItemStatus }) {
-  return <StatusPill tone={TONES[status]} label={LABELS[status]} size="sm" />
+  return <StatusPill tone={TONES[status]} label={ORDER_ITEM_STATUS_LABELS[status]} size="sm" />
 }

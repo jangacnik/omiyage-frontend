@@ -16,14 +16,15 @@ import {
 import { useConfirm } from '../components/ConfirmDialog'
 import { OrderIdHint } from '../components/OrderIdHint'
 import { OrderItemCard } from '../components/OrderItemCard'
-import { CustomItemForm, InventorySearch, draftFromInventoryItem, type DraftItem } from '../components/OrderItemBuilder'
+import { CustomItemForm, InventorySearch, draftFromInventoryItem, preservedContentFields, useAddItemPanelState, type DraftItem } from '../components/OrderItemBuilder'
 import { OrderStatusBadge } from '../components/OrderStatusBadge'
 import { Spinner, ButtonSpinner } from '../components/Spinner'
 import { Field } from '../components/Field'
 import { ImageDropInput } from '../components/ImageDropInput'
 import { TrashIcon } from '../components/icons'
+import { errorMessage } from '../lib/apiClient'
 import { formatMoney } from '../lib/currency'
-import type { OrderDto, OrderItemDto } from '../types/api'
+import type { InventoryItem, OrderDto, OrderItemDto } from '../types/api'
 
 /** soldPrice is what's actually charged; an item not priced yet (still a bare request) falls back
  *  to the max the member set, so the total reads as an estimate rather than silently excluding it.
@@ -32,11 +33,20 @@ import type { OrderDto, OrderItemDto } from '../types/api'
  *  conversion is needed here either. */
 function OrderTotal({ order }: { order: OrderDto }) {
   const total = order.items.reduce((sum, item) => sum + (item.soldPrice ?? item.maxPrice ?? 0) * item.quantity, 0)
-  const isEstimate = order.items.some((item) => item.soldPrice == null)
+  const unpricedCount = order.items.filter((item) => item.soldPrice == null).length
 
   return (
     <div className="flex items-center justify-between border-t border-mist pt-3">
-      <p className="text-sm text-ink/60">Order total{isEstimate && ' (estimated)'}</p>
+      <div>
+        {/* "Items total" (not "Order total") - distinct from a shipment's grand total, which adds
+            this order's shipping cost share on top (see MyShipmentPage's total). */}
+        <p className="text-sm text-ink/60">Items total</p>
+        {unpricedCount > 0 && (
+          <p className="text-xs text-ink/45">
+            Estimated - {unpricedCount} item{unpricedCount === 1 ? '' : 's'} not priced yet, using the max you set
+          </p>
+        )}
+      </div>
       <p className="text-lg font-semibold text-ink">{formatMoney(total, 'EUR')}</p>
     </div>
   )
@@ -164,7 +174,9 @@ function EditableItem({ orderId, item, locked }: { orderId: string; item: OrderI
             </>
           )}
         </OrderItemCard>
-        {removeItem.isError && <p className="error-text mt-1">Could not remove this item.</p>}
+        {removeItem.isError && (
+          <p className="error-text mt-1">{errorMessage(removeItem.error, 'Could not remove this item.')}</p>
+        )}
       </li>
     )
   }
@@ -222,47 +234,77 @@ function EditableItem({ orderId, item, locked }: { orderId: string; item: OrderI
           Cancel
         </button>
       </div>
-      {updateItem.isError && <p className="error-text">Could not save changes.</p>}
+      {updateItem.isError && (
+        <p className="error-text">{errorMessage(updateItem.error, 'Could not save changes.')}</p>
+      )}
     </li>
   )
 }
 
-function AddItemForm({ orderId }: { orderId: string }) {
-  const [open, setOpen] = useState(false)
-  const [showCustomForm, setShowCustomForm] = useState(false)
+function AddItemForm({ orderId, items }: { orderId: string; items: OrderItemDto[] }) {
+  const panel = useAddItemPanelState()
   const addItem = useAddMyOrderItem()
+  const updateItem = useUpdateMyOrderItem()
 
-  if (!open) {
+  if (!panel.open) {
     return (
-      <button type="button" className="btn-secondary self-start" onClick={() => setOpen(true)}>
+      <button type="button" className="btn-secondary self-start" onClick={() => panel.setOpen(true)}>
         Add item
       </button>
     )
   }
 
   function add(draft: DraftItem) {
+    panel.setJustAdded(false)
     addItem.mutate(
       { orderId, ...draft.input },
-      { onSuccess: () => setOpen(false) },
+      // Stay open on success - adding several items to an existing order shouldn't mean reopening
+      // this panel once per item, same as the fresh-order builder already lets you keep going.
+      // Also clear any stale error left over from the other mutation this panel can trigger, so a
+      // fresh success never renders next to old error text.
+      { onSuccess: () => { updateItem.reset(); panel.markAdded() } },
     )
+  }
+
+  function selectInventoryItem(item: InventoryItem) {
+    // Already on this order - bump its quantity instead of adding a second row for the same item,
+    // same dedup OrderItemBuilder does for a fresh order's draft list. A locked (bought/shipped)
+    // item can't take this PATCH at all (backend 409s), so fall through to a plain add for that
+    // case rather than surface a confusing error.
+    const existing = items.find((orderItem) => orderItem.inventoryItemId === item.id)
+    if (existing && !isItemLocked(existing)) {
+      panel.setJustAdded(false)
+      updateItem.mutate(
+        { orderId, itemId: existing.id, ...preservedContentFields(existing), quantity: existing.quantity + 1 },
+        { onSuccess: () => { addItem.reset(); panel.markAdded() } },
+      )
+    } else {
+      add(draftFromInventoryItem(item))
+    }
   }
 
   return (
     <div className="flex flex-col gap-2">
-      <InventorySearch onSelect={(item) => add(draftFromInventoryItem(item))} onCreateCustom={() => setShowCustomForm(true)} />
+      <InventorySearch onSelect={selectInventoryItem} onCreateCustom={() => panel.setShowCustomForm(true)} onSearchTextChange={panel.setSearching} />
 
-      {showCustomForm ? (
+      {panel.showCustomForm ? (
         <CustomItemForm onAdd={add} />
       ) : (
-        <button type="button" className="btn-secondary self-start" onClick={() => setShowCustomForm(true)}>
-          Can't find it? Create a custom request
-        </button>
+        !panel.searching && (
+          <button type="button" className="btn-secondary self-start" onClick={() => panel.setShowCustomForm(true)}>
+            Can't find it? Create a custom request
+          </button>
+        )
       )}
 
-      <button type="button" className="btn-secondary self-start px-3 py-1.5 text-sm" onClick={() => setOpen(false)}>
-        Cancel
+      {panel.justAdded && !addItem.isPending && <p className="text-sm font-medium text-forest">Item added.</p>}
+
+      <button type="button" className="btn-secondary self-start px-3 py-1.5 text-sm" onClick={panel.close}>
+        Done
       </button>
-      {addItem.isError && <p className="error-text">Could not add item.</p>}
+      {(addItem.isError || updateItem.isError) && (
+        <p className="error-text">{errorMessage(addItem.error ?? updateItem.error, 'Could not add item.')}</p>
+      )}
     </div>
   )
 }
@@ -304,7 +346,12 @@ function SplitItemsPanel({ order }: { order: OrderDto }) {
       >
         {splitOrder.isPending ? <ButtonSpinner /> : 'Split selected into new order'}
       </button>
-      {splitOrder.isError && <p className="error-text">Could not split these items.</p>}
+      {selected.length === order.items.length && (
+        <p className="text-xs text-ink/50">Leave at least one item behind - selecting everything would just move the whole order.</p>
+      )}
+      {splitOrder.isError && (
+        <p className="error-text">{errorMessage(splitOrder.error, 'Could not split these items.')}</p>
+      )}
     </div>
   )
 }
@@ -344,6 +391,16 @@ export function OrderDetailPage() {
     if (ok) submitForShipping.mutate(order.id)
   }
 
+  async function handleLeaveShipment() {
+    if (!order) return
+    const ok = await confirm({
+      title: 'Remove from shipment',
+      message: "Remove this order from its shipment? It goes back to being shipped on its own, which changes everyone else's shipping cost share.",
+      confirmLabel: 'Remove',
+    })
+    if (ok) leaveShipment.mutate(order.id)
+  }
+
   return (
     <div className="card flex flex-col gap-3">
       <div className="flex flex-wrap items-center gap-3">
@@ -363,7 +420,6 @@ export function OrderDetailPage() {
             className="btn-secondary px-3 py-1.5 text-sm"
             onClick={handleSubmitForShipping}
             disabled={submitForShipping.isPending || hasPreorderItem}
-            title={hasPreorderItem ? 'This order has a preorder item that has not released yet - it cannot be submitted for shipping until it does.' : undefined}
           >
             {submitForShipping.isPending ? <ButtonSpinner /> : 'Submit for shipping'}
           </button>
@@ -371,7 +427,7 @@ export function OrderDetailPage() {
             <button
               type="button"
               className="btn-secondary px-3 py-1.5 text-sm"
-              onClick={() => leaveShipment.mutate(order.id)}
+              onClick={handleLeaveShipment}
               disabled={leaveShipment.isPending}
             >
               {leaveShipment.isPending ? <ButtonSpinner /> : 'Remove from shipment'}
@@ -382,13 +438,31 @@ export function OrderDetailPage() {
           </button>
         </div>
       )}
-      {leaveShipment.isError && <p className="error-text">Could not remove this order from its shipment (it may have already shipped).</p>}
+      {hasPreorderItem && order.open && (
+        <p className="text-sm text-ink/50">
+          This order has a preorder item that hasn't released yet, so it can't be submitted for shipping until it does.
+          {order.items.length > 1
+            ? ' Split the preorder item into its own order below to ship the rest now.'
+            : ''}
+        </p>
+      )}
+      {leaveShipment.isError && (
+        <p className="error-text">
+          {errorMessage(leaveShipment.error, 'Could not remove this order from its shipment (it may have already shipped).')}
+        </p>
+      )}
       {hasLockedItem && order.open && (
         <p className="text-sm text-ink/50">This order has items already bought or shipped, so it can no longer be cancelled as a whole.</p>
       )}
-      {cancelOrder.isError && <p className="error-text">Could not cancel this order (it may have items already bought or shipped).</p>}
+      {cancelOrder.isError && (
+        <p className="error-text">
+          {errorMessage(cancelOrder.error, 'Could not cancel this order (it may have items already bought or shipped).')}
+        </p>
+      )}
       {submitForShipping.isError && (
-        <p className="error-text">Could not submit for shipping (only the shipment's owner can do this).</p>
+        <p className="error-text">
+          {errorMessage(submitForShipping.error, "Could not submit for shipping (only the shipment's owner can do this).")}
+        </p>
       )}
 
       <ul className="flex flex-col divide-y divide-mist">
@@ -399,7 +473,7 @@ export function OrderDetailPage() {
 
       <OrderTotal order={order} />
 
-      {order.open && <AddItemForm orderId={order.id} />}
+      {order.open && <AddItemForm orderId={order.id} items={order.items} />}
       {order.open && <SplitItemsPanel order={order} />}
     </div>
   )

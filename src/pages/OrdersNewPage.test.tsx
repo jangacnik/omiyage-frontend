@@ -107,7 +107,7 @@ describe('OrdersNewPage', () => {
 
   it('shows an error and stays on the page when submitting fails', async () => {
     const user = userEvent.setup()
-    server.use(http.post(`${BASE}/api/orders`, () => HttpResponse.json({ message: 'nope' }, { status: 500 })))
+    server.use(http.post(`${BASE}/api/orders`, () => HttpResponse.json({ error: 'One of the items could not be requested.' }, { status: 500 })))
 
     renderPage(['/orders/new'])
     await user.click(screen.getByText("Can't find it? Create a custom request"))
@@ -115,7 +115,7 @@ describe('OrdersNewPage', () => {
     await user.click(screen.getByText('Add item'))
     await user.click(screen.getByText('Submit request'))
 
-    expect(await screen.findByText('Could not submit request.')).toBeInTheDocument()
+    expect(await screen.findByText('One of the items could not be requested.')).toBeInTheDocument()
     expect(screen.getByLabelText('Order nickname')).toBeInTheDocument()
   })
 

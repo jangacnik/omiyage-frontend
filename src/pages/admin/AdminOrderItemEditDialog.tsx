@@ -31,31 +31,32 @@ export function AdminOrderItemEditDialog({
   const saving = updateContent.isPending || updateItem.isPending
 
   async function save() {
-    try {
-      await Promise.all([
-        updateContent.mutateAsync({
-          orderId,
-          itemId: item.id,
-          title,
-          description,
-          maxPrice: maxPrice ? Number(maxPrice) : undefined,
-          quantity: quantity ? Number(quantity) : undefined,
-          link: link || undefined,
-          imageKey,
-        }),
-        updateItem.mutateAsync({
-          orderId,
-          itemId: item.id,
-          status,
-          actualPrice: actualPrice ? Number(actualPrice) : undefined,
-          soldPrice: soldPrice ? Number(soldPrice) : undefined,
-          weight: weight ? Number(weight) : undefined,
-        }),
-      ])
-      onClose()
-    } catch {
-      // isError below renders the message - stay open so the admin can retry.
-    }
+    // allSettled, not all - these are two independent PATCHes (details vs status/price/weight).
+    // One can succeed while the other 400s on bad input; with Promise.all a single rejection would
+    // still leave the other's mutation already committed server-side, but reporting it here as an
+    // undifferentiated failure. Settling both first means each mutation's own isError flag below
+    // reflects reality, and only closes the dialog once everything actually saved.
+    const [contentResult, itemResult] = await Promise.allSettled([
+      updateContent.mutateAsync({
+        orderId,
+        itemId: item.id,
+        title,
+        description,
+        maxPrice: maxPrice ? Number(maxPrice) : undefined,
+        quantity: quantity ? Number(quantity) : undefined,
+        link: link || undefined,
+        imageKey,
+      }),
+      updateItem.mutateAsync({
+        orderId,
+        itemId: item.id,
+        status,
+        actualPrice: actualPrice ? Number(actualPrice) : undefined,
+        soldPrice: soldPrice ? Number(soldPrice) : undefined,
+        weight: weight ? Number(weight) : undefined,
+      }),
+    ])
+    if (contentResult.status === 'fulfilled' && itemResult.status === 'fulfilled') onClose()
   }
 
   return (
@@ -129,37 +130,44 @@ export function AdminOrderItemEditDialog({
           </select>
         </Field>
 
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-          <Field label="Bought for" hint="In JPY - how much I paid for the item">
-            <input
-              type="number"
-              step="1"
-              value={actualPrice}
-              onChange={(e) => setActualPrice(e.target.value)}
-              aria-label="Bought for, in JPY"
-              className="field-input"
-            />
-          </Field>
+        {/* Distinct tinted box: this pair is easy to mix up under time pressure since they sit right
+            next to each other in the same layout as maxPrice/quantity above - one is our internal
+            cost (never customer-visible), the other is what the customer is actually charged. */}
+        <div className="flex flex-col gap-3 rounded-lg bg-mist/60 p-3">
+          <p className="text-xs font-medium text-ink/50">Money - what we paid vs. what the customer pays</p>
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <Field label="Bought for" hint="In JPY - internal only, never shown to the customer">
+              <input
+                type="number"
+                step="1"
+                value={actualPrice}
+                onChange={(e) => setActualPrice(e.target.value)}
+                aria-label="Bought for, in JPY"
+                className="field-input"
+              />
+            </Field>
 
-          <Field label="Sold for" hint="In EUR - how much I charged for it">
-            <input
-              type="number"
-              step="0.01"
-              value={soldPrice}
-              onChange={(e) => setSoldPrice(e.target.value)}
-              aria-label="Sold for, in EUR"
-              className="field-input"
-            />
-          </Field>
+            <Field label="Sold for" hint="In EUR - what the customer is charged">
+              <input
+                type="number"
+                step="0.01"
+                value={soldPrice}
+                onChange={(e) => setSoldPrice(e.target.value)}
+                aria-label="Sold for, in EUR"
+                className="field-input"
+              />
+            </Field>
+          </div>
         </div>
 
         <Field label="Weight" hint="In grams">
           <input type="number" min={0} value={weight} onChange={(e) => setWeight(e.target.value)} aria-label="Weight" className="field-input" />
         </Field>
 
-        {(updateContent.isError || updateItem.isError) && <p className="error-text">Could not save changes.</p>}
+        {updateContent.isError && <p className="error-text">Could not save the item details (title, description, price, link, photo).</p>}
+        {updateItem.isError && <p className="error-text">Could not save the status/pricing/weight change.</p>}
 
-        <div className="flex justify-end gap-2">
+        <div className="sticky bottom-0 -mx-4 -mb-4 mt-1 flex justify-end gap-2 border-t border-mist bg-surface px-4 py-3">
           <button type="button" className="btn-secondary px-3 py-1.5 text-sm" onClick={onClose}>
             Cancel
           </button>

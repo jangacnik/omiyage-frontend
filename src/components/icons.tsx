@@ -26,6 +26,14 @@ export function TrashIcon({ size = 14 }: IconProps) {
   )
 }
 
+export function CheckIcon({ size = 14 }: IconProps) {
+  return (
+    <svg {...base(size)}>
+      <path d="M4 12.5 L9.5 18 L20 5.5" />
+    </svg>
+  )
+}
+
 export function CartIcon({ size = 14 }: IconProps) {
   return (
     <svg {...base(size)}>

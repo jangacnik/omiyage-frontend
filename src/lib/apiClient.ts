@@ -12,6 +12,13 @@ export class ApiError extends Error {
   }
 }
 
+/** The one place every "X.isError && <p>...</p>" block should get its text from - prefers the
+ *  backend's own message (it usually explains exactly why the request was rejected) and only
+ *  falls back to the caller's copy for a non-ApiError failure (network drop, etc). */
+export function errorMessage(error: unknown, fallback: string): string {
+  return error instanceof ApiError ? error.message : fallback
+}
+
 async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
   const token = useAuthStore.getState().token
   const headers = new Headers(init.headers)

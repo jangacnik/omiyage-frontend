@@ -1,15 +1,56 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import { Link } from 'react-router-dom'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 import { useInventory } from '../api/inventory'
-import type { CreateOrderItemInput } from '../api/orders'
+import type { CreateOrderItemInput, UpdateMyOrderItemInput } from '../api/orders'
+import { CONDITION_LABELS } from './OrderItemCard'
 import { Field } from './Field'
 import { ImageDropInput } from './ImageDropInput'
 import { PreorderBadge } from './PreorderBadge'
+import { ButtonSpinner } from './Spinner'
 import { ThumbnailImage } from './ThumbnailImage'
 import { TrashIcon } from './icons'
-import type { InventoryItem } from '../types/api'
+import { formatMoney } from '../lib/currency'
+import type { InventoryItem, OrderItemDto } from '../types/api'
+
+/** The quantity-bump PATCH (member and admin add-item panels, when re-selecting a catalog item
+ *  already on the order) fully replaces an item's content, not just quantity - see
+ *  OrderService.applyItemContentEdit on the backend. Carries every other field forward unchanged
+ *  so bumping quantity can't silently wipe title/description/maxPrice/link/photo. */
+export function preservedContentFields(item: OrderItemDto): Omit<UpdateMyOrderItemInput, 'quantity'> {
+  return {
+    title: item.title,
+    description: item.description ?? undefined,
+    imageKey: item.imageKey ?? undefined,
+    maxPrice: item.maxPrice ?? undefined,
+    link: item.link ?? undefined,
+  }
+}
+
+/** Shared open/searching/justAdded state machine for an "add item to an existing order" panel -
+ *  used identically by the member-facing AddItemForm (order detail page) and the admin equivalent,
+ *  which otherwise wire up their own mutations and only differ in that. */
+export function useAddItemPanelState() {
+  const [open, setOpen] = useState(false)
+  const [showCustomForm, setShowCustomForm] = useState(false)
+  const [searching, setSearching] = useState(false)
+  const [justAdded, setJustAdded] = useState(false)
+
+  function markAdded() {
+    setShowCustomForm(false)
+    setJustAdded(true)
+  }
+
+  function close() {
+    setOpen(false)
+    setShowCustomForm(false)
+    setJustAdded(false)
+  }
+
+  return { open, setOpen, showCustomForm, setShowCustomForm, searching, setSearching, justAdded, setJustAdded, markAdded, close }
+}
 
 export interface DraftItem {
   input: CreateOrderItemInput
@@ -57,7 +98,7 @@ export function CustomItemForm({ onAdd }: { onAdd: (item: DraftItem) => void }) 
     reset,
     watch,
     formState: { errors },
-  } = useForm<CustomItemForm>({ resolver: zodResolver(customItemSchema), defaultValues: { condition: 'NEW' } })
+  } = useForm<CustomItemForm>({ resolver: zodResolver(customItemSchema), defaultValues: { condition: 'NEW', quantity: '1' } })
   const isPreorder = watch('isPreorder')
 
   function onSubmit(data: CustomItemForm) {
@@ -106,7 +147,7 @@ export function CustomItemForm({ onAdd }: { onAdd: (item: DraftItem) => void }) 
           <input type="number" step="0.01" className="field-input" {...register('maxPrice')} aria-label="Max price" />
         </Field>
         <Field label="Qty" className="sm:w-32">
-          <input type="number" min={1} placeholder="1" className="field-input" {...register('quantity')} aria-label="Quantity" />
+          <input type="number" min={1} className="field-input" {...register('quantity')} aria-label="Quantity" />
         </Field>
       </div>
       <Field label="Link to store page" hint="Optional">
@@ -130,42 +171,96 @@ export function CustomItemForm({ onAdd }: { onAdd: (item: DraftItem) => void }) 
   )
 }
 
-export function InventorySearch({ onSelect, onCreateCustom }: { onSelect: (item: InventoryItem) => void; onCreateCustom: () => void }) {
+const SEARCH_RESULTS_LIMIT = 8
+
+export function InventorySearch({
+  onSelect,
+  onCreateCustom,
+  onSearchTextChange,
+}: {
+  onSelect: (item: InventoryItem) => void
+  onCreateCustom: () => void
+  /** Fires whenever the search box goes from empty to non-empty or back - lets a parent hide its
+   *  own "create custom" entry point while this one's contextual prompt is already on screen. */
+  onSearchTextChange?: (hasText: boolean) => void
+}) {
   const [search, setSearch] = useState('')
-  const query = search.trim()
-  const { data } = useInventory({ title: query, page: 0, enabled: query.length > 0 })
-  const results = query ? (data?.content ?? []) : []
+  const [debouncedQuery, setDebouncedQuery] = useState('')
+
+  useEffect(() => {
+    const timeout = setTimeout(() => setDebouncedQuery(search.trim()), 300)
+    return () => clearTimeout(timeout)
+  }, [search])
+
+  useEffect(() => {
+    onSearchTextChange?.(search.trim().length > 0)
+  }, [search, onSearchTextChange])
+
+  const { data, isFetching } = useInventory({ title: debouncedQuery, page: 0, size: SEARCH_RESULTS_LIMIT, enabled: debouncedQuery.length > 0 })
+  // useInventory keeps the previous page's data visible (placeholderData) while a new query
+  // fetches, so the results list itself doesn't need to hide during isFetching - only "no match"
+  // does, since a fast typist would otherwise see a false "no matching item" flash between
+  // keystrokes and the next request landing.
+  const hasQuery = debouncedQuery.length > 0
+  const results = hasQuery ? (data?.content ?? []) : []
+  const showNoMatch = hasQuery && !isFetching && results.length === 0
+  const moreResultsExist = (data?.totalElements ?? 0) > results.length
 
   return (
     <div className="card flex flex-col gap-2">
-      <input
-        placeholder="Search inventory to add an item..."
-        className="field-input"
-        value={search}
-        onChange={(e) => setSearch(e.target.value)}
-        aria-label="Search inventory"
-      />
-      {query && results.length > 0 && (
-        <ul className="flex flex-col divide-y divide-mist">
-          {results.map((item) => (
-            <li key={item.id}>
-              <button
-                type="button"
-                className="flex w-full items-center gap-3 rounded-lg p-2 text-left hover:bg-mist"
-                onClick={() => {
-                  onSelect(item)
-                  setSearch('')
-                }}
-              >
-                <ThumbnailImage imageKey={item.images[0]} className="h-10 w-10 shrink-0 rounded-lg" />
-                <span className="text-sm text-ink/80">{item.title}</span>
-                {item.isPreorder && <PreorderBadge expectedReleaseDate={item.expectedReleaseDate} />}
-              </button>
-            </li>
-          ))}
-        </ul>
+      <div className="relative">
+        <input
+          placeholder="Search inventory to add an item..."
+          className="field-input"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          aria-label="Search inventory"
+        />
+        {isFetching && (
+          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-ink/40">
+            <ButtonSpinner />
+          </span>
+        )}
+      </div>
+      {hasQuery && results.length > 0 && (
+        <>
+          <ul className="flex flex-col divide-y divide-mist">
+            {results.map((item) => (
+              <li key={item.id}>
+                <button
+                  type="button"
+                  className="flex w-full items-center gap-3 rounded-lg p-2 text-left hover:bg-mist"
+                  onClick={() => {
+                    onSelect(item)
+                    setSearch('')
+                    setDebouncedQuery('')
+                  }}
+                >
+                  <ThumbnailImage imageKey={item.images[0]} className="h-10 w-10 shrink-0 rounded-lg" />
+                  <span className="text-sm text-ink/80">{item.title}</span>
+                  {item.isPreorder && <PreorderBadge expectedReleaseDate={item.expectedReleaseDate} />}
+                </button>
+              </li>
+            ))}
+          </ul>
+          {/* Hidden while a newer query is in flight - results/count above are still the previous
+              query's placeholderData at that point, so this link's count could otherwise promise
+              a total that doesn't match where it actually lands. New tab: this dropdown usually
+              sits inside an in-progress draft order (OrdersNewPage, CreateOrderForUser) that lives
+              only in local state - navigating away in the same tab would silently lose it. */}
+          {moreResultsExist && !isFetching && (
+            <Link
+              to={`/inventory?title=${encodeURIComponent(debouncedQuery)}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-sm text-forest hover:underline"
+            >
+              See all {data?.totalElements} results in Inventory →
+            </Link>
+          )}
+        </>
       )}
-      {query && results.length === 0 && (
+      {showNoMatch && (
         <p className="text-sm text-ink/60">
           No matching item.{' '}
           <button type="button" className="text-forest underline" onClick={onCreateCustom}>
@@ -179,17 +274,30 @@ export function InventorySearch({ onSelect, onCreateCustom }: { onSelect: (item:
 
 /** Search-inventory-first item builder for an order: select a match to add it directly, or fall
  *  through to a custom-item form when nothing matches. Shared by the user's new-order page and
- *  the admin's create-order-for-user form. */
+ *  the admin's create-order-for-user form. Selecting a catalog item already in the draft list bumps
+ *  its quantity instead of adding a second row for the same item. */
 export function OrderItemBuilder({
   items,
   onAdd,
   onRemove,
+  onUpdateQuantity,
 }: {
   items: DraftItem[]
   onAdd: (item: DraftItem) => void
   onRemove: (index: number) => void
+  onUpdateQuantity: (index: number, quantity: number) => void
 }) {
   const [showCustomForm, setShowCustomForm] = useState(false)
+  const [searching, setSearching] = useState(false)
+
+  function handleSelectInventoryItem(item: InventoryItem) {
+    const existingIndex = items.findIndex((draft) => draft.input.inventoryItemId === item.id)
+    if (existingIndex >= 0) {
+      onUpdateQuantity(existingIndex, (items[existingIndex].input.quantity ?? 1) + 1)
+    } else {
+      onAdd(draftFromInventoryItem(item))
+    }
+  }
 
   return (
     <div className="flex flex-col gap-4">
@@ -199,18 +307,46 @@ export function OrderItemBuilder({
             <li key={index} className="card flex flex-col gap-2 py-2 sm:flex-row sm:items-center sm:justify-between">
               <span className="flex items-center gap-3">
                 <ThumbnailImage imageKey={item.imageKey} className="h-10 w-10 shrink-0 rounded-lg" />
-                <span className="text-sm text-ink/80">{item.displayTitle}</span>
+                <span className="flex flex-col">
+                  <span className="text-sm text-ink/80">{item.displayTitle}</span>
+                  <span className="text-xs text-ink/50">
+                    {item.input.condition && `${CONDITION_LABELS[item.input.condition]} · `}
+                    {item.input.maxPrice != null ? `max ${formatMoney(item.input.maxPrice, 'EUR')}` : 'no max price set'}
+                  </span>
+                </span>
                 {item.isPreorder && <PreorderBadge expectedReleaseDate={item.expectedReleaseDate ?? null} />}
               </span>
-              <button type="button" className="btn-danger px-2 py-1 text-xs" onClick={() => onRemove(index)}>
-                <TrashIcon size={13} /> Remove
-              </button>
+              <span className="flex items-center gap-2 self-end sm:self-auto">
+                <Field label="Qty" className="w-20">
+                  <input
+                    type="number"
+                    min={1}
+                    value={item.input.quantity ?? 1}
+                    onChange={(e) => {
+                      // Don't clamp an empty field back to 1 immediately - that makes clearing the
+                      // box to retype a multi-digit number impossible, since every intermediate ''
+                      // would otherwise snap straight back to 1.
+                      if (e.target.value === '') return
+                      const parsed = Math.floor(Number(e.target.value))
+                      if (Number.isFinite(parsed)) onUpdateQuantity(index, Math.max(1, parsed))
+                    }}
+                    onBlur={(e) => {
+                      if (e.target.value === '') onUpdateQuantity(index, 1)
+                    }}
+                    aria-label={`Quantity for ${item.displayTitle}`}
+                    className="field-input text-center"
+                  />
+                </Field>
+                <button type="button" className="btn-danger px-2 py-1 text-xs" onClick={() => onRemove(index)}>
+                  <TrashIcon size={13} /> Remove
+                </button>
+              </span>
             </li>
           ))}
         </ul>
       )}
 
-      <InventorySearch onSelect={(item) => onAdd(draftFromInventoryItem(item))} onCreateCustom={() => setShowCustomForm(true)} />
+      <InventorySearch onSelect={handleSelectInventoryItem} onCreateCustom={() => setShowCustomForm(true)} onSearchTextChange={setSearching} />
 
       {showCustomForm ? (
         <CustomItemForm
@@ -220,9 +356,11 @@ export function OrderItemBuilder({
           }}
         />
       ) : (
-        <button type="button" className="btn-secondary self-start" onClick={() => setShowCustomForm(true)}>
-          Can't find it? Create a custom request
-        </button>
+        !searching && (
+          <button type="button" className="btn-secondary self-start" onClick={() => setShowCustomForm(true)}>
+            Can't find it? Create a custom request
+          </button>
+        )
       )}
     </div>
   )

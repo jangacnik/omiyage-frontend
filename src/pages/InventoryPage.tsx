@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { useCategories, useInventory } from '../api/inventory'
 import { useDeleteInventoryItem } from '../api/adminInventory'
 import { useAuthStore } from '../store/authStore'
@@ -10,8 +11,10 @@ import { InventoryItemEditForm } from '../components/InventoryItemEditForm'
 
 export function InventoryPage() {
   const isAdmin = useAuthStore((s) => s.claims?.role === 'ADMIN')
-  const [titleInput, setTitleInput] = useState('')
-  const [title, setTitle] = useState('')
+  const [searchParams] = useSearchParams()
+  const urlTitle = searchParams.get('title') ?? ''
+  const [titleInput, setTitleInput] = useState(urlTitle)
+  const [title, setTitle] = useState(urlTitle)
   const [categoryId, setCategoryId] = useState('')
   const [inStockOnly, setInStockOnly] = useState(false)
   const [page, setPage] = useState(0)
@@ -27,8 +30,17 @@ export function InventoryPage() {
     return () => clearTimeout(timeout)
   }, [titleInput])
 
+  // initialTitle only seeds state on mount - if this page stays mounted and something (e.g. the
+  // "See all N results in Inventory" link from a search dropdown) re-enters it with a different
+  // ?title=, resync from the URL instead of silently keeping whatever was typed before.
+  useEffect(() => {
+    setTitleInput(urlTitle)
+    setTitle(urlTitle)
+    setPage(0)
+  }, [urlTitle])
+
   const { data: categories } = useCategories()
-  const { data, isLoading, isError } = useInventory({ title, categoryId: categoryId || undefined, inStockOnly, page })
+  const { data, isLoading, isError, refetch, isRefetching } = useInventory({ title, categoryId: categoryId || undefined, inStockOnly, page })
   const editingItem = data?.content.find((item) => item.id === editingId)
 
   async function handleDelete(id: string, itemTitle: string) {
@@ -91,7 +103,14 @@ export function InventoryPage() {
       </div>
 
       {isLoading && <Spinner label="Fetching inventory" />}
-      {isError && <p className="error-text">Could not load inventory.</p>}
+      {isError && (
+        <div className="card flex flex-col items-center gap-1 py-8 text-center">
+          <p className="error-text">Could not load inventory.</p>
+          <button type="button" className="btn-secondary mt-2" onClick={() => refetch()} disabled={isRefetching}>
+            {isRefetching ? 'Retrying…' : 'Retry'}
+          </button>
+        </div>
+      )}
       {data && data.content.length === 0 && (
         <div className="card flex flex-col items-center gap-1 py-12 text-center">
           <p className="font-medium text-ink">Nothing here yet</p>

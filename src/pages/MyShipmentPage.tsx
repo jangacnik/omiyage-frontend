@@ -11,6 +11,7 @@ import { orderDisplayName } from '../api/orders'
 import { Field } from '../components/Field'
 import { OrderIdHint } from '../components/OrderIdHint'
 import { OrderStatusBadge } from '../components/OrderStatusBadge'
+import { ShipmentStatusBadge } from '../components/ShipmentStatusBadge'
 import { OrderItemStatusBadge } from '../components/OrderItemStatusBadge'
 import { ButtonSpinner, Spinner } from '../components/Spinner'
 import { formatGrams, formatMoney } from '../lib/currency'
@@ -221,7 +222,7 @@ export function MyShipmentPage() {
     <div className="card flex flex-col gap-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <TitleEditor id={shipment.id} title={shipment.title} editable={isOwner} />
-        <span className="rounded-full bg-mist px-2.5 py-0.5 text-sm font-medium text-ink">{shipment.status}</span>
+        <ShipmentStatusBadge status={shipment.status} />
       </div>
 
       <div className="flex flex-wrap items-center gap-6 text-sm text-ink/80" style={{ fontVariantNumeric: 'tabular-nums' }}>

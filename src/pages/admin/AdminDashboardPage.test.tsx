@@ -214,7 +214,7 @@ describe('AdminDashboardPage', () => {
     const user = userEvent.setup()
     server.use(
       http.get(`${BASE}/api/admin/dashboard/users`, () => HttpResponse.json([entry()])),
-      http.post(`${BASE}/api/admin/orders/for-user/user-1`, () => HttpResponse.json({ message: 'nope' }, { status: 500 })),
+      http.post(`${BASE}/api/admin/orders/for-user/user-1`, () => HttpResponse.json({ error: 'That user could not be found.' }, { status: 500 })),
     )
 
     renderWithProviders(<AdminDashboardPage />)
@@ -225,6 +225,6 @@ describe('AdminDashboardPage', () => {
     await user.click(screen.getByText('Add item'))
     await user.click(screen.getByRole('button', { name: 'Create order' }))
 
-    expect(await screen.findByText('Could not create the order.')).toBeInTheDocument()
+    expect(await screen.findByText('That user could not be found.')).toBeInTheDocument()
   })
 })

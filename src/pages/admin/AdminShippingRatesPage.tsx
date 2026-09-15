@@ -10,7 +10,7 @@ import { Field } from '../../components/Field'
 import { Spinner } from '../../components/Spinner'
 import { useConfirm } from '../../components/ConfirmDialog'
 import { TrashIcon } from '../../components/icons'
-import { ApiError } from '../../lib/apiClient'
+import { errorMessage } from '../../lib/apiClient'
 import { formatGrams, formatMoney } from '../../lib/currency'
 import type { ShipmentDestination, ShippingMethod, ShippingRateDto } from '../../types/api'
 
@@ -27,7 +27,7 @@ function destinationLabel(destination: ShipmentDestination): string {
 }
 
 function errorMessageOf(error: unknown): string {
-  return error instanceof ApiError ? error.message : 'Something went wrong. Please try again.'
+  return errorMessage(error, 'Something went wrong. Please try again.')
 }
 
 interface NewRateForm {

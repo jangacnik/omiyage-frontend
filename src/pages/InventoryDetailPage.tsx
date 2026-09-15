@@ -6,7 +6,9 @@ import { Spinner } from '../components/Spinner'
 import { StatusPill } from '../components/StatusPill'
 import { ThumbnailImage } from '../components/ThumbnailImage'
 import { formatMoney } from '../lib/currency'
-import { useCartStore } from '../store/cartStore'
+import { CheckIcon } from '../components/icons'
+import { ApiError } from '../lib/apiClient'
+import { cartItemFromInventoryItem, useAddToCartFeedback, useCartStore } from '../store/cartStore'
 
 function ImageCarousel({ images, alt }: { images: string[]; alt: string }) {
   const [index, setIndex] = useState(0)
@@ -58,11 +60,33 @@ function ImageCarousel({ images, alt }: { images: string[]; alt: string }) {
 
 export function InventoryDetailPage() {
   const { id } = useParams<{ id: string }>()
-  const { data: item, isLoading, isError } = useInventoryItem(id)
+  const { data: item, isLoading, isError, error, refetch, isRefetching } = useInventoryItem(id)
   const addToCart = useCartStore((s) => s.addItem)
+  const { justAdded, announce } = useAddToCartFeedback()
 
   if (isLoading) return <Spinner fullPage label="Fetching item" />
-  if (isError || !item) return <p className="error-text">Item not found.</p>
+  // Check item presence before isError - once a page has loaded, a failed background refetch (a
+  // Retry click, or react-query's own retry) must not blank out data that's still perfectly valid.
+  if (!item) {
+    if (isError && !(error instanceof ApiError && error.status === 404)) {
+      return (
+        <div className="card flex flex-col items-center gap-2 py-12 text-center">
+          <p className="font-medium text-ink">Could not load this item</p>
+          <p className="text-sm text-ink/55">Something went wrong reaching the server.</p>
+          <button type="button" className="btn-secondary mt-2" onClick={() => refetch()} disabled={isRefetching}>
+            {isRefetching ? 'Retrying…' : 'Retry'}
+          </button>
+        </div>
+      )
+    }
+    return <p className="error-text">Item not found.</p>
+  }
+
+  function handleAddToCart() {
+    if (!item) return
+    addToCart(cartItemFromInventoryItem(item))
+    announce()
+  }
 
   return (
     <div className="card flex flex-col gap-4 md:flex-row">
@@ -89,26 +113,26 @@ export function InventoryDetailPage() {
             </>
           )}
         </dl>
-        <div className="mt-2 flex gap-2">
-          <button
-            type="button"
-            className="btn-primary self-start"
-            onClick={() =>
-              addToCart({
-                inventoryItemId: item.id,
-                title: item.title,
-                imageKey: item.images[0],
-                priceAmount: item.priceAmount,
-                currency: item.currency,
-              })
-            }
-          >
-            Add to cart
+        <div className="mt-2 flex flex-wrap items-center gap-2">
+          <button type="button" className="btn-primary self-start" onClick={handleAddToCart}>
+            {justAdded ? (
+              <>
+                <CheckIcon size={14} /> Added to cart
+              </>
+            ) : (
+              'Add to cart'
+            )}
           </button>
           <Link to={`/orders/new?inventoryItemId=${item.id}`} className="btn-secondary self-start">
-            Request this item
+            Request with different price or condition
           </Link>
+          <span className="sr-only" role="status" aria-live="polite">
+            {justAdded ? `${item.title} added to cart` : ''}
+          </span>
         </div>
+        <p className="text-xs text-ink/45">
+          Add to cart to buy at the listed price. Use the other option to set your own max price, condition, or request a preorder date.
+        </p>
       </div>
     </div>
   )

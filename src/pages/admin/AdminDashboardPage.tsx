@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { useUserDashboard, useUserDeliveredOrders } from '../../api/adminDashboard'
 import { useAdminCreateOrderForUser, useAdminMarkItemPaid } from '../../api/adminOrders'
 import { orderDisplayName } from '../../api/orders'
+import { errorMessage } from '../../lib/apiClient'
 import { Avatar } from '../../components/Avatar'
 import { Field } from '../../components/Field'
 import { OrderIdHint } from '../../components/OrderIdHint'
@@ -37,6 +38,9 @@ function CreateOrderForUser({ userId, onDone }: { userId: string; onDone: () => 
         items={items}
         onAdd={(item) => setItems((current) => [...current, item])}
         onRemove={(index) => setItems((current) => current.filter((_, i) => i !== index))}
+        onUpdateQuantity={(index, quantity) =>
+          setItems((current) => current.map((item, i) => (i === index ? { ...item, input: { ...item.input, quantity } } : item)))
+        }
       />
       <div className="flex items-center gap-2">
         <button type="button" className="btn-primary" disabled={items.length === 0 || createOrder.isPending} onClick={submit}>
@@ -46,7 +50,11 @@ function CreateOrderForUser({ userId, onDone }: { userId: string; onDone: () => 
           Cancel
         </button>
       </div>
-      {createOrder.isError && <p className="error-text">Could not create the order.</p>}
+      {createOrder.isError && (
+        <p className="error-text">
+          {errorMessage(createOrder.error, 'Could not create the order. Please try again.')}
+        </p>
+      )}
     </div>
   )
 }

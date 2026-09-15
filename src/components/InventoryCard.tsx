@@ -3,8 +3,8 @@ import { PreorderBadge } from './PreorderBadge'
 import { StatusPill } from './StatusPill'
 import { ThumbnailImage } from './ThumbnailImage'
 import { formatMoney } from '../lib/currency'
-import { TrashIcon } from './icons'
-import { useCartStore } from '../store/cartStore'
+import { CheckIcon, TrashIcon } from './icons'
+import { cartItemFromInventoryItem, useAddToCartFeedback, useCartStore } from '../store/cartStore'
 import type { InventoryItem } from '../types/api'
 
 /** Card-grid tile shared by the public inventory browse page and the admin inventory page.
@@ -19,6 +19,12 @@ export function InventoryCard({
   onDelete?: () => void
 }) {
   const addToCart = useCartStore((s) => s.addItem)
+  const { justAdded, announce } = useAddToCartFeedback()
+
+  function handleAddToCart() {
+    addToCart(cartItemFromInventoryItem(item))
+    announce()
+  }
 
   return (
     <div className="card card-interactive group relative overflow-hidden p-0">
@@ -47,21 +53,18 @@ export function InventoryCard({
 
       {!onEdit && !onDelete && (
         <div className="px-3 pb-3">
-          <button
-            type="button"
-            className="btn-secondary w-full text-xs"
-            onClick={() =>
-              addToCart({
-                inventoryItemId: item.id,
-                title: item.title,
-                imageKey: item.images[0],
-                priceAmount: item.priceAmount,
-                currency: item.currency,
-              })
-            }
-          >
-            Add to cart
+          <button type="button" className="btn-primary w-full text-sm" onClick={handleAddToCart}>
+            {justAdded ? (
+              <>
+                <CheckIcon size={14} /> Added
+              </>
+            ) : (
+              'Add to cart'
+            )}
           </button>
+          <span className="sr-only" role="status" aria-live="polite">
+            {justAdded ? `${item.title} added to cart` : ''}
+          </span>
         </div>
       )}
 

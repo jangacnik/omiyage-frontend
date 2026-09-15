@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom'
 import { useMyShipments } from '../api/myShipments'
 import { formatGrams, formatMoney } from '../lib/currency'
+import { ShipmentStatusBadge } from '../components/ShipmentStatusBadge'
 import { Spinner } from '../components/Spinner'
 
 export function MyShipmentsListPage() {
@@ -26,7 +27,7 @@ export function MyShipmentsListPage() {
             >
               <span className="font-medium text-ink">{shipment.title ?? `Shipment ${shipment.id.slice(0, 8)}`}</span>
               <span className="flex items-center gap-3 text-sm text-ink/60">
-                <span className="rounded-full bg-mist px-2 py-0.5 text-xs font-medium text-ink">{shipment.status}</span>
+                <ShipmentStatusBadge status={shipment.status} />
                 {shipment.members.length > 1 && <span>{shipment.members.length} members</span>}
                 <span>{formatGrams(shipment.totalWeightGrams)}</span>
                 {shipment.shippingCostEur != null && <span>{formatMoney(shipment.shippingCostEur, 'EUR')}</span>}

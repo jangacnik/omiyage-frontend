@@ -77,8 +77,9 @@ export function OrdersListPage() {
   async function mergeSelected() {
     const ok = await confirm({
       title: 'Merge orders',
-      message: `Merge these ${selected.length} orders into one? The items all move into a single order and the others are removed.`,
+      message: `Merge these ${selected.length} orders into one? Every item moves onto a single order and the other ${selected.length - 1} order${selected.length > 2 ? 's are' : ' is'} deleted - their nicknames and notes go with them. This can't be undone.`,
       confirmLabel: 'Merge',
+      danger: true,
     })
     if (!ok) return
     mergeOrders.mutate(selected, {
@@ -110,11 +111,14 @@ export function OrdersListPage() {
       {mergeError && <p className="error-text mb-2">{mergeError}</p>}
 
       {selected.length >= 2 && (
-        <div className="mb-3 flex items-center justify-between rounded-lg bg-mist px-3 py-2">
-          <span className="text-sm text-ink">{selected.length} orders selected</span>
-          <button type="button" className="btn-primary px-3 py-1.5 text-sm" onClick={mergeSelected} disabled={mergeOrders.isPending}>
-            {mergeOrders.isPending ? <ButtonSpinner /> : 'Merge selected'}
-          </button>
+        <div className="mb-3 flex flex-col gap-1 rounded-lg bg-mist px-3 py-2">
+          <div className="flex items-center justify-between gap-2">
+            <span className="text-sm text-ink">{selected.length} orders selected</span>
+            <button type="button" className="btn-primary px-3 py-1.5 text-sm" onClick={mergeSelected} disabled={mergeOrders.isPending}>
+              {mergeOrders.isPending ? <ButtonSpinner /> : 'Merge selected'}
+            </button>
+          </div>
+          <p className="text-xs text-ink/50">Combines these orders of yours into one. To join a shipment with another member instead, use "Combine with…" on a single order.</p>
         </div>
       )}
 
@@ -129,7 +133,10 @@ export function OrdersListPage() {
                   type="checkbox"
                   checked={selected.includes(group[0].id)}
                   onChange={() => toggleSelected(group[0].id)}
+                  disabled={!group[0].open}
+                  title={group[0].open ? undefined : "This order is no longer open, so it can't be merged"}
                   aria-label={`Select order ${group[0].id.slice(0, 8)} to merge`}
+                  className="disabled:opacity-40"
                 />
                 <Link to={`/orders/${group[0].id}`} className="font-medium text-ink hover:text-forest">
                   Order {orderDisplayName(group[0])}
@@ -138,7 +145,12 @@ export function OrdersListPage() {
               </div>
               <div className="flex items-center gap-2">
                 {group[0].open && (
-                  <button type="button" className="btn-secondary px-2 py-1 text-xs" onClick={() => setCombiningOrderId(group[0].id)}>
+                  <button
+                    type="button"
+                    className="btn-secondary px-2 py-1 text-xs"
+                    onClick={() => setCombiningOrderId(group[0].id)}
+                    title="Ask to join another member's shipment with this order"
+                  >
                     Combine with…
                   </button>
                 )}
