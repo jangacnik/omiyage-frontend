@@ -6,6 +6,7 @@ import {
   useUpdateShippingRate,
   type ShippingRateInput,
 } from '../../api/adminShippingRates'
+import { Field } from '../../components/Field'
 import { Spinner } from '../../components/Spinner'
 import { useConfirm } from '../../components/ConfirmDialog'
 import { TrashIcon } from '../../components/icons'
@@ -93,31 +94,34 @@ function RateRow({ rate }: { rate: ShippingRateDto }) {
   if (editing) {
     return (
       <li className="flex flex-col gap-2 py-2">
-        <div className="flex flex-wrap items-center gap-2">
-          <input
-            type="number"
-            value={maxWeightGrams}
-            onChange={(e) => setMaxWeightGrams(e.target.value)}
-            aria-label={`Max weight grams for rate ${rate.id}`}
-            className="field-input w-24 py-1 text-sm"
-          />
-          <span className="text-xs text-ink/50">g</span>
-          <input
-            type="number"
-            value={costJpy}
-            onChange={(e) => setCostJpy(e.target.value)}
-            aria-label={`Cost JPY for rate ${rate.id}`}
-            className="field-input w-24 py-1 text-sm"
-          />
-          <span className="text-xs text-ink/50">JPY</span>
-          <input
-            type="number"
-            value={estimatedDays}
-            onChange={(e) => setEstimatedDays(e.target.value)}
-            aria-label={`Estimated days for rate ${rate.id}`}
-            className="field-input w-20 py-1 text-sm"
-          />
-          <span className="text-xs text-ink/50">days</span>
+        <div className="flex flex-wrap items-end gap-2">
+          <Field label="Max weight" hint="Grams" className="w-24">
+            <input
+              type="number"
+              value={maxWeightGrams}
+              onChange={(e) => setMaxWeightGrams(e.target.value)}
+              aria-label={`Max weight grams for rate ${rate.id}`}
+              className="field-input py-1 text-sm"
+            />
+          </Field>
+          <Field label="Cost" hint="JPY" className="w-24">
+            <input
+              type="number"
+              value={costJpy}
+              onChange={(e) => setCostJpy(e.target.value)}
+              aria-label={`Cost JPY for rate ${rate.id}`}
+              className="field-input py-1 text-sm"
+            />
+          </Field>
+          <Field label="Days" hint="Estimated" className="w-20">
+            <input
+              type="number"
+              value={estimatedDays}
+              onChange={(e) => setEstimatedDays(e.target.value)}
+              aria-label={`Estimated days for rate ${rate.id}`}
+              className="field-input py-1 text-sm"
+            />
+          </Field>
           <button
             type="button"
             className="btn-primary px-2 py-1 text-xs"
@@ -192,56 +196,63 @@ export function AdminShippingRatesPage() {
     <div className="mx-auto max-w-2xl">
       <form onSubmit={handleCreate} className="card mb-6 flex flex-col gap-2">
         <div className="flex flex-col gap-2 sm:flex-row">
-          <select
-            value={form.destination}
-            onChange={(e) => updateField('destination', e.target.value as ShipmentDestination)}
-            aria-label="Destination"
-            className="field-input"
-          >
-            {DESTINATIONS.map((d) => (
-              <option key={d} value={d}>
-                {destinationLabel(d)}
-              </option>
-            ))}
-          </select>
-          <select
-            value={form.shippingMethod}
-            onChange={(e) => updateField('shippingMethod', e.target.value as ShippingMethod)}
-            aria-label="Shipping method"
-            className="field-input"
-          >
-            {SHIPPING_METHODS.map((m) => (
-              <option key={m} value={m}>
-                {METHOD_LABELS[m]}
-              </option>
-            ))}
-          </select>
+          <Field label="Destination" className="sm:flex-1">
+            <select
+              value={form.destination}
+              onChange={(e) => updateField('destination', e.target.value as ShipmentDestination)}
+              aria-label="Destination"
+              className="field-input"
+            >
+              {DESTINATIONS.map((d) => (
+                <option key={d} value={d}>
+                  {destinationLabel(d)}
+                </option>
+              ))}
+            </select>
+          </Field>
+          <Field label="Shipping method" className="sm:flex-1">
+            <select
+              value={form.shippingMethod}
+              onChange={(e) => updateField('shippingMethod', e.target.value as ShippingMethod)}
+              aria-label="Shipping method"
+              className="field-input"
+            >
+              {SHIPPING_METHODS.map((m) => (
+                <option key={m} value={m}>
+                  {METHOD_LABELS[m]}
+                </option>
+              ))}
+            </select>
+          </Field>
         </div>
         <div className="flex flex-col gap-2 sm:flex-row">
-          <input
-            type="number"
-            placeholder="Max weight (g)"
-            value={form.maxWeightGrams}
-            onChange={(e) => updateField('maxWeightGrams', e.target.value)}
-            aria-label="Max weight grams"
-            className="field-input"
-          />
-          <input
-            type="number"
-            placeholder="Cost (JPY)"
-            value={form.costJpy}
-            onChange={(e) => updateField('costJpy', e.target.value)}
-            aria-label="Cost JPY"
-            className="field-input"
-          />
-          <input
-            type="number"
-            placeholder="Estimated days"
-            value={form.estimatedDays}
-            onChange={(e) => updateField('estimatedDays', e.target.value)}
-            aria-label="Estimated days"
-            className="field-input"
-          />
+          <Field label="Max weight" hint="Grams" className="sm:flex-1">
+            <input
+              type="number"
+              value={form.maxWeightGrams}
+              onChange={(e) => updateField('maxWeightGrams', e.target.value)}
+              aria-label="Max weight grams"
+              className="field-input"
+            />
+          </Field>
+          <Field label="Cost" hint="JPY" className="sm:flex-1">
+            <input
+              type="number"
+              value={form.costJpy}
+              onChange={(e) => updateField('costJpy', e.target.value)}
+              aria-label="Cost JPY"
+              className="field-input"
+            />
+          </Field>
+          <Field label="Estimated days" className="sm:flex-1">
+            <input
+              type="number"
+              value={form.estimatedDays}
+              onChange={(e) => updateField('estimatedDays', e.target.value)}
+              aria-label="Estimated days"
+              className="field-input"
+            />
+          </Field>
         </div>
         <button type="submit" className="btn-primary self-start" disabled={createRate.isPending}>
           Add rate

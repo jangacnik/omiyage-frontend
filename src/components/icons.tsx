@@ -26,6 +26,16 @@ export function TrashIcon({ size = 14 }: IconProps) {
   )
 }
 
+export function CartIcon({ size = 14 }: IconProps) {
+  return (
+    <svg {...base(size)}>
+      <circle cx="9" cy="20" r="1.4" fill="currentColor" stroke="none" />
+      <circle cx="18" cy="20" r="1.4" fill="currentColor" stroke="none" />
+      <path d="M3 4 H5.5 L7.8 15.2 a1.5 1.5 0 0 0 1.47 1.3 H18 a1.5 1.5 0 0 0 1.46 -1.16 L21.5 8 H6.2" />
+    </svg>
+  )
+}
+
 export function ExternalLinkIcon({ size = 14 }: IconProps) {
   return (
     <svg {...base(size)}>

@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useAdminUpdateOrderItemContent, useUpdateOrderItem } from '../../api/adminOrders'
+import { Field } from '../../components/Field'
 import { ImageDropInput } from '../../components/ImageDropInput'
 import { ORDER_ITEM_STATUSES } from '../../components/OrderItemStatusBadge'
 import { ButtonSpinner } from '../../components/Spinner'
@@ -70,43 +71,50 @@ export function AdminOrderItemEditDialog({
           Edit item
         </h2>
 
-        <input className="field-input" value={title} onChange={(e) => setTitle(e.target.value)} aria-label="Title" />
-        <textarea className="field-input" value={description} onChange={(e) => setDescription(e.target.value)} aria-label="Description" />
+        <Field label="Title">
+          <input className="field-input" value={title} onChange={(e) => setTitle(e.target.value)} aria-label="Title" />
+        </Field>
 
-        <div className="flex flex-col gap-2 sm:flex-row">
-          <input
-            type="number"
-            step="0.01"
-            className="field-input sm:w-32"
-            value={maxPrice}
-            onChange={(e) => setMaxPrice(e.target.value)}
-            aria-label="Max price, in EUR"
-            placeholder="Max price (EUR)"
-          />
-          <input
-            type="number"
-            min={1}
-            className="field-input sm:w-24"
-            value={quantity}
-            onChange={(e) => setQuantity(e.target.value)}
-            aria-label="Quantity"
-            placeholder="Qty"
-          />
+        <Field label="Description" hint="Optional">
+          <textarea className="field-input" value={description} onChange={(e) => setDescription(e.target.value)} aria-label="Description" />
+        </Field>
+
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <Field label="Max price" hint="In EUR">
+            <input
+              type="number"
+              step="0.01"
+              className="field-input"
+              value={maxPrice}
+              onChange={(e) => setMaxPrice(e.target.value)}
+              aria-label="Max price, in EUR"
+            />
+          </Field>
+          <Field label="Quantity">
+            <input
+              type="number"
+              min={1}
+              className="field-input"
+              value={quantity}
+              onChange={(e) => setQuantity(e.target.value)}
+              aria-label="Quantity"
+            />
+          </Field>
         </div>
 
-        <input
-          type="url"
-          className="field-input"
-          value={link}
-          onChange={(e) => setLink(e.target.value)}
-          placeholder="Link to store page (optional)"
-          aria-label="Link"
-        />
+        <Field label="Link to store page" hint="Optional">
+          <input
+            type="url"
+            className="field-input"
+            value={link}
+            onChange={(e) => setLink(e.target.value)}
+            aria-label="Link"
+          />
+        </Field>
 
         <ImageDropInput label="Photo" initialImageKey={item.imageKey ?? undefined} onUploaded={setImageKey} />
 
-        <label className="flex flex-col gap-1">
-          <span className="text-xs text-ink/50">Status</span>
+        <Field label="Status">
           <select
             value={status}
             onChange={(e) => setStatus(e.target.value as OrderItemStatus)}
@@ -119,11 +127,10 @@ export function AdminOrderItemEditDialog({
               </option>
             ))}
           </select>
-        </label>
+        </Field>
 
-        <div className="flex flex-col gap-2 sm:flex-row">
-          <label className="flex flex-1 flex-col gap-1">
-            <span className="text-xs text-ink/50">Bought for, in JPY (how much I paid for the item)</span>
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <Field label="Bought for" hint="In JPY - how much I paid for the item">
             <input
               type="number"
               step="1"
@@ -132,10 +139,9 @@ export function AdminOrderItemEditDialog({
               aria-label="Bought for, in JPY"
               className="field-input"
             />
-          </label>
+          </Field>
 
-          <label className="flex flex-1 flex-col gap-1">
-            <span className="text-xs text-ink/50">Sold for, in EUR (how much I charged for it)</span>
+          <Field label="Sold for" hint="In EUR - how much I charged for it">
             <input
               type="number"
               step="0.01"
@@ -144,13 +150,12 @@ export function AdminOrderItemEditDialog({
               aria-label="Sold for, in EUR"
               className="field-input"
             />
-          </label>
+          </Field>
         </div>
 
-        <label className="flex flex-col gap-1">
-          <span className="text-xs text-ink/50">Weight (g)</span>
-          <input type="number" min={0} value={weight} onChange={(e) => setWeight(e.target.value)} aria-label="Weight" className="field-input sm:w-32" />
-        </label>
+        <Field label="Weight" hint="In grams">
+          <input type="number" min={0} value={weight} onChange={(e) => setWeight(e.target.value)} aria-label="Weight" className="field-input" />
+        </Field>
 
         {(updateContent.isError || updateItem.isError) && <p className="error-text">Could not save changes.</p>}
 

@@ -10,6 +10,7 @@ import {
   useUpdateOrderStatus,
 } from '../../api/adminOrders'
 import { useConfirm } from '../../components/ConfirmDialog'
+import { Field } from '../../components/Field'
 import { OrderItemCard } from '../../components/OrderItemCard'
 import { CustomItemForm, InventorySearch, draftFromInventoryItem, type DraftItem } from '../../components/OrderItemBuilder'
 import { ButtonSpinner } from '../../components/Spinner'
@@ -212,15 +213,16 @@ function AdminOrderNicknameEditor({ order }: { order: OrderDto }) {
   }
 
   return (
-    <div className="flex flex-wrap items-center gap-2">
-      <input
-        className="field-input sm:w-64"
-        value={nickname}
-        onChange={(e) => setNickname(e.target.value)}
-        placeholder={order.id.slice(0, 8)}
-        aria-label="Order nickname"
-        autoFocus
-      />
+    <div className="flex flex-wrap items-end gap-2">
+      <Field label="Order nickname" className="w-full sm:w-64">
+        <input
+          className="field-input"
+          value={nickname}
+          onChange={(e) => setNickname(e.target.value)}
+          placeholder={order.id.slice(0, 8)}
+          autoFocus
+        />
+      </Field>
       <button type="button" className="btn-primary px-3 py-1.5 text-sm" onClick={save} disabled={updateNickname.isPending}>
         {updateNickname.isPending ? <ButtonSpinner /> : 'Save'}
       </button>

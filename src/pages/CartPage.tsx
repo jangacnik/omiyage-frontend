@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useCartStore } from '../store/cartStore'
 import { useCreateOrder } from '../api/orders'
+import { Field } from '../components/Field'
 import { ButtonSpinner } from '../components/Spinner'
 import { ThumbnailImage } from '../components/ThumbnailImage'
 import { TrashIcon } from '../components/icons'
@@ -52,50 +53,56 @@ export function CartPage() {
 
       <div className="flex flex-col gap-3">
         {items.map((item) => (
-          <div key={item.inventoryItemId} className="card flex items-center gap-3">
-            <ThumbnailImage imageKey={item.imageKey} alt={item.title} className="h-16 w-16 shrink-0 rounded-lg" />
-            <div className="flex-1">
+          <div key={item.inventoryItemId} className="card flex flex-col gap-3 sm:flex-row sm:items-center">
+            <div className="flex items-center gap-3">
+              <ThumbnailImage imageKey={item.imageKey} alt={item.title} className="h-16 w-16 shrink-0 rounded-lg" />
+              <div className="flex-1 sm:hidden">
+                <p className="font-medium text-ink">{item.title}</p>
+                <p className="text-sm text-ink/60">{formatMoney(item.priceAmount, item.currency)} each</p>
+              </div>
+            </div>
+            <div className="hidden flex-1 sm:block">
               <p className="font-medium text-ink">{item.title}</p>
               <p className="text-sm text-ink/60">{formatMoney(item.priceAmount, item.currency)} each</p>
             </div>
-            <input
-              type="number"
-              min={1}
-              step={1}
-              value={item.quantity}
-              onChange={(e) => {
-                const parsed = Math.floor(Number(e.target.value))
-                setQuantity(item.inventoryItemId, Number.isFinite(parsed) ? Math.max(1, parsed) : 1)
-              }}
-              aria-label={`Quantity for ${item.title}`}
-              className="field-input w-16 text-center"
-            />
-            <p className="w-20 text-right font-medium text-ink">
-              {formatMoney(item.priceAmount * item.quantity, item.currency)}
-            </p>
-            <button
-              type="button"
-              className="btn-danger px-2 py-1 text-xs"
-              onClick={() => removeItem(item.inventoryItemId)}
-              aria-label={`Remove ${item.title} from cart`}
-            >
-              <TrashIcon size={13} />
-            </button>
+            <div className="flex items-center justify-between gap-3 sm:justify-end">
+              <Field label="Qty" className="w-20">
+                <input
+                  type="number"
+                  min={1}
+                  step={1}
+                  value={item.quantity}
+                  onChange={(e) => {
+                    const parsed = Math.floor(Number(e.target.value))
+                    setQuantity(item.inventoryItemId, Number.isFinite(parsed) ? Math.max(1, parsed) : 1)
+                  }}
+                  aria-label={`Quantity for ${item.title}`}
+                  className="field-input text-center"
+                />
+              </Field>
+              <p className="w-24 text-right font-medium text-ink">
+                {formatMoney(item.priceAmount * item.quantity, item.currency)}
+              </p>
+              <button
+                type="button"
+                className="btn-danger px-3 text-sm"
+                onClick={() => removeItem(item.inventoryItemId)}
+                aria-label={`Remove ${item.title} from cart`}
+              >
+                <TrashIcon size={16} />
+              </button>
+            </div>
           </div>
         ))}
       </div>
 
-      <input
-        placeholder="Nickname for this order (optional)"
-        className="field-input mt-4"
-        value={nickname}
-        onChange={(e) => setNickname(e.target.value)}
-        aria-label="Order nickname"
-      />
+      <Field label="Order nickname" hint="Optional - helps tell this order apart from others" className="mt-4">
+        <input className="field-input" value={nickname} onChange={(e) => setNickname(e.target.value)} aria-label="Order nickname" />
+      </Field>
 
-      <div className="mt-4 flex items-center justify-between">
+      <div className="mt-4 flex items-center justify-between border-t border-mist pt-4">
         <p className="text-lg font-semibold text-ink">Total: {formatMoney(total, totalCurrency)}</p>
-        <button type="button" className="btn-primary" disabled={createOrder.isPending} onClick={submit}>
+        <button type="button" className="btn-primary px-6" disabled={createOrder.isPending} onClick={submit}>
           {createOrder.isPending ? (
             <>
               <ButtonSpinner /> Submitting

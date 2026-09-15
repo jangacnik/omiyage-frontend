@@ -7,6 +7,7 @@ import {
   useCreateInventoryItem,
   useDeleteInventoryItem,
 } from '../../api/adminInventory'
+import { Field } from '../../components/Field'
 import { Pagination } from '../../components/Pagination'
 import { Spinner } from '../../components/Spinner'
 import { ImageDropInput } from '../../components/ImageDropInput'
@@ -78,24 +79,40 @@ export function AdminInventoryPage() {
       <h1 className="page-title mb-4">Admin: Inventory</h1>
 
       <form onSubmit={handleSubmit(onSubmit)} className="card mb-6 flex flex-col gap-2">
-        <input placeholder="Title" className="field-input" {...register('title')} aria-label="Title" />
+        <Field label="Title">
+          <input className="field-input" {...register('title')} aria-label="Title" />
+        </Field>
         {errors.title && <p className="error-text">{errors.title.message}</p>}
-        <textarea placeholder="Description" className="field-input" {...register('description')} aria-label="Description" />
+        <Field label="Description" hint="Optional">
+          <textarea className="field-input" {...register('description')} aria-label="Description" />
+        </Field>
         <div className="flex flex-col gap-2 sm:flex-row">
-          <select {...register('condition')} aria-label="Condition" className="field-input">
-            <option value="NEW">New</option>
-            <option value="USED">Used</option>
-          </select>
+          <Field label="Condition" className="sm:w-40">
+            <select {...register('condition')} aria-label="Condition" className="field-input">
+              <option value="NEW">New</option>
+              <option value="USED">Used</option>
+            </select>
+          </Field>
         </div>
-        <div className="flex flex-col gap-2 sm:flex-row">
-          <input placeholder="Price (EUR)" className="field-input" {...register('priceAmount')} aria-label="Price in EUR" />
-          <input placeholder="Bought price (JPY, admin only)" className="field-input" {...register('boughtPrice')} aria-label="Bought price in JPY" />
-          <input placeholder="Stock quantity" className="field-input" {...register('stockQuantity')} aria-label="Stock quantity" />
+        <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
+          <Field label="Price" hint="In EUR">
+            <input className="field-input" {...register('priceAmount')} aria-label="Price in EUR" />
+          </Field>
+          <Field label="Bought price" hint="In JPY, admin only">
+            <input className="field-input" {...register('boughtPrice')} aria-label="Bought price in JPY" />
+          </Field>
+          <Field label="Stock quantity">
+            <input className="field-input" {...register('stockQuantity')} aria-label="Stock quantity" />
+          </Field>
         </div>
         {errors.priceAmount && <p className="error-text">{errors.priceAmount.message}</p>}
         {errors.stockQuantity && <p className="error-text">{errors.stockQuantity.message}</p>}
-        <input type="url" placeholder="Link to store page (optional)" className="field-input" {...register('link')} aria-label="Link to store page" />
-        <input placeholder="Tags, comma separated (optional)" className="field-input" {...register('tags')} aria-label="Tags" />
+        <Field label="Link to store page" hint="Optional">
+          <input type="url" className="field-input" {...register('link')} aria-label="Link to store page" />
+        </Field>
+        <Field label="Tags" hint="Comma separated, optional">
+          <input className="field-input" {...register('tags')} aria-label="Tags" />
+        </Field>
         <ImageDropInput label="Photo" onUploaded={(key) => setImageKeys(key ? (current) => [...current, key] : (current) => current)} />
         {imageKeys.length > 0 && <p className="text-xs text-ink/50">{imageKeys.length} photo(s) added.</p>}
 
@@ -104,11 +121,10 @@ export function AdminInventoryPage() {
           This is a preorder
         </label>
         {isPreorder && (
-          <label className="flex flex-col gap-1">
-            <span className="text-xs text-ink/50">Expected release date</span>
+          <Field label="Expected release date">
             <input type="date" className="field-input sm:w-48" {...register('expectedReleaseDate')} aria-label="Expected release date" />
             {errors.expectedReleaseDate && <p className="error-text">{errors.expectedReleaseDate.message}</p>}
-          </label>
+          </Field>
         )}
 
         <fieldset className="flex flex-col gap-1">

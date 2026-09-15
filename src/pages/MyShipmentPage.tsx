@@ -8,6 +8,7 @@ import {
 } from '../api/myShipments'
 import { useAuthStore } from '../store/authStore'
 import { orderDisplayName } from '../api/orders'
+import { Field } from '../components/Field'
 import { OrderIdHint } from '../components/OrderIdHint'
 import { OrderStatusBadge } from '../components/OrderStatusBadge'
 import { OrderItemStatusBadge } from '../components/OrderItemStatusBadge'
@@ -106,8 +107,10 @@ function TitleEditor({ id, title, editable }: { id: string; title: string | null
 
   if (editing) {
     return (
-      <div className="flex flex-wrap items-center gap-2">
-        <input className="field-input sm:w-64" value={value} onChange={(e) => setValue(e.target.value)} autoFocus aria-label="Shipment title" />
+      <div className="flex flex-wrap items-end gap-2">
+        <Field label="Shipment title" className="w-full sm:w-64">
+          <input className="field-input" value={value} onChange={(e) => setValue(e.target.value)} autoFocus />
+        </Field>
         <button
           type="button"
           className="btn-primary px-3 py-1.5 text-sm"
@@ -159,8 +162,7 @@ function ShippingEditor({ shipment, editable }: { shipment: MemberShipmentDto; e
 
   return (
     <>
-      <label className="flex items-center gap-1.5">
-        Destination:
+      <Field label="Destination" className="w-40">
         <select
           value={destination}
           onChange={(e) => setDestination(e.target.value as ShipmentDestination)}
@@ -176,9 +178,8 @@ function ShippingEditor({ shipment, editable }: { shipment: MemberShipmentDto; e
             </option>
           ))}
         </select>
-      </label>
-      <label className="flex items-center gap-1.5">
-        Method:
+      </Field>
+      <Field label="Shipping method" className="w-40">
         <select
           value={shippingMethod}
           onChange={(e) => setShippingMethod(e.target.value as ShippingMethod)}
@@ -194,7 +195,7 @@ function ShippingEditor({ shipment, editable }: { shipment: MemberShipmentDto; e
             </option>
           ))}
         </select>
-      </label>
+      </Field>
       {dirty && (
         <button type="button" className="btn-primary px-3 py-1.5 text-sm" onClick={save} disabled={updateShipping.isPending}>
           {updateShipping.isPending ? <ButtonSpinner /> : 'Save'}

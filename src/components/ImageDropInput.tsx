@@ -70,13 +70,15 @@ export function ImageDropInput({ label = 'Photo', initialImageKey, onUploaded, o
   }
 
   return (
-    <div
-      className="flex flex-col items-start gap-2 rounded-lg border border-dashed border-mist bg-surface px-3 py-3 focus-within:ring-2 focus-within:ring-forest"
-      onPaste={handlePaste}
-      tabIndex={0}
-      role="group"
-      aria-label={`${label} — paste an image or choose a file`}
-    >
+    <div className="flex flex-col gap-1">
+      <span className="field-label">{label}</span>
+      <div
+        className="flex flex-col items-start gap-2 rounded-lg border border-dashed border-mist bg-surface px-3 py-3 focus-within:ring-2 focus-within:ring-forest"
+        onPaste={handlePaste}
+        tabIndex={0}
+        role="group"
+        aria-label={`${label} — paste an image or choose a file`}
+      >
       <div className="flex flex-wrap items-center gap-3">
         {previewUrl && (
           <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-lg bg-mist">
@@ -125,7 +127,8 @@ export function ImageDropInput({ label = 'Photo', initialImageKey, onUploaded, o
           {error && <p className="error-text text-xs">{error}</p>}
         </div>
       </div>
-      <input ref={inputRef} type="file" accept="image/*" onChange={handleFileChange} aria-label={label} className="hidden" />
+        <input ref={inputRef} type="file" accept="image/*" onChange={handleFileChange} aria-label={label} className="hidden" />
+      </div>
     </div>
   )
 }

@@ -32,17 +32,19 @@ function item(overrides: Partial<OrderItemDto> = {}): OrderItemDto {
 }
 
 describe('OrderItemCard', () => {
-  it('shows the max price when nothing has been charged yet', () => {
+  it('shows the max price and a not-priced-yet note when nothing has been charged', () => {
     render(<OrderItemCard item={item({ maxPrice: 10 })} />)
-    expect(screen.getByText(/€10\.00 max/)).toBeInTheDocument()
+    expect(screen.getByText(/Max you set:/)).toBeInTheDocument()
+    expect(screen.getByText(/€10\.00/)).toBeInTheDocument()
+    expect(screen.getByText(/Price not set yet/)).toBeInTheDocument()
   })
 
-  it('shows only the max price, never the actual/sold price', () => {
+  it('shows both the max price and the sold price the member is charged', () => {
     render(<OrderItemCard item={item({ maxPrice: 10, soldPrice: 12, soldPriceCurrency: 'EUR' })} />)
-    expect(screen.getByText(/€10\.00 max/)).toBeInTheDocument()
-    expect(screen.queryByText(/€12\.00/)).not.toBeInTheDocument()
+    expect(screen.getByText(/Max you set:/)).toBeInTheDocument()
+    expect(screen.getByText(/You pay:/)).toBeInTheDocument()
+    expect(screen.getByText(/€12\.00/)).toBeInTheDocument()
     expect(screen.queryByText(/actual price/)).not.toBeInTheDocument()
-    expect(screen.queryByText(/sold for/)).not.toBeInTheDocument()
   })
 
   it('never renders the admin-only actualPrice (bought-in-JPY) field', () => {

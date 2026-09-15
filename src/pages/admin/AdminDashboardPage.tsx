@@ -4,6 +4,7 @@ import { useUserDashboard, useUserDeliveredOrders } from '../../api/adminDashboa
 import { useAdminCreateOrderForUser, useAdminMarkItemPaid } from '../../api/adminOrders'
 import { orderDisplayName } from '../../api/orders'
 import { Avatar } from '../../components/Avatar'
+import { Field } from '../../components/Field'
 import { OrderIdHint } from '../../components/OrderIdHint'
 import { OrderItemBuilder, type DraftItem } from '../../components/OrderItemBuilder'
 import { OrderStatusBadge } from '../../components/OrderStatusBadge'
@@ -29,13 +30,9 @@ function CreateOrderForUser({ userId, onDone }: { userId: string; onDone: () => 
 
   return (
     <div className="card flex flex-col gap-3 border-t border-mist">
-      <input
-        placeholder="Nickname for this order (optional)"
-        className="field-input"
-        value={nickname}
-        onChange={(e) => setNickname(e.target.value)}
-        aria-label="Order nickname"
-      />
+      <Field label="Order nickname" hint="Optional">
+        <input className="field-input" value={nickname} onChange={(e) => setNickname(e.target.value)} aria-label="Order nickname" />
+      </Field>
       <OrderItemBuilder
         items={items}
         onAdd={(item) => setItems((current) => [...current, item])}

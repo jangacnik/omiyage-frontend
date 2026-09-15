@@ -4,6 +4,7 @@ import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 import { useInventory } from '../api/inventory'
 import type { CreateOrderItemInput } from '../api/orders'
+import { Field } from './Field'
 import { ImageDropInput } from './ImageDropInput'
 import { PreorderBadge } from './PreorderBadge'
 import { ThumbnailImage } from './ThumbnailImage'
@@ -85,54 +86,42 @@ export function CustomItemForm({ onAdd }: { onAdd: (item: DraftItem) => void }) 
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="card flex flex-col gap-2">
-      <input placeholder="Title" className="field-input" {...register('title')} aria-label="Title" />
+      <Field label="Title">
+        <input className="field-input" {...register('title')} aria-label="Title" />
+      </Field>
       {errors.title && <p className="error-text">{errors.title.message}</p>}
-      <textarea placeholder="Description (optional)" className="field-input" {...register('description')} aria-label="Description" />
+      <Field label="Description" hint="Optional">
+        <textarea className="field-input" {...register('description')} aria-label="Description" />
+      </Field>
       <div className="flex flex-col gap-2 sm:flex-row">
-        <select {...register('condition')} aria-label="Condition" className="field-input">
-          <option value="NEW">New</option>
-          <option value="USED">Used</option>
-        </select>
+        <Field label="Condition" className="sm:w-40">
+          <select {...register('condition')} className="field-input" aria-label="Condition">
+            <option value="NEW">New</option>
+            <option value="USED">Used</option>
+          </select>
+        </Field>
       </div>
       <div className="flex flex-col gap-2 sm:flex-row">
-        <input
-          type="number"
-          step="0.01"
-          placeholder="Max price in EUR (optional)"
-          className="field-input"
-          {...register('maxPrice')}
-          aria-label="Max price"
-        />
-        <label className="flex items-center gap-2 sm:w-32">
-          <span className="text-sm text-ink/60">Qty</span>
-          <input
-            type="number"
-            min={1}
-            placeholder="1"
-            className="field-input"
-            {...register('quantity')}
-            aria-label="Quantity"
-          />
-        </label>
+        <Field label="Max price" hint="Optional - in EUR">
+          <input type="number" step="0.01" className="field-input" {...register('maxPrice')} aria-label="Max price" />
+        </Field>
+        <Field label="Qty" className="sm:w-32">
+          <input type="number" min={1} placeholder="1" className="field-input" {...register('quantity')} aria-label="Quantity" />
+        </Field>
       </div>
-      <input
-        type="url"
-        placeholder="Link to store page (optional)"
-        className="field-input"
-        {...register('link')}
-        aria-label="Link to store page"
-      />
+      <Field label="Link to store page" hint="Optional">
+        <input type="url" className="field-input" {...register('link')} aria-label="Link to store page" />
+      </Field>
       <ImageDropInput label="Photo" onUploaded={setImageKey} onUploadingChange={setUploading} />
       <label className="flex items-center gap-2 text-sm text-ink/80">
         <input type="checkbox" {...register('isPreorder')} />
         This is a preorder
       </label>
       {isPreorder && (
-        <label className="flex flex-col gap-1">
-          <span className="text-xs text-ink/50">Expected release date</span>
+        <Field label="Expected release date">
           <input type="date" className="field-input sm:w-48" {...register('expectedReleaseDate')} aria-label="Expected release date" />
           {errors.expectedReleaseDate && <p className="error-text">{errors.expectedReleaseDate.message}</p>}
-        </label>
+        </Field>
       )}
       <button type="submit" className="btn-secondary self-start" disabled={uploading}>
         Add item

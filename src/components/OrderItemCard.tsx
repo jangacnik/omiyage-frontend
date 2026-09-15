@@ -11,13 +11,16 @@ import type { Currency, OrderItemDto } from '../types/api'
 const CONDITION_LABELS: Record<'NEW' | 'USED', string> = { NEW: 'New', USED: 'Used' }
 
 function priceLabel(unitPrice: number, currency: Currency, label: string, quantity: number) {
+  const suffix = label ? ` ${label}` : ''
   return quantity > 1 ? (
     <>
-      {formatMoney(unitPrice, currency)} {label} each · {formatMoney(unitPrice * quantity, currency)} total
+      {formatMoney(unitPrice, currency)}
+      {suffix} each · {formatMoney(unitPrice * quantity, currency)} total
     </>
   ) : (
     <>
-      {formatMoney(unitPrice, currency)} {label}
+      {formatMoney(unitPrice, currency)}
+      {suffix}
     </>
   )
 }
@@ -42,9 +45,21 @@ export function OrderItemCard({ item, children }: { item: OrderItemDto; children
 
       <p className="mt-1 text-sm text-ink/60">
         {item.condition && `${CONDITION_LABELS[item.condition]} · `}
-        {item.maxPrice != null ? priceLabel(item.maxPrice, item.currency, 'max', item.quantity) : '—'}{' '}
-        · qty {item.quantity}
+        qty {item.quantity}
         {item.weight != null && ` · ${item.weight} g`}
+      </p>
+
+      <p className="mt-1 flex flex-wrap items-baseline gap-x-3 gap-y-0.5 text-sm">
+        {item.maxPrice != null && (
+          <span className="text-ink/60">Max you set: {priceLabel(item.maxPrice, item.currency, '', item.quantity)}</span>
+        )}
+        {item.soldPrice != null ? (
+          <span className="font-medium text-forest">
+            You pay: {priceLabel(item.soldPrice, item.soldPriceCurrency ?? item.currency, '', item.quantity)}
+          </span>
+        ) : (
+          <span className="text-ink/40">Price not set yet</span>
+        )}
       </p>
 
       {item.link && (

@@ -4,6 +4,7 @@ import { useInventoryItem } from '../api/inventory'
 import { useCreateOrder } from '../api/orders'
 import { ButtonSpinner } from '../components/Spinner'
 import { OrderItemBuilder, draftFromInventoryItem, type DraftItem } from '../components/OrderItemBuilder'
+import { Field } from '../components/Field'
 
 export function OrdersNewPage() {
   const [searchParams] = useSearchParams()
@@ -36,13 +37,9 @@ export function OrdersNewPage() {
     <div className="mx-auto max-w-3xl">
       <h1 className="page-title mb-4">New request</h1>
 
-      <input
-        placeholder="Nickname for this order (optional)"
-        className="field-input mb-4"
-        value={nickname}
-        onChange={(e) => setNickname(e.target.value)}
-        aria-label="Order nickname"
-      />
+      <Field label="Order nickname" hint="Optional - helps tell this order apart from others" className="mb-4">
+        <input className="field-input" value={nickname} onChange={(e) => setNickname(e.target.value)} aria-label="Order nickname" />
+      </Field>
 
       <OrderItemBuilder
         items={items}

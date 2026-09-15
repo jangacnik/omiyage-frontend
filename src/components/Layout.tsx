@@ -5,7 +5,31 @@ import { useAuthStore } from '../store/authStore'
 import { cartItemCount, useCartStore } from '../store/cartStore'
 import { Avatar } from './Avatar'
 import { BrandMark } from './BrandMark'
+import { CartIcon } from './icons'
 import { OnboardingModal } from './OnboardingModal'
+
+function CartNavLink({ count, onClick }: { count: number; onClick?: () => void }) {
+  return (
+    <NavLink
+      to="/cart"
+      onClick={onClick}
+      aria-label={count > 0 ? `Cart, ${count} item${count === 1 ? '' : 's'}` : 'Cart'}
+      className={({ isActive }) =>
+        `relative flex h-11 w-11 shrink-0 items-center justify-center rounded-lg text-paper/80 transition-colors hover:bg-paper/10 hover:text-paper ${isActive ? 'bg-paper/10 text-paper' : ''}`
+      }
+    >
+      <CartIcon size={22} />
+      {count > 0 && (
+        <span
+          aria-hidden="true"
+          className="absolute right-0.5 top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-mint px-1 text-[0.65rem] font-semibold text-ink"
+        >
+          {count}
+        </span>
+      )}
+    </NavLink>
+  )
+}
 
 function TopNavLink({ to, children, onClick }: { to: string; children: React.ReactNode; onClick?: () => void }) {
   return (
@@ -75,9 +99,6 @@ export function Layout() {
             {!isAdmin && (
               <>
                 <TopNavLink to="/inventory">Inventory</TopNavLink>
-                <TopNavLink to="/cart">
-                  Cart{cartCount > 0 && <span className="ml-1 rounded-full bg-paper/20 px-1.5 py-0.5 text-xs">{cartCount}</span>}
-                </TopNavLink>
                 <TopNavLink to="/orders">My orders</TopNavLink>
                 <TopNavLink to="/shipments">Shipments</TopNavLink>
               </>
@@ -95,35 +116,39 @@ export function Layout() {
             )}
           </div>
 
-          <span className="ml-auto hidden items-center md:flex">
-            {claims && <AccountMenu nickname={claims.nickname} onLogout={logout} />}
-          </span>
+          <div className="ml-auto flex items-center gap-1">
+            {!isAdmin && <CartNavLink count={cartCount} />}
 
-          <button
-            type="button"
-            className="ml-auto flex h-10 w-10 items-center justify-center rounded-lg text-paper transition-colors hover:bg-paper/10 md:hidden"
-            aria-label={menuOpen ? 'Close menu' : 'Open menu'}
-            aria-expanded={menuOpen}
-            onClick={() => setMenuOpen((open) => !open)}
-          >
-            <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-              <path
-                d="M4 7 H20"
-                className="origin-center transition-transform duration-300 ease-[var(--ease-out-soft)]"
-                style={menuOpen ? { transform: 'translateY(5px) rotate(45deg)' } : undefined}
-              />
-              <path
-                d="M4 12 H20"
-                className="transition-opacity duration-200"
-                style={menuOpen ? { opacity: 0 } : undefined}
-              />
-              <path
-                d="M4 17 H20"
-                className="origin-center transition-transform duration-300 ease-[var(--ease-out-soft)]"
-                style={menuOpen ? { transform: 'translateY(-5px) rotate(-45deg)' } : undefined}
-              />
-            </svg>
-          </button>
+            <span className="hidden items-center md:flex">
+              {claims && <AccountMenu nickname={claims.nickname} onLogout={logout} />}
+            </span>
+
+            <button
+              type="button"
+              className="flex h-10 w-10 items-center justify-center rounded-lg text-paper transition-colors hover:bg-paper/10 md:hidden"
+              aria-label={menuOpen ? 'Close menu' : 'Open menu'}
+              aria-expanded={menuOpen}
+              onClick={() => setMenuOpen((open) => !open)}
+            >
+              <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                <path
+                  d="M4 7 H20"
+                  className="origin-center transition-transform duration-300 ease-[var(--ease-out-soft)]"
+                  style={menuOpen ? { transform: 'translateY(5px) rotate(45deg)' } : undefined}
+                />
+                <path
+                  d="M4 12 H20"
+                  className="transition-opacity duration-200"
+                  style={menuOpen ? { opacity: 0 } : undefined}
+                />
+                <path
+                  d="M4 17 H20"
+                  className="origin-center transition-transform duration-300 ease-[var(--ease-out-soft)]"
+                  style={menuOpen ? { transform: 'translateY(-5px) rotate(-45deg)' } : undefined}
+                />
+              </svg>
+            </button>
+          </div>
         </div>
 
         {menuOpen && (
@@ -132,9 +157,6 @@ export function Layout() {
               <>
                 <TopNavLink to="/inventory" onClick={closeMenu}>
                   Inventory
-                </TopNavLink>
-                <TopNavLink to="/cart" onClick={closeMenu}>
-                  Cart{cartCount > 0 && <span className="ml-1 rounded-full bg-paper/20 px-1.5 py-0.5 text-xs">{cartCount}</span>}
                 </TopNavLink>
                 <TopNavLink to="/orders" onClick={closeMenu}>
                   My orders

@@ -5,6 +5,7 @@ import { z } from 'zod'
 import { useChangeMyPassword, useMyProfile, useUpdateMyNickname, useUpdateProfile } from '../api/profile'
 import { ApiError } from '../lib/apiClient'
 import { Avatar } from '../components/Avatar'
+import { Field } from '../components/Field'
 import { ImageDropInput } from '../components/ImageDropInput'
 import { ButtonSpinner, Spinner } from '../components/Spinner'
 import type { UserProfileDto } from '../types/api'
@@ -47,14 +48,16 @@ function NicknameEditor({ profile }: { profile: UserProfileDto }) {
   }
 
   return (
-    <div className="mb-4 flex flex-wrap items-center gap-2">
-      <input
-        className="field-input sm:w-64"
-        value={nickname}
-        onChange={(e) => setNickname(e.target.value)}
-        aria-label="Nickname"
-        autoFocus
-      />
+    <div className="mb-4 flex flex-wrap items-end gap-2">
+      <Field label="Nickname" className="w-full sm:w-64">
+        <input
+          className="field-input"
+          value={nickname}
+          onChange={(e) => setNickname(e.target.value)}
+          aria-label="Nickname"
+          autoFocus
+        />
+      </Field>
       <button type="button" className="btn-primary px-3 py-1.5 text-sm" onClick={save} disabled={updateNickname.isPending}>
         {updateNickname.isPending ? <ButtonSpinner /> : 'Save'}
       </button>

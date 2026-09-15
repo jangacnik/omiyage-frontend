@@ -19,9 +19,28 @@ import { OrderItemCard } from '../components/OrderItemCard'
 import { CustomItemForm, InventorySearch, draftFromInventoryItem, type DraftItem } from '../components/OrderItemBuilder'
 import { OrderStatusBadge } from '../components/OrderStatusBadge'
 import { Spinner, ButtonSpinner } from '../components/Spinner'
+import { Field } from '../components/Field'
 import { ImageDropInput } from '../components/ImageDropInput'
 import { TrashIcon } from '../components/icons'
+import { formatMoney } from '../lib/currency'
 import type { OrderDto, OrderItemDto } from '../types/api'
+
+/** soldPrice is what's actually charged; an item not priced yet (still a bare request) falls back
+ *  to the max the member set, so the total reads as an estimate rather than silently excluding it.
+ *  soldPrice/maxPrice are always EUR by policy (see OrderService.buildOrderItem/updateItem on the
+ *  backend) - same assumption AdminShipmentsPage.orderItemsTotalEur makes, so no per-item currency
+ *  conversion is needed here either. */
+function OrderTotal({ order }: { order: OrderDto }) {
+  const total = order.items.reduce((sum, item) => sum + (item.soldPrice ?? item.maxPrice ?? 0) * item.quantity, 0)
+  const isEstimate = order.items.some((item) => item.soldPrice == null)
+
+  return (
+    <div className="flex items-center justify-between border-t border-mist pt-3">
+      <p className="text-sm text-ink/60">Order total{isEstimate && ' (estimated)'}</p>
+      <p className="text-lg font-semibold text-ink">{formatMoney(total, 'EUR')}</p>
+    </div>
+  )
+}
 
 function OrderNicknameEditor({ order }: { order: OrderDto }) {
   const [editing, setEditing] = useState(false)
@@ -37,15 +56,17 @@ function OrderNicknameEditor({ order }: { order: OrderDto }) {
 
   if (editing) {
     return (
-      <div className="flex flex-wrap items-center gap-2">
-        <input
-          className="field-input sm:w-64"
-          value={nickname}
-          onChange={(e) => setNickname(e.target.value)}
-          placeholder={order.id.slice(0, 8)}
-          aria-label="Order nickname"
-          autoFocus
-        />
+      <div className="flex flex-wrap items-end gap-2">
+        <Field label="Order nickname" className="w-full sm:w-64">
+          <input
+            className="field-input"
+            value={nickname}
+            onChange={(e) => setNickname(e.target.value)}
+            placeholder={order.id.slice(0, 8)}
+            aria-label="Order nickname"
+            autoFocus
+          />
+        </Field>
         <button type="button" className="btn-primary px-3 py-1.5 text-sm" onClick={save} disabled={updateNickname.isPending}>
           {updateNickname.isPending ? <ButtonSpinner /> : 'Save'}
         </button>
@@ -150,32 +171,29 @@ function EditableItem({ orderId, item, locked }: { orderId: string; item: OrderI
 
   return (
     <li className="flex flex-col gap-2 rounded-lg border border-mist p-3">
-      <input
-        className="field-input"
-        placeholder="Title"
-        value={title}
-        onChange={(e) => setTitle(e.target.value)}
-        aria-label={`Title for ${item.title}`}
-      />
-      <textarea
-        className="field-input"
-        placeholder="Description"
-        value={description}
-        onChange={(e) => setDescription(e.target.value)}
-        aria-label={`Description for ${item.title}`}
-      />
-      <div className="flex flex-col gap-2 sm:flex-row">
-        <input
-          type="number"
-          step="0.01"
-          placeholder="Max price (EUR)"
-          className="field-input sm:w-32"
-          value={maxPrice}
-          onChange={(e) => setMaxPrice(e.target.value)}
-          aria-label={`Max price for ${item.title}`}
+      <Field label="Title">
+        <input className="field-input" value={title} onChange={(e) => setTitle(e.target.value)} aria-label={`Title for ${item.title}`} />
+      </Field>
+      <Field label="Description" hint="Optional">
+        <textarea
+          className="field-input"
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+          aria-label={`Description for ${item.title}`}
         />
-        <label className="flex items-center gap-2 sm:w-24">
-          <span className="text-sm text-ink/60">Qty</span>
+      </Field>
+      <div className="flex flex-col gap-2 sm:flex-row">
+        <Field label="Max price" hint="In EUR" className="sm:w-32">
+          <input
+            type="number"
+            step="0.01"
+            className="field-input"
+            value={maxPrice}
+            onChange={(e) => setMaxPrice(e.target.value)}
+            aria-label={`Max price for ${item.title}`}
+          />
+        </Field>
+        <Field label="Qty" className="sm:w-24">
           <input
             type="number"
             min={1}
@@ -184,16 +202,17 @@ function EditableItem({ orderId, item, locked }: { orderId: string; item: OrderI
             onChange={(e) => setQuantity(e.target.value)}
             aria-label={`Quantity for ${item.title}`}
           />
-        </label>
+        </Field>
       </div>
-      <input
-        type="url"
-        className="field-input"
-        value={link}
-        onChange={(e) => setLink(e.target.value)}
-        placeholder="Link to store page (optional)"
-        aria-label={`Link for ${item.title}`}
-      />
+      <Field label="Link to store page" hint="Optional">
+        <input
+          type="url"
+          className="field-input"
+          value={link}
+          onChange={(e) => setLink(e.target.value)}
+          aria-label={`Link for ${item.title}`}
+        />
+      </Field>
       <ImageDropInput label="Photo" initialImageKey={item.imageKey ?? undefined} onUploaded={setImageKey} />
       <div className="flex gap-2">
         <button type="button" className="btn-primary px-3 py-1.5 text-sm" onClick={save} disabled={updateItem.isPending}>
@@ -377,6 +396,8 @@ export function OrderDetailPage() {
           <EditableItem key={item.id} orderId={order.id} item={item} locked={!order.open} />
         ))}
       </ul>
+
+      <OrderTotal order={order} />
 
       {order.open && <AddItemForm orderId={order.id} />}
       {order.open && <SplitItemsPanel order={order} />}

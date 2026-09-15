@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useAdminCategories, useCreateCategory, useDeleteCategory } from '../../api/adminInventory'
+import { Field } from '../../components/Field'
 import { Spinner } from '../../components/Spinner'
 import { useConfirm } from '../../components/ConfirmDialog'
 import { TrashIcon } from '../../components/icons'
@@ -38,14 +39,10 @@ export function AdminCategoriesPage() {
 
   return (
     <div className="mx-auto max-w-2xl">
-      <form onSubmit={handleCreate} className="mb-4 flex flex-col gap-2 sm:flex-row">
-        <input
-          placeholder="Category name"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          aria-label="Category name"
-          className="field-input"
-        />
+      <form onSubmit={handleCreate} className="mb-4 flex flex-col items-start gap-2 sm:flex-row sm:items-end">
+        <Field label="Category name" className="w-full sm:flex-1">
+          <input value={name} onChange={(e) => setName(e.target.value)} className="field-input" />
+        </Field>
         <button type="submit" className="btn-primary shrink-0" disabled={createCategory.isPending}>
           Add category
         </button>

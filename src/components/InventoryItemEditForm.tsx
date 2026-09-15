@@ -3,6 +3,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 import { useUpdateInventoryItem } from '../api/adminInventory'
+import { Field } from './Field'
 import { ImageDropInput } from './ImageDropInput'
 import { ItemCardShell } from './ItemCardShell'
 import { ThumbnailImage } from './ThumbnailImage'
@@ -126,40 +127,44 @@ export function InventoryItemEditForm({ item, onDone }: { item: InventoryItem; o
       </h2>
       <ItemCardShell thumbnail={<ImageGallery images={images} onChange={setImages} />}>
         <div className="flex flex-col gap-2">
-          <input placeholder="Title" className="field-input" {...register('title')} aria-label={`Title for ${item.title}`} />
+          <Field label="Title">
+            <input className="field-input" {...register('title')} aria-label={`Title for ${item.title}`} />
+          </Field>
           {errors.title && <p className="error-text">{errors.title.message}</p>}
-          <textarea placeholder="Description" className="field-input" {...register('description')} aria-label={`Description for ${item.title}`} />
+          <Field label="Description" hint="Optional">
+            <textarea className="field-input" {...register('description')} aria-label={`Description for ${item.title}`} />
+          </Field>
           <div className="flex flex-col gap-2 sm:flex-row">
-            <select {...register('condition')} aria-label={`Condition for ${item.title}`} className="field-input">
-              <option value="NEW">New</option>
-              <option value="USED">Used</option>
-            </select>
+            <Field label="Condition" className="sm:w-40">
+              <select {...register('condition')} aria-label={`Condition for ${item.title}`} className="field-input">
+                <option value="NEW">New</option>
+                <option value="USED">Used</option>
+              </select>
+            </Field>
           </div>
-          <div className="flex flex-col gap-2 sm:flex-row">
-            <input placeholder="Price (EUR)" className="field-input" {...register('priceAmount')} aria-label={`Price in EUR for ${item.title}`} />
-            <input placeholder="Bought price (JPY, admin only)" className="field-input" {...register('boughtPrice')} aria-label={`Bought price in JPY for ${item.title}`} />
-            <input placeholder="Stock quantity" className="field-input" {...register('stockQuantity')} aria-label={`Stock quantity for ${item.title}`} />
+          <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
+            <Field label="Price" hint="In EUR">
+              <input className="field-input" {...register('priceAmount')} aria-label={`Price in EUR for ${item.title}`} />
+            </Field>
+            <Field label="Bought price" hint="In JPY, admin only">
+              <input className="field-input" {...register('boughtPrice')} aria-label={`Bought price in JPY for ${item.title}`} />
+            </Field>
+            <Field label="Stock quantity">
+              <input className="field-input" {...register('stockQuantity')} aria-label={`Stock quantity for ${item.title}`} />
+            </Field>
           </div>
-          <input
-            type="url"
-            placeholder="Link to store page (optional)"
-            className="field-input"
-            {...register('link')}
-            aria-label={`Link for ${item.title}`}
-          />
-          <input
-            placeholder="Tags, comma separated (optional)"
-            className="field-input"
-            {...register('tags')}
-            aria-label={`Tags for ${item.title}`}
-          />
+          <Field label="Link to store page" hint="Optional">
+            <input type="url" className="field-input" {...register('link')} aria-label={`Link for ${item.title}`} />
+          </Field>
+          <Field label="Tags" hint="Comma separated, optional">
+            <input className="field-input" {...register('tags')} aria-label={`Tags for ${item.title}`} />
+          </Field>
           <label className="flex items-center gap-2 text-sm text-ink/80">
             <input type="checkbox" {...register('isPreorder')} />
             This is a preorder
           </label>
           {isPreorder && (
-            <label className="flex flex-col gap-1">
-              <span className="text-xs text-ink/50">Expected release date</span>
+            <Field label="Expected release date">
               <input
                 type="date"
                 className="field-input sm:w-48"
@@ -167,7 +172,7 @@ export function InventoryItemEditForm({ item, onDone }: { item: InventoryItem; o
                 aria-label={`Expected release date for ${item.title}`}
               />
               {errors.expectedReleaseDate && <p className="error-text">{errors.expectedReleaseDate.message}</p>}
-            </label>
+            </Field>
           )}
           <div className="flex gap-2">
             <button type="submit" className="btn-primary px-3 py-1.5 text-sm" disabled={updateItem.isPending}>
