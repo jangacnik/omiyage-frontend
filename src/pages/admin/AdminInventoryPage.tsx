@@ -10,7 +10,7 @@ import {
 import { Field } from '../../components/Field'
 import { Pagination } from '../../components/Pagination'
 import { Spinner } from '../../components/Spinner'
-import { ImageDropInput } from '../../components/ImageDropInput'
+import { ImageGallery } from '../../components/ImageGallery'
 import { InventoryCard } from '../../components/InventoryCard'
 import { InventoryItemEditForm, itemSchema, parseTags, type InventoryItemForm } from '../../components/InventoryItemEditForm'
 import { useConfirm } from '../../components/ConfirmDialog'
@@ -113,8 +113,7 @@ export function AdminInventoryPage() {
         <Field label="Tags" hint="Comma separated, optional">
           <input className="field-input" {...register('tags')} aria-label="Tags" />
         </Field>
-        <ImageDropInput label="Photo" onUploaded={(key) => setImageKeys(key ? (current) => [...current, key] : (current) => current)} />
-        {imageKeys.length > 0 && <p className="text-xs text-ink/50">{imageKeys.length} photo(s) added.</p>}
+        <ImageGallery images={imageKeys} onChange={setImageKeys} />
 
         <label className="flex items-center gap-2 text-sm text-ink/80">
           <input type="checkbox" {...register('isPreorder')} />

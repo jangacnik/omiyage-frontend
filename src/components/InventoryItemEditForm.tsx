@@ -1,12 +1,11 @@
-import { useState, type Dispatch, type SetStateAction } from 'react'
+import { useState } from 'react'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 import { useUpdateInventoryItem } from '../api/adminInventory'
 import { Field } from './Field'
-import { ImageDropInput } from './ImageDropInput'
+import { ImageGallery } from './ImageGallery'
 import { ItemCardShell } from './ItemCardShell'
-import { ThumbnailImage } from './ThumbnailImage'
 import { ButtonSpinner } from './Spinner'
 import type { InventoryItem } from '../types/api'
 
@@ -33,31 +32,6 @@ export { itemSchema }
 
 export function parseTags(input: string | undefined): string[] {
   return (input ?? '').split(',').map((t) => t.trim()).filter(Boolean)
-}
-
-function ImageGallery({ images, onChange }: { images: string[]; onChange: Dispatch<SetStateAction<string[]>> }) {
-  return (
-    <div className="flex flex-col gap-2">
-      {images.length > 0 && (
-        <div className="flex flex-wrap gap-2">
-          {images.map((key) => (
-            <div key={key} className="relative">
-              <ThumbnailImage imageKey={key} className="h-20 w-20 rounded-lg" />
-              <button
-                type="button"
-                onClick={() => onChange((current) => current.filter((k) => k !== key))}
-                aria-label="Remove photo"
-                className="absolute right-0.5 top-0.5 flex h-5 w-5 items-center justify-center rounded-full bg-ink/70 text-xs text-white hover:bg-ink"
-              >
-                ×
-              </button>
-            </div>
-          ))}
-        </div>
-      )}
-      <ImageDropInput label="Add photo" onUploaded={(key) => key && onChange((current) => [...current, key])} />
-    </div>
-  )
 }
 
 /** Edit form for one inventory item, shared by the admin inventory page and the public homepage

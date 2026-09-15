@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { useInventoryItem } from '../api/inventory'
 import { PreorderBadge } from '../components/PreorderBadge'
@@ -6,6 +7,54 @@ import { StatusPill } from '../components/StatusPill'
 import { ThumbnailImage } from '../components/ThumbnailImage'
 import { formatMoney } from '../lib/currency'
 import { useCartStore } from '../store/cartStore'
+
+function ImageCarousel({ images, alt }: { images: string[]; alt: string }) {
+  const [index, setIndex] = useState(0)
+
+  return (
+    <div className="flex flex-col gap-2 md:w-1/2">
+      <div className="relative">
+        <ThumbnailImage imageKey={images[index]} alt={alt} className="h-80 w-full rounded-lg" />
+        {images.length > 1 && (
+          <>
+            <button
+              type="button"
+              onClick={() => setIndex((i) => (i - 1 + images.length) % images.length)}
+              aria-label="Previous photo"
+              className="absolute left-2 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full bg-ink/60 text-white hover:bg-ink"
+            >
+              ‹
+            </button>
+            <button
+              type="button"
+              onClick={() => setIndex((i) => (i + 1) % images.length)}
+              aria-label="Next photo"
+              className="absolute right-2 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full bg-ink/60 text-white hover:bg-ink"
+            >
+              ›
+            </button>
+          </>
+        )}
+      </div>
+      {images.length > 1 && (
+        <div className="flex gap-2 overflow-x-auto">
+          {images.map((key, i) => (
+            <button
+              key={key}
+              type="button"
+              onClick={() => setIndex(i)}
+              aria-label={`Show photo ${i + 1}`}
+              aria-current={i === index}
+              className={`shrink-0 rounded-lg ring-2 ${i === index ? 'ring-forest' : 'ring-transparent'}`}
+            >
+              <ThumbnailImage imageKey={key} alt="" className="h-16 w-16 rounded-lg" />
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
 
 export function InventoryDetailPage() {
   const { id } = useParams<{ id: string }>()
@@ -17,13 +66,7 @@ export function InventoryDetailPage() {
 
   return (
     <div className="card flex flex-col gap-4 md:flex-row">
-      {item.images.length > 0 && (
-        <div className="flex gap-3 overflow-x-auto md:w-1/2">
-          {item.images.map((key) => (
-            <ThumbnailImage key={key} imageKey={key} alt={item.title} className="h-48 w-48 shrink-0 rounded-lg" />
-          ))}
-        </div>
-      )}
+      {item.images.length > 0 && <ImageCarousel images={item.images} alt={item.title} />}
       <div className="flex flex-1 flex-col gap-2">
         <h1 className="page-title">{item.title}</h1>
         {item.isPreorder && <PreorderBadge expectedReleaseDate={item.expectedReleaseDate} />}

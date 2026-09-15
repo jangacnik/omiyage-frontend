@@ -1,5 +1,5 @@
 import { http, HttpResponse } from 'msw'
-import { screen } from '@testing-library/react'
+import { screen, fireEvent } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 import { Route, Routes } from 'react-router-dom'
 import { server } from '../test/server'
@@ -70,5 +70,31 @@ describe('InventoryDetailPage', () => {
     )
 
     expect(await screen.findByText('Item not found.')).toBeInTheDocument()
+  })
+
+  it('lets a shopper click through multiple photos', async () => {
+    server.use(
+      http.get(`${BASE}/api/inventory/item-1`, () => HttpResponse.json({ ...item(), images: ['img-a', 'img-b', 'img-c'] })),
+    )
+
+    renderWithProviders(
+      <Routes>
+        <Route path="/inventory/:id" element={<InventoryDetailPage />} />
+      </Routes>,
+      ['/inventory/item-1'],
+    )
+
+    await screen.findByText('Kit Kat matcha')
+    const mainImage = () => screen.getByAltText('Kit Kat matcha') as HTMLImageElement
+    expect(mainImage().src).toContain('img-a')
+
+    fireEvent.click(screen.getByRole('button', { name: 'Show photo 2' }))
+    expect(mainImage().src).toContain('img-b')
+
+    fireEvent.click(screen.getByRole('button', { name: 'Next photo' }))
+    expect(mainImage().src).toContain('img-c')
+
+    fireEvent.click(screen.getByRole('button', { name: 'Previous photo' }))
+    expect(mainImage().src).toContain('img-b')
   })
 })

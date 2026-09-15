@@ -6,14 +6,16 @@ import { mediaUrl } from '../lib/media'
 interface ImageDropInputProps {
   label?: string
   initialImageKey?: string
+  disabled?: boolean
   onUploaded: (key: string | undefined) => void
   onUploadingChange?: (uploading: boolean) => void
 }
 
-export function ImageDropInput({ label = 'Photo', initialImageKey, onUploaded, onUploadingChange }: ImageDropInputProps) {
+export function ImageDropInput({ label = 'Photo', initialImageKey, disabled, onUploaded, onUploadingChange }: ImageDropInputProps) {
   const [uploading, setUploading] = useState(false)
   const [previewUrl, setPreviewUrl] = useState<string | undefined>(initialImageKey ? mediaUrl(initialImageKey) : undefined)
   const [error, setError] = useState<string | null>(null)
+  const [dragActive, setDragActive] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
   const objectUrlRef = useRef<string | undefined>(undefined)
 
@@ -61,6 +63,24 @@ export function ImageDropInput({ label = 'Photo', initialImageKey, onUploaded, o
     }
   }
 
+  function handleDragOver(e: React.DragEvent<HTMLDivElement>) {
+    e.preventDefault()
+    if (!disabled) setDragActive(true)
+  }
+
+  function handleDragLeave(e: React.DragEvent<HTMLDivElement>) {
+    e.preventDefault()
+    setDragActive(false)
+  }
+
+  function handleDrop(e: React.DragEvent<HTMLDivElement>) {
+    e.preventDefault()
+    setDragActive(false)
+    if (disabled) return
+    const file = Array.from(e.dataTransfer.files).find((f) => f.type.startsWith('image/'))
+    if (file) void uploadFile(file)
+  }
+
   function handleRemove() {
     if (objectUrlRef.current) URL.revokeObjectURL(objectUrlRef.current)
     objectUrlRef.current = undefined
@@ -73,11 +93,17 @@ export function ImageDropInput({ label = 'Photo', initialImageKey, onUploaded, o
     <div className="flex flex-col gap-1">
       <span className="field-label">{label}</span>
       <div
-        className="flex flex-col items-start gap-2 rounded-lg border border-dashed border-mist bg-surface px-3 py-3 focus-within:ring-2 focus-within:ring-forest"
-        onPaste={handlePaste}
-        tabIndex={0}
+        className={`flex flex-col items-start gap-2 rounded-lg border border-dashed px-3 py-3 focus-within:ring-2 focus-within:ring-forest ${
+          dragActive ? 'border-forest bg-forest/5' : 'border-mist bg-surface'
+        } ${disabled ? 'opacity-50' : ''}`}
+        onPaste={disabled ? undefined : handlePaste}
+        onDragOver={handleDragOver}
+        onDragLeave={handleDragLeave}
+        onDrop={handleDrop}
+        tabIndex={disabled ? -1 : 0}
         role="group"
-        aria-label={`${label} — paste an image or choose a file`}
+        aria-disabled={disabled}
+        aria-label={`${label} — drag an image here, paste, or choose a file`}
       >
       <div className="flex flex-wrap items-center gap-3">
         {previewUrl && (
@@ -112,11 +138,11 @@ export function ImageDropInput({ label = 'Photo', initialImageKey, onUploaded, o
               type="button"
               className="btn-secondary px-2 py-1 text-xs"
               onClick={() => inputRef.current?.click()}
-              disabled={uploading}
+              disabled={uploading || disabled}
             >
               {previewUrl ? 'Replace file' : 'Choose file'}
             </button>
-            <span className="text-xs text-ink/50">or click here and paste an image (Ctrl+V)</span>
+            <span className="text-xs text-ink/50">or drag an image here, or click and paste (Ctrl+V)</span>
           </div>
           {uploading && (
             <p className="flex items-center gap-2 text-sm text-ink/60">
