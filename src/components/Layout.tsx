@@ -2,6 +2,7 @@ import { useRef, useState } from 'react'
 import { Link, NavLink, Outlet, useLocation } from 'react-router-dom'
 import { useMyProfile } from '../api/profile'
 import { useAuthStore } from '../store/authStore'
+import { cartItemCount, useCartStore } from '../store/cartStore'
 import { Avatar } from './Avatar'
 import { BrandMark } from './BrandMark'
 import { OnboardingModal } from './OnboardingModal'
@@ -51,6 +52,7 @@ export function Layout() {
   const claims = useAuthStore((s) => s.claims)
   const logout = useAuthStore((s) => s.logout)
   const isAdmin = claims?.role === 'ADMIN'
+  const cartCount = useCartStore((s) => cartItemCount(s.items))
   const [menuOpen, setMenuOpen] = useState(false)
   const closeMenu = () => setMenuOpen(false)
   const location = useLocation()
@@ -73,6 +75,9 @@ export function Layout() {
             {!isAdmin && (
               <>
                 <TopNavLink to="/inventory">Inventory</TopNavLink>
+                <TopNavLink to="/cart">
+                  Cart{cartCount > 0 && <span className="ml-1 rounded-full bg-paper/20 px-1.5 py-0.5 text-xs">{cartCount}</span>}
+                </TopNavLink>
                 <TopNavLink to="/orders">My orders</TopNavLink>
                 <TopNavLink to="/shipments">Shipments</TopNavLink>
               </>
@@ -127,6 +132,9 @@ export function Layout() {
               <>
                 <TopNavLink to="/inventory" onClick={closeMenu}>
                   Inventory
+                </TopNavLink>
+                <TopNavLink to="/cart" onClick={closeMenu}>
+                  Cart{cartCount > 0 && <span className="ml-1 rounded-full bg-paper/20 px-1.5 py-0.5 text-xs">{cartCount}</span>}
                 </TopNavLink>
                 <TopNavLink to="/orders" onClick={closeMenu}>
                   My orders

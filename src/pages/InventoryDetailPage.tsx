@@ -5,10 +5,12 @@ import { Spinner } from '../components/Spinner'
 import { StatusPill } from '../components/StatusPill'
 import { ThumbnailImage } from '../components/ThumbnailImage'
 import { formatMoney } from '../lib/currency'
+import { useCartStore } from '../store/cartStore'
 
 export function InventoryDetailPage() {
   const { id } = useParams<{ id: string }>()
   const { data: item, isLoading, isError } = useInventoryItem(id)
+  const addToCart = useCartStore((s) => s.addItem)
 
   if (isLoading) return <Spinner fullPage label="Fetching item" />
   if (isError || !item) return <p className="error-text">Item not found.</p>
@@ -44,9 +46,26 @@ export function InventoryDetailPage() {
             </>
           )}
         </dl>
-        <Link to={`/orders/new?inventoryItemId=${item.id}`} className="btn-primary mt-2 self-start">
-          Request this item
-        </Link>
+        <div className="mt-2 flex gap-2">
+          <button
+            type="button"
+            className="btn-primary self-start"
+            onClick={() =>
+              addToCart({
+                inventoryItemId: item.id,
+                title: item.title,
+                imageKey: item.images[0],
+                priceAmount: item.priceAmount,
+                currency: item.currency,
+              })
+            }
+          >
+            Add to cart
+          </button>
+          <Link to={`/orders/new?inventoryItemId=${item.id}`} className="btn-secondary self-start">
+            Request this item
+          </Link>
+        </div>
       </div>
     </div>
   )
