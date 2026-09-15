@@ -4,6 +4,7 @@ import { StatusPill } from './StatusPill'
 import { ThumbnailImage } from './ThumbnailImage'
 import { formatMoney } from '../lib/currency'
 import { TrashIcon } from './icons'
+import { useCartStore } from '../store/cartStore'
 import type { InventoryItem } from '../types/api'
 
 /** Card-grid tile shared by the public inventory browse page and the admin inventory page.
@@ -17,6 +18,8 @@ export function InventoryCard({
   onEdit?: () => void
   onDelete?: () => void
 }) {
+  const addToCart = useCartStore((s) => s.addItem)
+
   return (
     <div className="card card-interactive group relative overflow-hidden p-0">
       <Link to={`/inventory/${item.id}`} className="block">
@@ -41,6 +44,26 @@ export function InventoryCard({
           </p>
         </div>
       </Link>
+
+      {!onEdit && !onDelete && (
+        <div className="px-3 pb-3">
+          <button
+            type="button"
+            className="btn-secondary w-full text-xs"
+            onClick={() =>
+              addToCart({
+                inventoryItemId: item.id,
+                title: item.title,
+                imageKey: item.images[0],
+                priceAmount: item.priceAmount,
+                currency: item.currency,
+              })
+            }
+          >
+            Add to cart
+          </button>
+        </div>
+      )}
 
       <div className="absolute left-2 top-2">
         {item.stockQuantity > 0 ? (
