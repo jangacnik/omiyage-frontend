@@ -104,8 +104,21 @@ const customItemSchema = z
 
 type CustomItemForm = z.infer<typeof customItemSchema>
 
-export function CustomItemForm({ onAdd }: { onAdd: (item: DraftItem) => void }) {
-  const [imageKey, setImageKey] = useState<string | undefined>()
+export function CustomItemForm({
+  onAdd,
+  defaultValues,
+  submitLabel = 'Add item',
+}: {
+  /** May reject (e.g. RequestCustomItemPage's onAdd submits straight to the backend) - onSubmit
+   *  below only resets the form once this actually resolves, so a failed submission leaves the
+   *  member's edits in place to retry instead of silently reverting to defaultValues. */
+  onAdd: (item: DraftItem) => void | Promise<unknown>
+  /** Prefill from a catalog listing - e.g. "Request with different price or condition" starts
+   *  from that item's own title/description/link/price instead of a blank form. */
+  defaultValues?: Partial<CustomItemForm> & { imageKey?: string }
+  submitLabel?: string
+}) {
+  const [imageKey, setImageKey] = useState<string | undefined>(defaultValues?.imageKey)
   const [uploading, setUploading] = useState(false)
   // Bumped on every successful add to force ImageDropInput to remount - a caller that keeps this
   // form open across multiple adds (AddItemForm, AdminAddItemForm) never unmounts it itself, and
@@ -118,29 +131,38 @@ export function CustomItemForm({ onAdd }: { onAdd: (item: DraftItem) => void }) 
     reset,
     watch,
     formState: { errors },
-  } = useForm<CustomItemForm>({ resolver: zodResolver(customItemSchema), defaultValues: { condition: 'NEW', quantity: '1' } })
+  } = useForm<CustomItemForm>({
+    resolver: zodResolver(customItemSchema),
+    defaultValues: { condition: 'NEW', quantity: '1', ...defaultValues },
+  })
   const isPreorder = watch('isPreorder')
 
-  function onSubmit(data: CustomItemForm) {
-    onAdd({
-      input: {
-        title: data.title,
-        description: data.description,
-        link: data.link || undefined,
-        condition: data.condition,
-        // Max price is always EUR - fixed by policy, not a per-item choice.
-        currency: 'EUR',
-        maxPrice: data.maxPrice ? Number(data.maxPrice) : undefined,
-        quantity: data.quantity ? Number(data.quantity) : 1,
+  async function onSubmit(data: CustomItemForm) {
+    try {
+      await onAdd({
+        input: {
+          title: data.title,
+          description: data.description,
+          link: data.link || undefined,
+          condition: data.condition,
+          // Max price is always EUR - fixed by policy, not a per-item choice.
+          currency: 'EUR',
+          maxPrice: data.maxPrice ? Number(data.maxPrice) : undefined,
+          quantity: data.quantity ? Number(data.quantity) : 1,
+          imageKey,
+          isPreorder: data.isPreorder,
+          expectedReleaseDate: data.isPreorder ? data.expectedReleaseDate : undefined,
+        },
+        displayTitle: data.title,
         imageKey,
         isPreorder: data.isPreorder,
-        expectedReleaseDate: data.isPreorder ? data.expectedReleaseDate : undefined,
-      },
-      displayTitle: data.title,
-      imageKey,
-      isPreorder: data.isPreorder,
-      expectedReleaseDate: data.isPreorder ? data.expectedReleaseDate : null,
-    })
+        expectedReleaseDate: data.isPreorder ? data.expectedReleaseDate : null,
+      })
+    } catch {
+      // A caller whose onAdd submits straight to the backend (RequestCustomItemPage) surfaces its
+      // own error via its mutation's isError - don't clear what the member typed so they can retry.
+      return
+    }
     reset()
     setImageKey(undefined)
     setPhotoResetKey((k) => k + 1)
@@ -174,7 +196,13 @@ export function CustomItemForm({ onAdd }: { onAdd: (item: DraftItem) => void }) 
       <Field label="Link to store page" hint="Optional">
         <input type="url" className="field-input" {...register('link')} aria-label="Link to store page" />
       </Field>
-      <ImageDropInput key={photoResetKey} label="Photo" onUploaded={setImageKey} onUploadingChange={setUploading} />
+      <ImageDropInput
+        key={photoResetKey}
+        label="Photo"
+        initialImageKey={defaultValues?.imageKey}
+        onUploaded={setImageKey}
+        onUploadingChange={setUploading}
+      />
       <label className="flex items-center gap-2 text-sm text-ink/80">
         <input type="checkbox" {...register('isPreorder')} />
         This is a preorder
@@ -186,7 +214,7 @@ export function CustomItemForm({ onAdd }: { onAdd: (item: DraftItem) => void }) 
         </Field>
       )}
       <button type="submit" className="btn-secondary self-start" disabled={uploading}>
-        Add item
+        {submitLabel}
       </button>
     </form>
   )

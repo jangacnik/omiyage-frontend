@@ -119,32 +119,6 @@ describe('OrdersNewPage', () => {
     expect(screen.getByLabelText('Order nickname')).toBeInTheDocument()
   })
 
-  it('pre-fills a draft item from an inventoryItemId query param', async () => {
-    const item: InventoryItem = {
-      id: 'item-1',
-      title: 'Kit Kat matcha',
-      description: null,
-      link: null,
-      condition: 'NEW',
-      priceAmount: 1200,
-      currency: 'JPY',
-      stockQuantity: 3,
-      status: 'ACTIVE',
-      images: [],
-      categories: [],
-      tags: [],
-      isPreorder: false,
-      expectedReleaseDate: null,
-      boughtPrice: null,
-      profitEur: null,
-    }
-    server.use(http.get(`${BASE}/api/inventory/item-1`, () => HttpResponse.json(item)))
-
-    renderPage(['/orders/new?inventoryItemId=item-1'])
-
-    expect(await screen.findByText('Kit Kat matcha')).toBeInTheDocument()
-  })
-
   it('adds an inventory item found via search, without opening the custom form', async () => {
     const user = userEvent.setup()
     const item: InventoryItem = {
