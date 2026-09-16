@@ -4,6 +4,7 @@ const TABS = [
   { to: '/admin/settings/categories', label: 'Categories' },
   { to: '/admin/settings/shipping-rates', label: 'Shipping rates' },
   { to: '/admin/settings/exchange-rate', label: 'Exchange rate' },
+  { to: '/admin/settings/item-templates', label: 'Item templates' },
 ]
 
 /** Admin settings shell - sub-navigation between categories, shipping rates, and (later) any

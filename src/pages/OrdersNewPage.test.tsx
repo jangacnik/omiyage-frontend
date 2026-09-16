@@ -135,6 +135,7 @@ describe('OrdersNewPage', () => {
       tags: [],
       isPreorder: false,
       expectedReleaseDate: null,
+      weight: null,
       boughtPrice: null,
       profitEur: null,
     }
@@ -162,6 +163,7 @@ describe('OrdersNewPage', () => {
       tags: [],
       isPreorder: false,
       expectedReleaseDate: null,
+      weight: null,
       boughtPrice: null,
       profitEur: null,
     }

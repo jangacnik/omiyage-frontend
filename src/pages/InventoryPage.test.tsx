@@ -29,6 +29,7 @@ function item(overrides: Partial<InventoryItem> = {}): InventoryItem {
     tags: [],
     isPreorder: false,
     expectedReleaseDate: null,
+    weight: null,
     boughtPrice: null,
     profitEur: null,
     ...overrides,

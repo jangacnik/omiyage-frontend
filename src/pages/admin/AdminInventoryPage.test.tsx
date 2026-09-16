@@ -25,6 +25,7 @@ function item(overrides: Partial<InventoryItem> = {}): InventoryItem {
     tags: [],
     isPreorder: false,
     expectedReleaseDate: null,
+    weight: null,
     boughtPrice: null,
     profitEur: null,
     ...overrides,
@@ -60,6 +61,7 @@ describe('AdminInventoryPage', () => {
     )
 
     renderWithProviders(<AdminInventoryPage />)
+    await user.click(screen.getByText('Add item'))
     await screen.findByText('Snacks')
 
     await user.type(screen.getByLabelText('Title'), 'Pocky strawberry')
@@ -91,6 +93,7 @@ describe('AdminInventoryPage', () => {
     )
 
     renderWithProviders(<AdminInventoryPage />)
+    await user.click(screen.getByText('Add item'))
 
     await user.type(screen.getByLabelText('Title'), 'Pocky strawberry')
     await user.type(screen.getByLabelText('Price in EUR'), '500')
@@ -114,6 +117,7 @@ describe('AdminInventoryPage', () => {
     )
 
     renderWithProviders(<AdminInventoryPage />)
+    await user.click(screen.getByText('Add item'))
 
     await user.type(screen.getByLabelText('Title'), 'Pocky strawberry')
     await user.type(screen.getByLabelText('Price in EUR'), '500')
@@ -204,7 +208,7 @@ describe('AdminInventoryPage', () => {
     await screen.findByText(/Kit Kat matcha/)
     await user.click(screen.getByText('Edit'))
 
-    const linkInput = screen.getByLabelText('Link for Kit Kat matcha')
+    const linkInput = screen.getByLabelText('Link to store page')
     await user.type(linkInput, 'https://example.com/kitkat')
     await user.click(screen.getByText('Save'))
 
@@ -235,7 +239,7 @@ describe('AdminInventoryPage', () => {
     await screen.findByText(/Kit Kat matcha/)
     await user.click(screen.getByText('Edit'))
 
-    const tagsInput = screen.getByLabelText('Tags for Kit Kat matcha')
+    const tagsInput = screen.getByLabelText('Tags')
     expect(tagsInput).toHaveValue('limited, matcha')
     await user.clear(tagsInput)
     await user.type(tagsInput, 'clearance')
@@ -258,6 +262,6 @@ describe('AdminInventoryPage', () => {
     await user.click(screen.getByText('Save'))
 
     expect(await screen.findByText('Could not save changes.')).toBeInTheDocument()
-    expect(screen.getByLabelText('Title for Kit Kat matcha')).toBeInTheDocument()
+    expect(screen.getByLabelText('Title')).toBeInTheDocument()
   })
 })

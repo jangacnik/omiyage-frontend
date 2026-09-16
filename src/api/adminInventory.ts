@@ -11,6 +11,7 @@ export interface InventoryItemInput {
   currency: Currency
   boughtPrice?: number
   stockQuantity: number
+  weight?: number
   imageKeys?: string[]
   categoryIds?: string[]
   tags?: string[]

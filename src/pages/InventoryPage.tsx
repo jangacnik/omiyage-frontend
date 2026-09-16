@@ -7,7 +7,8 @@ import { useConfirm } from '../components/ConfirmDialog'
 import { Pagination } from '../components/Pagination'
 import { Spinner } from '../components/Spinner'
 import { InventoryCard } from '../components/InventoryCard'
-import { InventoryItemEditForm } from '../components/InventoryItemEditForm'
+import { InventoryItemFormDialog } from '../components/InventoryItemFormDialog'
+import { Modal } from '../components/Modal'
 import { errorMessage } from '../lib/apiClient'
 
 export function InventoryPage() {
@@ -119,27 +120,27 @@ export function InventoryPage() {
         </div>
       )}
 
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 md:grid-cols-4">
-        {data?.content.map((item, i) => (
-          <div key={item.id} className="animate-rise" style={{ animationDelay: `${Math.min(i, 11) * 0.04}s` }}>
-            <InventoryCard
-              item={item}
-              onEdit={isAdmin ? () => setEditingId(item.id) : undefined}
-              onDelete={isAdmin ? () => handleDelete(item.id, item.title) : undefined}
-            />
-          </div>
-        ))}
+      <div className="max-h-[calc(100vh-320px)] overflow-y-auto pr-1">
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
+          {data?.content.map((item, i) => (
+            <div key={item.id} className="animate-rise" style={{ animationDelay: `${Math.min(i, 11) * 0.04}s` }}>
+              <InventoryCard
+                item={item}
+                onEdit={isAdmin ? () => setEditingId(item.id) : undefined}
+                onDelete={isAdmin ? () => handleDelete(item.id, item.title) : undefined}
+              />
+            </div>
+          ))}
+        </div>
       </div>
 
       {data && <Pagination page={data.page} totalPages={data.totalPages} onPageChange={setPage} />}
       {deleteItem.isError && <p className="error-text mt-2">{errorMessage(deleteItem.error, 'Could not delete that item.')}</p>}
 
       {editingItem && (
-        <div className="fixed inset-0 z-40 flex items-center justify-center bg-ink/40 p-4" onClick={() => setEditingId(null)}>
-          <div onClick={(e) => e.stopPropagation()}>
-            <InventoryItemEditForm item={editingItem} onDone={() => setEditingId(null)} />
-          </div>
-        </div>
+        <Modal onClose={() => setEditingId(null)}>
+          <InventoryItemFormDialog item={editingItem} onDone={() => setEditingId(null)} />
+        </Modal>
       )}
     </div>
   )

@@ -72,6 +72,12 @@ function AccountMenu({ nickname, onLogout, onNavigate }: { nickname: string; onL
   )
 }
 
+// Content-heavy grid pages (the inventory catalog, which doubles as the site's home page under
+// "/") benefit from the full viewport width - everything else (forms, detail views, admin
+// settings) reads better narrow and centered, so this is an opt-in list rather than a global
+// change to every page.
+const FULL_WIDTH_PATHS = new Set(['/inventory', '/admin/inventory'])
+
 export function Layout() {
   const claims = useAuthStore((s) => s.claims)
   const logout = useAuthStore((s) => s.logout)
@@ -80,6 +86,7 @@ export function Layout() {
   const [menuOpen, setMenuOpen] = useState(false)
   const closeMenu = () => setMenuOpen(false)
   const location = useLocation()
+  const isFullWidth = FULL_WIDTH_PATHS.has(location.pathname)
 
   return (
     <div className="min-h-screen bg-paper">
@@ -194,7 +201,10 @@ export function Layout() {
           </div>
         )}
       </nav>
-      <main key={location.pathname} className="animate-rise mx-auto max-w-6xl px-4 py-6 sm:px-6 sm:py-8">
+      <main
+        key={location.pathname}
+        className={`animate-rise px-4 py-6 sm:px-6 sm:py-8 ${isFullWidth ? 'w-full' : 'mx-auto max-w-6xl'}`}
+      >
         <Outlet />
       </main>
     </div>

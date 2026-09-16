@@ -1,4 +1,4 @@
-import type { Dispatch, SetStateAction } from 'react'
+import { useState, type Dispatch, type SetStateAction } from 'react'
 import { ImageDropInput } from './ImageDropInput'
 import { ThumbnailImage } from './ThumbnailImage'
 
@@ -8,6 +8,10 @@ export const MAX_ITEM_IMAGES = 5
  *  admin create form and the item edit form so both get the same cap and thumbnail grid. */
 export function ImageGallery({ images, onChange }: { images: string[]; onChange: Dispatch<SetStateAction<string[]>> }) {
   const atMax = images.length >= MAX_ITEM_IMAGES
+  // Bumped on every successful add to force ImageDropInput to remount - it only seeds its preview
+  // once from a mount-time prop, so without a fresh key the just-added photo's preview would
+  // linger in the "Add photo" widget even though it's already showing in the thumbnail grid above.
+  const [addKey, setAddKey] = useState(0)
 
   return (
     <div className="flex flex-col gap-2">
@@ -29,9 +33,14 @@ export function ImageGallery({ images, onChange }: { images: string[]; onChange:
         </div>
       )}
       <ImageDropInput
+        key={addKey}
         label="Add photo"
         disabled={atMax}
-        onUploaded={(key) => key && onChange((current) => [...current, key])}
+        onUploaded={(key) => {
+          if (!key) return
+          onChange((current) => [...current, key])
+          setAddKey((k) => k + 1)
+        }}
       />
       <p className="text-xs text-ink/50">{images.length}/{MAX_ITEM_IMAGES} photos added.</p>
     </div>

@@ -317,6 +317,7 @@ describe('OrderDetailPage', () => {
       tags: [],
       isPreorder: false,
       expectedReleaseDate: null,
+      weight: null,
       boughtPrice: null,
       profitEur: null,
     }
