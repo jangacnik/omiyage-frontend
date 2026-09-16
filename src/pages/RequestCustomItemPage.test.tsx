@@ -25,6 +25,7 @@ const item: InventoryItem = {
   tags: [],
   isPreorder: false,
   expectedReleaseDate: null,
+  weight: null,
   boughtPrice: null,
   profitEur: null,
 }
