@@ -11,24 +11,18 @@ import {
   useUpdateOrderItem,
   useUpdateOrderStatus,
 } from '../../api/adminOrders'
+import { AnchoredDialog, useTriggerAnchor } from '../../components/AnchoredDialog'
 import { useConfirm } from '../../components/ConfirmDialog'
 import { Field } from '../../components/Field'
 import { OrderItemCard } from '../../components/OrderItemCard'
-import {
-  CustomItemForm,
-  InventorySearch,
-  draftFromInventoryItem,
-  preservedContentFields,
-  useAddItemPanelState,
-  type DraftItem,
-} from '../../components/OrderItemBuilder'
+import { AddItemPanel, preservedItemFields } from '../../components/OrderItemBuilder'
 import { ORDER_ITEM_STATUSES, ORDER_ITEM_STATUS_LABELS } from '../../components/OrderItemStatusBadge'
 import { ButtonSpinner } from '../../components/Spinner'
 import { TrashIcon } from '../../components/icons'
-import { errorMessage } from '../../lib/apiClient'
+import { ApiError, errorMessage } from '../../lib/apiClient'
 import { formatMoney } from '../../lib/currency'
 import { AdminOrderItemEditDialog } from './AdminOrderItemEditDialog'
-import type { InventoryItem, OrderDto, OrderItemDto, OrderItemStatus, OrderStatus } from '../../types/api'
+import type { OrderDto, OrderItemDto, OrderItemStatus, OrderStatus } from '../../types/api'
 
 const STATUSES: OrderStatus[] = [
   'REQUESTED',
@@ -59,6 +53,7 @@ function AdminMoveItemDialog({
   const [targetOrderId, setTargetOrderId] = useState('')
   const moveItems = useAdminMoveOrderItems()
   const otherOrders = (userOrders ?? []).filter((o) => o.id !== orderId)
+  const anchor = useTriggerAnchor()
   const NEW_ORDER = '__new_order__'
 
   function move() {
@@ -69,47 +64,39 @@ function AdminMoveItemDialog({
   }
 
   return (
-    <div className="fixed inset-0 z-40 flex items-center justify-center bg-ink/40 p-4" onClick={onClose}>
-      <div
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="move-item-title"
-        className="card flex w-full max-w-sm flex-col gap-3"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <h2 id="move-item-title" className="page-title text-lg">
-          Move &quot;{item.title}&quot;
-        </h2>
-        <label className="flex flex-col gap-1">
-          <span className="field-label">Move to</span>
-          <select
-            value={targetOrderId}
-            onChange={(e) => setTargetOrderId(e.target.value)}
-            aria-label="Move to order"
-            className="field-input"
-          >
-            <option value="" disabled>
-              Choose a destination…
+    <AnchoredDialog anchor={anchor} onClose={onClose} labelledBy="move-item-title" className="flex flex-col gap-3">
+      <h2 id="move-item-title" className="page-title text-lg">
+        Move &quot;{item.title}&quot;
+      </h2>
+      <label className="flex flex-col gap-1">
+        <span className="field-label">Move to</span>
+        <select
+          value={targetOrderId}
+          onChange={(e) => setTargetOrderId(e.target.value)}
+          aria-label="Move to order"
+          className="field-input"
+        >
+          <option value="" disabled>
+            Choose a destination…
+          </option>
+          <option value={NEW_ORDER}>New order</option>
+          {otherOrders.map((o) => (
+            <option key={o.id} value={o.id}>
+              Order {o.id.slice(0, 8)} ({o.status})
             </option>
-            <option value={NEW_ORDER}>New order</option>
-            {otherOrders.map((o) => (
-              <option key={o.id} value={o.id}>
-                Order {o.id.slice(0, 8)} ({o.status})
-              </option>
-            ))}
-          </select>
-        </label>
-        {moveItems.isError && <p className="error-text">Could not move this item.</p>}
-        <div className="flex justify-end gap-2">
-          <button type="button" className="btn-secondary px-3 py-1.5 text-sm" onClick={onClose}>
-            Cancel
-          </button>
-          <button type="button" className="btn-primary px-3 py-1.5 text-sm" onClick={move} disabled={moveItems.isPending || !targetOrderId}>
-            {moveItems.isPending ? <ButtonSpinner /> : 'Move'}
-          </button>
-        </div>
+          ))}
+        </select>
+      </label>
+      {moveItems.isError && <p className="error-text">Could not move this item.</p>}
+      <div className="flex justify-end gap-2">
+        <button type="button" className="btn-secondary px-3 py-1.5 text-sm" onClick={onClose}>
+          Cancel
+        </button>
+        <button type="button" className="btn-primary px-3 py-1.5 text-sm" onClick={move} disabled={moveItems.isPending || !targetOrderId}>
+          {moveItems.isPending ? <ButtonSpinner /> : 'Move'}
+        </button>
       </div>
-    </div>
+    </AnchoredDialog>
   )
 }
 
@@ -121,28 +108,24 @@ function QuickStatusSelect({ orderId, item }: { orderId: string; item: OrderItem
   const updateItem = useUpdateOrderItem()
 
   return (
-    <select
-      value={item.status}
-      onChange={(e) =>
-        updateItem.mutate({
-          orderId,
-          itemId: item.id,
-          status: e.target.value as OrderItemStatus,
-          actualPrice: item.actualPrice ?? undefined,
-          soldPrice: item.soldPrice ?? undefined,
-          weight: item.weight ?? undefined,
-        })
-      }
-      aria-label={`Quick status for ${item.title}`}
-      className="field-input w-32 py-1 text-xs"
-      disabled={updateItem.isPending}
-    >
-      {ORDER_ITEM_STATUSES.map((s) => (
-        <option key={s} value={s}>
-          {ORDER_ITEM_STATUS_LABELS[s]}
-        </option>
-      ))}
-    </select>
+    <div className="flex flex-col items-end gap-1">
+      <select
+        value={item.status}
+        onChange={(e) => updateItem.mutate({ orderId, itemId: item.id, ...preservedItemFields(item), status: e.target.value as OrderItemStatus })}
+        aria-label={`Quick status for ${item.title}`}
+        className="field-input w-32 py-1 text-xs"
+        disabled={updateItem.isPending}
+      >
+        {ORDER_ITEM_STATUSES.map((s) => (
+          <option key={s} value={s}>
+            {ORDER_ITEM_STATUS_LABELS[s]}
+          </option>
+        ))}
+      </select>
+      {/* The select snaps back to item.status (server cache) on failure, which reads as "did
+          nothing" with no other signal - every other mutation on this row shows its own error. */}
+      {updateItem.isError && <p className="error-text text-xs">{errorMessage(updateItem.error, 'Could not update status.')}</p>}
+    </div>
   )
 }
 
@@ -176,7 +159,7 @@ function AdminItemRow({
   }
 
   return (
-    <li className="flex gap-2 py-4">
+    <li className={`flex gap-2 rounded-lg px-2 py-4 ${selected ? 'bg-mint/20' : ''}`}>
       <input
         type="checkbox"
         checked={selected}
@@ -226,71 +209,6 @@ function AdminItemRow({
   )
 }
 
-function AdminAddItemForm({ orderId, items }: { orderId: string; items: OrderItemDto[] }) {
-  const panel = useAddItemPanelState()
-  const addItem = useAdminAddOrderItem()
-  const updateItem = useAdminUpdateOrderItemContent()
-
-  if (!panel.open) {
-    return (
-      <button type="button" className="btn-secondary self-start" onClick={() => panel.setOpen(true)}>
-        Add item
-      </button>
-    )
-  }
-
-  function add(draft: DraftItem) {
-    panel.setJustAdded(false)
-    addItem.mutate(
-      { orderId, ...draft.input },
-      // Stay open on success - same reasoning as the member-facing AddItemForm on the order detail
-      // page: adding several items shouldn't mean reopening this panel once per item. Also clear
-      // any stale error left over from the other mutation this panel can trigger.
-      { onSuccess: () => { updateItem.reset(); panel.markAdded() } },
-    )
-  }
-
-  function selectInventoryItem(item: InventoryItem) {
-    // Already on this order - bump its quantity instead of adding a second row for the same item.
-    // Unlike the member-facing AddItemForm, admin content edits skip the locked-item guard
-    // server-side (see OrderService.adminUpdateItemContent), so no isItemLocked check is needed.
-    const existing = items.find((orderItem) => orderItem.inventoryItemId === item.id)
-    if (existing) {
-      panel.setJustAdded(false)
-      updateItem.mutate(
-        { orderId, itemId: existing.id, ...preservedContentFields(existing), quantity: existing.quantity + 1 },
-        { onSuccess: () => { addItem.reset(); panel.markAdded() } },
-      )
-    } else {
-      add(draftFromInventoryItem(item))
-    }
-  }
-
-  return (
-    <div className="flex flex-col gap-2">
-      <InventorySearch onSelect={selectInventoryItem} onCreateCustom={() => panel.setShowCustomForm(true)} onSearchTextChange={panel.setSearching} />
-
-      {panel.showCustomForm ? (
-        <CustomItemForm onAdd={add} />
-      ) : (
-        !panel.searching && (
-          <button type="button" className="btn-secondary self-start" onClick={() => panel.setShowCustomForm(true)}>
-            Can't find it? Create a custom request
-          </button>
-        )
-      )}
-
-      {panel.justAdded && !addItem.isPending && <p className="text-sm font-medium text-forest">Item added.</p>}
-
-      <button type="button" className="btn-secondary self-start px-3 py-1.5 text-sm" onClick={panel.close}>
-        Done
-      </button>
-      {(addItem.isError || updateItem.isError) && (
-        <p className="error-text">{errorMessage(addItem.error ?? updateItem.error, 'Could not add item.')}</p>
-      )}
-    </div>
-  )
-}
 
 /** Mass-apply a status and/or bought/sold price to every checked item in this order at once.
  *  A blank status/price field means "leave each item's own value alone" - each PATCH still sends
@@ -313,19 +231,39 @@ function BulkEditBar({
   const [soldPrice, setSoldPrice] = useState('')
   const [applying, setApplying] = useState(false)
   const [failedCount, setFailedCount] = useState(0)
+  const [lastError, setLastError] = useState<unknown>(null)
   // Frozen at the moment a batch is applied, so the "N of M failed" message stays internally
   // consistent even if the admin changes the checkbox selection afterward instead of retrying -
   // otherwise M would silently become "however many are checked right now", not the batch M
   // actually refers to.
   const [attemptedCount, setAttemptedCount] = useState(0)
   const updateItem = useUpdateOrderItem()
+  const confirm = useConfirm()
 
   const selectedItems = items.filter((item) => selectedIds.includes(item.id))
   const count = selectedItems.length
+  const changesPrice = actualPrice !== '' || soldPrice !== ''
 
   async function apply() {
+    // Disable the button for the whole confirm-then-apply round trip, not just the apply half -
+    // otherwise a second click before the confirm dialog is answered fires a second confirm(),
+    // which replaces ConfirmProvider's single pending resolver and silently strands the first one.
     setApplying(true)
+    const ok = await confirm({
+      title: 'Bulk update items',
+      message: `Apply this to all ${count} selected item${count === 1 ? '' : 's'}?${
+        changesPrice ? ' This overwrites bought/sold price on every one of them.' : ''
+      }`,
+      confirmLabel: `Apply to ${count}`,
+      danger: changesPrice,
+    })
+    if (!ok) {
+      setApplying(false)
+      return
+    }
+
     setFailedCount(0)
+    setLastError(null)
     setAttemptedCount(selectedItems.length)
     const outcomes = await Promise.allSettled(
       selectedItems.map((item) =>
@@ -333,10 +271,10 @@ function BulkEditBar({
           .mutateAsync({
             orderId,
             itemId: item.id,
+            ...preservedItemFields(item),
             status: status || item.status,
-            actualPrice: actualPrice ? Number(actualPrice) : (item.actualPrice ?? undefined),
-            soldPrice: soldPrice ? Number(soldPrice) : (item.soldPrice ?? undefined),
-            weight: item.weight ?? undefined,
+            ...(actualPrice !== '' && { actualPrice: Number(actualPrice) }),
+            ...(soldPrice !== '' && { soldPrice: Number(soldPrice) }),
           })
           .then(() => item.id),
       ),
@@ -345,9 +283,11 @@ function BulkEditBar({
     // "the rest stay selected, retry when ready" (below) is literally true, and Apply doesn't
     // resend an unnecessary PATCH to items that already succeeded.
     const succeededIds = outcomes.flatMap((outcome) => (outcome.status === 'fulfilled' ? [outcome.value] : []))
+    const rejected = outcomes.find((outcome): outcome is PromiseRejectedResult => outcome.status === 'rejected')
     const failed = outcomes.length - succeededIds.length
     setApplying(false)
     setFailedCount(failed)
+    setLastError(rejected?.reason ?? null)
     if (failed === 0) {
       setStatus('')
       setActualPrice('')
@@ -366,56 +306,61 @@ function BulkEditBar({
           Clear selection
         </button>
       </div>
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-        <Field label="Set status" hint="Leave unset to only change price">
-          <select
-            value={status}
-            onChange={(e) => setStatus(e.target.value as OrderItemStatus | '')}
-            className="field-input"
-            aria-label="Bulk status"
-          >
-            <option value="">Don't change</option>
-            {ORDER_ITEM_STATUSES.map((s) => (
-              <option key={s} value={s}>
-                {ORDER_ITEM_STATUS_LABELS[s]}
-              </option>
-            ))}
-          </select>
-        </Field>
-        <Field label="Bought for" hint="In JPY - blank keeps each item's own">
-          <input
-            type="number"
-            step="1"
-            value={actualPrice}
-            onChange={(e) => setActualPrice(e.target.value)}
-            className="field-input"
-            aria-label="Bulk bought price, in JPY"
-          />
-        </Field>
-        <Field label="Sold for" hint="In EUR - blank keeps each item's own">
-          <input
-            type="number"
-            step="0.01"
-            value={soldPrice}
-            onChange={(e) => setSoldPrice(e.target.value)}
-            className="field-input"
-            aria-label="Bulk sold price, in EUR"
-          />
-        </Field>
+      <Field label="Set status" hint="Leave unset to only change price" className="sm:max-w-xs">
+        <select
+          value={status}
+          onChange={(e) => setStatus(e.target.value as OrderItemStatus | '')}
+          className="field-input"
+          aria-label="Bulk status"
+        >
+          <option value="">Don't change</option>
+          {ORDER_ITEM_STATUSES.map((s) => (
+            <option key={s} value={s}>
+              {ORDER_ITEM_STATUS_LABELS[s]}
+            </option>
+          ))}
+        </select>
+      </Field>
+      {/* Same tinted-box treatment as the single-item edit dialog: this pair is the one most
+          likely to get mixed up under time pressure, now with N items' blast radius at once. */}
+      <div className="flex flex-col gap-3 rounded-lg bg-mist/60 p-3">
+        <p className="text-xs font-medium text-ink/50">Money - what we paid vs. what the customer pays</p>
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <Field label="Bought for" hint="In JPY - blank keeps each item's own">
+            <input
+              type="number"
+              step="1"
+              value={actualPrice}
+              onChange={(e) => setActualPrice(e.target.value)}
+              className="field-input"
+              aria-label="Bulk bought price, in JPY"
+            />
+          </Field>
+          <Field label="Sold for" hint="In EUR - blank keeps each item's own">
+            <input
+              type="number"
+              step="0.01"
+              value={soldPrice}
+              onChange={(e) => setSoldPrice(e.target.value)}
+              className="field-input"
+              aria-label="Bulk sold price, in EUR"
+            />
+          </Field>
+        </div>
       </div>
       <div className="flex flex-wrap items-center gap-2">
         <button
           type="button"
           className="btn-primary px-3 py-1.5 text-sm"
           onClick={apply}
-          disabled={applying || (!status && !actualPrice && !soldPrice)}
+          disabled={applying || (!status && !changesPrice)}
         >
           {applying ? <ButtonSpinner /> : `Apply to ${count} item${count === 1 ? '' : 's'}`}
         </button>
         {failedCount > 0 && (
           <p className="error-text">
-            {failedCount} of {attemptedCount} item{attemptedCount === 1 ? '' : 's'} failed to update - the failed ones stay selected, retry
-            when ready.
+            {failedCount} of {attemptedCount} item{attemptedCount === 1 ? '' : 's'} failed to update
+            {lastError instanceof ApiError ? `: ${lastError.message}` : '.'} The failed ones stay selected - retry when ready.
           </p>
         )}
       </div>
@@ -581,7 +526,7 @@ export function AdminOrderEditor({ order }: { order: OrderDto }) {
         ))}
       </ul>
 
-      <AdminAddItemForm orderId={order.id} items={order.items} />
+      <AddItemPanel orderId={order.id} items={order.items} useAddMutation={useAdminAddOrderItem} useUpdateMutation={useAdminUpdateOrderItemContent} />
     </div>
   )
 }

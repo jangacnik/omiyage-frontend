@@ -1,4 +1,5 @@
 import { createContext, useCallback, useContext, useRef, useState } from 'react'
+import { AnchoredDialog, useTriggerAnchor } from './AnchoredDialog'
 import { TrashIcon } from './icons'
 
 interface ConfirmOptions {
@@ -17,6 +18,37 @@ export function useConfirm(): ConfirmFn {
   const ctx = useContext(ConfirmContext)
   if (!ctx) throw new Error('useConfirm must be used within a ConfirmProvider')
   return ctx
+}
+
+/** Its own component (not inlined in the provider) so useTriggerAnchor's mount-time capture runs
+ *  fresh every time a confirm opens, anchored next to whatever button called confirm() - that
+ *  button is still document.activeElement at this point, since nothing else has taken focus in
+ *  the same synchronous click handler that called confirm(). */
+function ConfirmPanel({ options, onClose }: { options: ConfirmOptions; onClose: (result: boolean) => void }) {
+  const anchor = useTriggerAnchor()
+
+  return (
+    <AnchoredDialog anchor={anchor} onClose={() => onClose(false)} role="alertdialog" labelledBy="confirm-title">
+      <h2 id="confirm-title" className="page-title mb-2 text-lg">
+        {options.title ?? 'Are you sure?'}
+      </h2>
+      <p className="mb-4 text-sm text-ink/70">{options.message}</p>
+      <div className="flex justify-end gap-2">
+        <button type="button" className="btn-secondary" onClick={() => onClose(false)}>
+          {options.cancelLabel ?? 'Cancel'}
+        </button>
+        <button
+          type="button"
+          className={options.danger ? 'btn-danger-solid' : 'btn-primary'}
+          onClick={() => onClose(true)}
+          autoFocus
+        >
+          {options.danger && <TrashIcon size={14} />}
+          {options.confirmLabel ?? 'Confirm'}
+        </button>
+      </div>
+    </AnchoredDialog>
+  )
 }
 
 export function ConfirmProvider({ children }: { children: React.ReactNode }) {
@@ -38,40 +70,7 @@ export function ConfirmProvider({ children }: { children: React.ReactNode }) {
   return (
     <ConfirmContext.Provider value={confirm}>
       {children}
-      {options && (
-        <div
-          className="animate-fade fixed inset-0 z-50 flex items-center justify-center bg-ink/50 p-4 backdrop-blur-sm"
-          role="presentation"
-          onClick={() => close(false)}
-        >
-          <div
-            role="alertdialog"
-            aria-modal="true"
-            aria-labelledby="confirm-title"
-            className="card animate-pop w-full max-w-sm"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <h2 id="confirm-title" className="page-title mb-2 text-lg">
-              {options.title ?? 'Are you sure?'}
-            </h2>
-            <p className="mb-4 text-sm text-ink/70">{options.message}</p>
-            <div className="flex justify-end gap-2">
-              <button type="button" className="btn-secondary" onClick={() => close(false)}>
-                {options.cancelLabel ?? 'Cancel'}
-              </button>
-              <button
-                type="button"
-                className={options.danger ? 'btn-danger-solid' : 'btn-primary'}
-                onClick={() => close(true)}
-                autoFocus
-              >
-                {options.danger && <TrashIcon size={14} />}
-                {options.confirmLabel ?? 'Confirm'}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      {options && <ConfirmPanel options={options} onClose={close} />}
     </ConfirmContext.Provider>
   )
 }

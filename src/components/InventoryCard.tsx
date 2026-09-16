@@ -3,7 +3,7 @@ import { PreorderBadge } from './PreorderBadge'
 import { StatusPill } from './StatusPill'
 import { ThumbnailImage } from './ThumbnailImage'
 import { formatMoney } from '../lib/currency'
-import { CheckIcon, TrashIcon } from './icons'
+import { CartIcon, CheckIcon, TrashIcon } from './icons'
 import { cartItemFromInventoryItem, useAddToCartFeedback, useCartStore } from '../store/cartStore'
 import type { InventoryItem } from '../types/api'
 
@@ -75,6 +75,23 @@ export function InventoryCard({
           <StatusPill tone="early" label="Request only" size="sm" />
         )}
       </div>
+
+      {/* Quick-add on the thumbnail itself - the full-width button below still exists for anyone
+          who wants to see the label, but this one-click shortcut means never having to look past
+          the image while browsing. Sits outside <Link>, not nested in it, so it doesn't need its
+          own click-propagation handling - same trick the edit/delete overlay below already uses. */}
+      {!onEdit && !onDelete && (
+        <button
+          type="button"
+          onClick={handleAddToCart}
+          aria-label={justAdded ? `${item.title} added to cart` : `Add ${item.title} to cart`}
+          className={`absolute right-2 top-2 flex h-9 w-9 items-center justify-center rounded-full shadow-md transition-colors ${
+            justAdded ? 'bg-forest text-paper' : 'bg-ink/70 text-paper hover:bg-ink'
+          }`}
+        >
+          {justAdded ? <CheckIcon size={16} /> : <CartIcon size={16} />}
+        </button>
+      )}
 
       {(onEdit || onDelete) && (
         <div className="absolute inset-x-0 bottom-0 flex justify-end gap-1 bg-gradient-to-t from-ink/70 to-transparent p-2 opacity-0 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100">

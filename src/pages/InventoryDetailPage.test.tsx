@@ -69,7 +69,7 @@ describe('InventoryDetailPage', () => {
       ['/inventory/missing'],
     )
 
-    expect(await screen.findByText('Item not found.')).toBeInTheDocument()
+    expect(await screen.findByText('Item not found')).toBeInTheDocument()
   })
 
   it('lets a shopper click through multiple photos', async () => {

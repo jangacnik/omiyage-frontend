@@ -8,6 +8,7 @@ import { Pagination } from '../components/Pagination'
 import { Spinner } from '../components/Spinner'
 import { InventoryCard } from '../components/InventoryCard'
 import { InventoryItemEditForm } from '../components/InventoryItemEditForm'
+import { errorMessage } from '../lib/apiClient'
 
 export function InventoryPage() {
   const isAdmin = useAuthStore((s) => s.claims?.role === 'ADMIN')
@@ -131,6 +132,7 @@ export function InventoryPage() {
       </div>
 
       {data && <Pagination page={data.page} totalPages={data.totalPages} onPageChange={setPage} />}
+      {deleteItem.isError && <p className="error-text mt-2">{errorMessage(deleteItem.error, 'Could not delete that item.')}</p>}
 
       {editingItem && (
         <div className="fixed inset-0 z-40 flex items-center justify-center bg-ink/40 p-4" onClick={() => setEditingId(null)}>

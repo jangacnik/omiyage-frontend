@@ -16,7 +16,7 @@ import {
 import { useConfirm } from '../components/ConfirmDialog'
 import { OrderIdHint } from '../components/OrderIdHint'
 import { OrderItemCard } from '../components/OrderItemCard'
-import { CustomItemForm, InventorySearch, draftFromInventoryItem, preservedContentFields, useAddItemPanelState, type DraftItem } from '../components/OrderItemBuilder'
+import { AddItemPanel } from '../components/OrderItemBuilder'
 import { OrderStatusBadge } from '../components/OrderStatusBadge'
 import { Spinner, ButtonSpinner } from '../components/Spinner'
 import { Field } from '../components/Field'
@@ -24,7 +24,7 @@ import { ImageDropInput } from '../components/ImageDropInput'
 import { TrashIcon } from '../components/icons'
 import { errorMessage } from '../lib/apiClient'
 import { formatMoney } from '../lib/currency'
-import type { InventoryItem, OrderDto, OrderItemDto } from '../types/api'
+import type { OrderDto, OrderItemDto } from '../types/api'
 
 /** soldPrice is what's actually charged; an item not priced yet (still a bare request) falls back
  *  to the max the member set, so the total reads as an estimate rather than silently excluding it.
@@ -241,73 +241,6 @@ function EditableItem({ orderId, item, locked }: { orderId: string; item: OrderI
   )
 }
 
-function AddItemForm({ orderId, items }: { orderId: string; items: OrderItemDto[] }) {
-  const panel = useAddItemPanelState()
-  const addItem = useAddMyOrderItem()
-  const updateItem = useUpdateMyOrderItem()
-
-  if (!panel.open) {
-    return (
-      <button type="button" className="btn-secondary self-start" onClick={() => panel.setOpen(true)}>
-        Add item
-      </button>
-    )
-  }
-
-  function add(draft: DraftItem) {
-    panel.setJustAdded(false)
-    addItem.mutate(
-      { orderId, ...draft.input },
-      // Stay open on success - adding several items to an existing order shouldn't mean reopening
-      // this panel once per item, same as the fresh-order builder already lets you keep going.
-      // Also clear any stale error left over from the other mutation this panel can trigger, so a
-      // fresh success never renders next to old error text.
-      { onSuccess: () => { updateItem.reset(); panel.markAdded() } },
-    )
-  }
-
-  function selectInventoryItem(item: InventoryItem) {
-    // Already on this order - bump its quantity instead of adding a second row for the same item,
-    // same dedup OrderItemBuilder does for a fresh order's draft list. A locked (bought/shipped)
-    // item can't take this PATCH at all (backend 409s), so fall through to a plain add for that
-    // case rather than surface a confusing error.
-    const existing = items.find((orderItem) => orderItem.inventoryItemId === item.id)
-    if (existing && !isItemLocked(existing)) {
-      panel.setJustAdded(false)
-      updateItem.mutate(
-        { orderId, itemId: existing.id, ...preservedContentFields(existing), quantity: existing.quantity + 1 },
-        { onSuccess: () => { addItem.reset(); panel.markAdded() } },
-      )
-    } else {
-      add(draftFromInventoryItem(item))
-    }
-  }
-
-  return (
-    <div className="flex flex-col gap-2">
-      <InventorySearch onSelect={selectInventoryItem} onCreateCustom={() => panel.setShowCustomForm(true)} onSearchTextChange={panel.setSearching} />
-
-      {panel.showCustomForm ? (
-        <CustomItemForm onAdd={add} />
-      ) : (
-        !panel.searching && (
-          <button type="button" className="btn-secondary self-start" onClick={() => panel.setShowCustomForm(true)}>
-            Can't find it? Create a custom request
-          </button>
-        )
-      )}
-
-      {panel.justAdded && !addItem.isPending && <p className="text-sm font-medium text-forest">Item added.</p>}
-
-      <button type="button" className="btn-secondary self-start px-3 py-1.5 text-sm" onClick={panel.close}>
-        Done
-      </button>
-      {(addItem.isError || updateItem.isError) && (
-        <p className="error-text">{errorMessage(addItem.error ?? updateItem.error, 'Could not add item.')}</p>
-      )}
-    </div>
-  )
-}
 
 function SplitItemsPanel({ order }: { order: OrderDto }) {
   const [selected, setSelected] = useState<string[]>([])
@@ -473,7 +406,15 @@ export function OrderDetailPage() {
 
       <OrderTotal order={order} />
 
-      {order.open && <AddItemForm orderId={order.id} items={order.items} />}
+      {order.open && (
+        <AddItemPanel
+          orderId={order.id}
+          items={order.items}
+          useAddMutation={useAddMyOrderItem}
+          useUpdateMutation={useUpdateMyOrderItem}
+          isLocked={isItemLocked}
+        />
+      )}
       {order.open && <SplitItemsPanel order={order} />}
     </div>
   )

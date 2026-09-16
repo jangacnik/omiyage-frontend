@@ -75,32 +75,20 @@ export function useAdminUpdateOrderNickname() {
   })
 }
 
+export interface UpdateOrderItemInput {
+  status: OrderItemStatus
+  actualPrice?: number
+  soldPrice?: number
+  weight?: number
+}
+
 export function useUpdateOrderItem() {
   const queryClient = useQueryClient()
   return useMutation({
     // actualPrice is always JPY and soldPrice is always EUR - fixed by policy, see
     // OrderService.updateItem on the backend, which ignores any currency sent here anyway.
-    mutationFn: ({
-      orderId,
-      itemId,
-      status,
-      actualPrice,
-      soldPrice,
-      weight,
-    }: {
-      orderId: string
-      itemId: string
-      status: OrderItemStatus
-      actualPrice?: number
-      soldPrice?: number
-      weight?: number
-    }) =>
-      api.patch<OrderDto>(`/api/admin/orders/${orderId}/items/${itemId}`, {
-        status,
-        actualPrice,
-        soldPrice,
-        weight,
-      }),
+    mutationFn: ({ orderId, itemId, ...input }: UpdateOrderItemInput & { orderId: string; itemId: string }) =>
+      api.patch<OrderDto>(`/api/admin/orders/${orderId}/items/${itemId}`, input),
     onSuccess: (_, { orderId }) => {
       queryClient.invalidateQueries({ queryKey: ['admin', 'orders'] })
       queryClient.invalidateQueries({ queryKey: ['admin', 'shipments'] })

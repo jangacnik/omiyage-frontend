@@ -79,7 +79,15 @@ export function InventoryDetailPage() {
         </div>
       )
     }
-    return <p className="error-text">Item not found.</p>
+    return (
+      <div className="card flex flex-col items-center gap-1 py-12 text-center">
+        <p className="font-medium text-ink">Item not found</p>
+        <p className="text-sm text-ink/55">It may have been removed from the catalog.</p>
+        <Link to="/inventory" className="btn-secondary mt-2">
+          Back to inventory
+        </Link>
+      </div>
+    )
   }
 
   function handleAddToCart() {

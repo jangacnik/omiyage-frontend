@@ -3,8 +3,10 @@ import { Link } from 'react-router-dom'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
+import type { UseMutationResult } from '@tanstack/react-query'
 import { useInventory } from '../api/inventory'
 import type { CreateOrderItemInput, UpdateMyOrderItemInput } from '../api/orders'
+import type { UpdateOrderItemInput } from '../api/adminOrders'
 import { CONDITION_LABELS } from './OrderItemCard'
 import { Field } from './Field'
 import { ImageDropInput } from './ImageDropInput'
@@ -12,8 +14,9 @@ import { PreorderBadge } from './PreorderBadge'
 import { ButtonSpinner } from './Spinner'
 import { ThumbnailImage } from './ThumbnailImage'
 import { TrashIcon } from './icons'
+import { errorMessage } from '../lib/apiClient'
 import { formatMoney } from '../lib/currency'
-import type { InventoryItem, OrderItemDto } from '../types/api'
+import type { InventoryItem, OrderDto, OrderItemDto } from '../types/api'
 
 /** The quantity-bump PATCH (member and admin add-item panels, when re-selecting a catalog item
  *  already on the order) fully replaces an item's content, not just quantity - see
@@ -26,6 +29,18 @@ export function preservedContentFields(item: OrderItemDto): Omit<UpdateMyOrderIt
     imageKey: item.imageKey ?? undefined,
     maxPrice: item.maxPrice ?? undefined,
     link: item.link ?? undefined,
+  }
+}
+
+/** Same reasoning as preservedContentFields above, for the admin-only status/price/weight PATCH
+ *  (OrderService.updateItem on the backend) - QuickStatusSelect, BulkEditBar, and
+ *  AdminOrderItemEditDialog all touch a subset of {status, actualPrice, soldPrice, weight} and
+ *  must carry the rest forward from the item's current values or that PATCH silently wipes them. */
+export function preservedItemFields(item: OrderItemDto): Omit<UpdateOrderItemInput, 'status'> {
+  return {
+    actualPrice: item.actualPrice ?? undefined,
+    soldPrice: item.soldPrice ?? undefined,
+    weight: item.weight ?? undefined,
   }
 }
 
@@ -92,6 +107,11 @@ type CustomItemForm = z.infer<typeof customItemSchema>
 export function CustomItemForm({ onAdd }: { onAdd: (item: DraftItem) => void }) {
   const [imageKey, setImageKey] = useState<string | undefined>()
   const [uploading, setUploading] = useState(false)
+  // Bumped on every successful add to force ImageDropInput to remount - a caller that keeps this
+  // form open across multiple adds (AddItemForm, AdminAddItemForm) never unmounts it itself, and
+  // ImageDropInput only seeds its preview once from a mount-time prop, so without a fresh key the
+  // just-added photo's preview would silently linger for the next item.
+  const [photoResetKey, setPhotoResetKey] = useState(0)
   const {
     register,
     handleSubmit,
@@ -123,6 +143,7 @@ export function CustomItemForm({ onAdd }: { onAdd: (item: DraftItem) => void }) 
     })
     reset()
     setImageKey(undefined)
+    setPhotoResetKey((k) => k + 1)
   }
 
   return (
@@ -153,7 +174,7 @@ export function CustomItemForm({ onAdd }: { onAdd: (item: DraftItem) => void }) 
       <Field label="Link to store page" hint="Optional">
         <input type="url" className="field-input" {...register('link')} aria-label="Link to store page" />
       </Field>
-      <ImageDropInput label="Photo" onUploaded={setImageKey} onUploadingChange={setUploading} />
+      <ImageDropInput key={photoResetKey} label="Photo" onUploaded={setImageKey} onUploadingChange={setUploading} />
       <label className="flex items-center gap-2 text-sm text-ink/80">
         <input type="checkbox" {...register('isPreorder')} />
         This is a preorder
@@ -361,6 +382,86 @@ export function OrderItemBuilder({
             Can't find it? Create a custom request
           </button>
         )
+      )}
+    </div>
+  )
+}
+
+/** Search-inventory-first "add item to an existing order" panel - used identically by the
+ *  member-facing order detail page and the admin equivalent, which only differ in which mutation
+ *  hooks they call and whether a locked (bought/shipped) item blocks the quantity-bump PATCH (the
+ *  member-facing endpoint 409s on one, the admin one doesn't - see OrderService.kt). */
+export function AddItemPanel({
+  orderId,
+  items,
+  useAddMutation,
+  useUpdateMutation,
+  isLocked,
+}: {
+  orderId: string
+  items: OrderItemDto[]
+  useAddMutation: () => UseMutationResult<OrderDto, Error, CreateOrderItemInput & { orderId: string }>
+  useUpdateMutation: () => UseMutationResult<OrderDto, Error, UpdateMyOrderItemInput & { orderId: string; itemId: string }>
+  isLocked?: (item: OrderItemDto) => boolean
+}) {
+  const panel = useAddItemPanelState()
+  const addItem = useAddMutation()
+  const updateItem = useUpdateMutation()
+
+  if (!panel.open) {
+    return (
+      <button type="button" className="btn-secondary self-start" onClick={() => panel.setOpen(true)}>
+        Add item
+      </button>
+    )
+  }
+
+  function add(draft: DraftItem) {
+    panel.setJustAdded(false)
+    addItem.mutate(
+      { orderId, ...draft.input },
+      // Stay open on success - adding several items shouldn't mean reopening this panel once per
+      // item. Also clear any stale error left over from the other mutation this panel can trigger.
+      { onSuccess: () => { updateItem.reset(); panel.markAdded() } },
+    )
+  }
+
+  function selectInventoryItem(item: InventoryItem) {
+    // Already on this order - bump its quantity instead of adding a second row for the same item,
+    // same dedup OrderItemBuilder does for a fresh order's draft list.
+    const existing = items.find((orderItem) => orderItem.inventoryItemId === item.id)
+    if (existing && !(isLocked?.(existing) ?? false)) {
+      panel.setJustAdded(false)
+      updateItem.mutate(
+        { orderId, itemId: existing.id, ...preservedContentFields(existing), quantity: existing.quantity + 1 },
+        { onSuccess: () => { addItem.reset(); panel.markAdded() } },
+      )
+    } else {
+      add(draftFromInventoryItem(item))
+    }
+  }
+
+  return (
+    <div className="flex flex-col gap-2">
+      <InventorySearch onSelect={selectInventoryItem} onCreateCustom={() => panel.setShowCustomForm(true)} onSearchTextChange={panel.setSearching} />
+
+      {panel.showCustomForm ? (
+        <CustomItemForm onAdd={add} />
+      ) : (
+        !panel.searching && (
+          <button type="button" className="btn-secondary self-start" onClick={() => panel.setShowCustomForm(true)}>
+            Can't find it? Create a custom request
+          </button>
+        )
+      )}
+
+      {panel.justAdded && !addItem.isPending && <p className="text-sm font-medium text-forest">Item added.</p>}
+
+      <button type="button" className="btn-secondary self-start px-3 py-1.5 text-sm" onClick={panel.close}>
+        Done
+      </button>
+      {(addItem.isError || updateItem.isError) && (
+        <p className="error-text">{errorMessage(addItem.error ?? updateItem.error, 'Could not add item.')}</p>
       )}
     </div>
   )

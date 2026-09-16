@@ -7,6 +7,7 @@ import { OrderIdHint } from '../components/OrderIdHint'
 import { OrderStatusBadge } from '../components/OrderStatusBadge'
 import { Pagination } from '../components/Pagination'
 import { Spinner, ButtonSpinner } from '../components/Spinner'
+import { errorMessage } from '../lib/apiClient'
 import type { OrderDto } from '../types/api'
 
 function ShipmentGroup({ orders }: { orders: OrderDto[] }) {
@@ -87,7 +88,7 @@ export function OrdersListPage() {
         setSelected([])
         setMergeError(null)
       },
-      onError: (error) => setMergeError(error instanceof Error ? error.message : 'could not merge these orders'),
+      onError: (error) => setMergeError(errorMessage(error, 'Could not merge these orders.')),
     })
   }
 
@@ -128,16 +129,18 @@ export function OrdersListPage() {
             <ShipmentGroup key={group[0].shipmentId} orders={group} />
           ) : (
             <li key={group[0].id} className="card flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2">
                 <input
                   type="checkbox"
                   checked={selected.includes(group[0].id)}
                   onChange={() => toggleSelected(group[0].id)}
                   disabled={!group[0].open}
-                  title={group[0].open ? undefined : "This order is no longer open, so it can't be merged"}
                   aria-label={`Select order ${group[0].id.slice(0, 8)} to merge`}
                   className="disabled:opacity-40"
                 />
+                {/* Visible, not just a title tooltip - same reasoning as the preorder/locked-item
+                    disabled-reasons on OrderDetailPage: a tooltip never appears on touch devices. */}
+                {!group[0].open && <span className="text-xs text-ink/40">not open</span>}
                 <Link to={`/orders/${group[0].id}`} className="font-medium text-ink hover:text-forest">
                   Order {orderDisplayName(group[0])}
                   <OrderIdHint id={group[0].id} nickname={group[0].nickname} /> — {group[0].items.length} item(s)
