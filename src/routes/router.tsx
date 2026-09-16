@@ -4,6 +4,7 @@ import { RequireAdmin, RequireAuth } from './guards'
 import { LoginPage } from '../pages/LoginPage'
 import { InventoryPage } from '../pages/InventoryPage'
 import { InventoryDetailPage } from '../pages/InventoryDetailPage'
+import { RequestCustomItemPage } from '../pages/RequestCustomItemPage'
 import { CartPage } from '../pages/CartPage'
 import { OrdersNewPage } from '../pages/OrdersNewPage'
 import { OrdersListPage } from '../pages/OrdersListPage'
@@ -35,6 +36,7 @@ export const router = createBrowserRouter([
           { path: '/', element: <Navigate to="/inventory" replace /> },
           { path: '/inventory', element: <InventoryPage /> },
           { path: '/inventory/:id', element: <InventoryDetailPage /> },
+          { path: '/inventory/:id/request', element: <RequestCustomItemPage /> },
           { path: '/cart', element: <CartPage /> },
           { path: '/orders/new', element: <OrdersNewPage /> },
           { path: '/orders', element: <OrdersListPage /> },

@@ -131,7 +131,7 @@ export function InventoryDetailPage() {
               'Add to cart'
             )}
           </button>
-          <Link to={`/orders/new?inventoryItemId=${item.id}`} className="btn-secondary self-start">
+          <Link to={`/inventory/${item.id}/request`} className="btn-secondary self-start">
             Request with different price or condition
           </Link>
           <span className="sr-only" role="status" aria-live="polite">

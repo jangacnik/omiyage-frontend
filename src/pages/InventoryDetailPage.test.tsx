@@ -44,7 +44,7 @@ describe('InventoryDetailPage', () => {
 
     expect(await screen.findByText('Kit Kat matcha')).toBeInTheDocument()
     expect(screen.getByText(/Snacks/)).toBeInTheDocument()
-    expect(screen.getByText('Request with different price or condition')).toHaveAttribute('href', '/orders/new?inventoryItemId=item-1')
+    expect(screen.getByText('Request with different price or condition')).toHaveAttribute('href', '/inventory/item-1/request')
   })
 
   it('shows a request-only badge next to zero stock', async () => {
