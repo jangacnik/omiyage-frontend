@@ -2,13 +2,14 @@ import { useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { useInventoryItem } from '../api/inventory'
 import { DialogCloseButton } from '../components/DialogCloseButton'
+import { IconButton } from '../components/IconButton'
 import { PreorderBadge } from '../components/PreorderBadge'
 import { QuantityStepper } from '../components/QuantityStepper'
-import { Spinner } from '../components/Spinner'
+import { Spinner, ButtonSpinner } from '../components/Spinner'
 import { StatusPill } from '../components/StatusPill'
 import { ThumbnailImage } from '../components/ThumbnailImage'
 import { formatMoney } from '../lib/currency'
-import { CheckIcon } from '../components/icons'
+import { CheckIcon, RefreshIcon } from '../components/icons'
 import { ApiError } from '../lib/apiClient'
 import { cartItemFromInventoryItem, useAddToCartFeedback, useCartStore } from '../store/cartStore'
 
@@ -81,9 +82,13 @@ export function InventoryDetailPage({ id: idProp, onClose }: { id?: string; onCl
           {onClose && <DialogCloseButton onClose={onClose} />}
           <p className="font-medium text-ink">Could not load this item</p>
           <p className="text-sm text-ink/55">Something went wrong reaching the server.</p>
-          <button type="button" className="btn-secondary mt-2" onClick={() => refetch()} disabled={isRefetching}>
-            {isRefetching ? 'Retrying…' : 'Retry'}
-          </button>
+          <IconButton
+            className="mt-2"
+            label={isRefetching ? 'Retrying…' : 'Retry'}
+            onClick={() => refetch()}
+            disabled={isRefetching}
+            icon={isRefetching ? <ButtonSpinner /> : <RefreshIcon size={14} />}
+          />
         </div>
       )
     }

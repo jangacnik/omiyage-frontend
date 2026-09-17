@@ -89,13 +89,13 @@ describe('AdminOrderDetailPage', () => {
 
     renderPage()
     await screen.findByText('Ghibli museum ticket')
-    await user.click(screen.getByText('Edit'))
+    await user.click(screen.getByRole('button', { name: 'Edit' }))
 
     await user.type(await screen.findByLabelText('Bought for, in JPY'), '1800')
     await user.type(screen.getByLabelText('Sold for, in EUR'), '2200')
     await user.type(screen.getByLabelText('Weight'), '250')
     await user.selectOptions(screen.getByLabelText('Status'), 'BOUGHT')
-    await user.click(screen.getByText('Save'))
+    await user.click(screen.getByRole('button', { name: 'Save' }))
 
     // actualPrice is always JPY and soldPrice is always EUR now - no currency to send.
     await waitFor(() =>
@@ -144,9 +144,9 @@ describe('AdminOrderDetailPage', () => {
     renderPage()
     await screen.findByText('Ghibli museum ticket')
 
-    await user.click(screen.getByText('Rename'))
+    await user.click(screen.getByRole('button', { name: 'Rename' }))
     await user.type(screen.getByLabelText('Order nickname'), "Grandma's Gifts")
-    await user.click(screen.getByText('Save'))
+    await user.click(screen.getByRole('button', { name: 'Save' }))
 
     await waitFor(() => expect(capturedBody).toEqual({ nickname: "Grandma's Gifts" }))
   })
@@ -193,7 +193,7 @@ describe('AdminOrderDetailPage', () => {
     )
 
     renderPage()
-    await user.click(await screen.findByText('Mark paid'))
+    await user.click(await screen.findByRole('button', { name: 'Mark paid' }))
 
     await waitFor(() => expect(capturedBody).toEqual({ paid: true }))
   })
@@ -214,7 +214,7 @@ describe('AdminOrderDetailPage', () => {
     )
 
     renderPage()
-    await user.click(await screen.findByText('Move'))
+    await user.click(await screen.findByRole('button', { name: 'Move to another order' }))
     await user.selectOptions(await screen.findByLabelText('Move to order'), 'order-other')
     await user.click(screen.getByText('Move', { selector: 'button.btn-primary' }))
 

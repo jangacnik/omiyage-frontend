@@ -49,7 +49,7 @@ describe('AdminCategoriesPage', () => {
 
     renderWithProviders(<AdminCategoriesPage />)
     await screen.findByText('Snacks')
-    await user.click(screen.getByText('Delete'))
+    await user.click(screen.getByRole('button', { name: 'Delete' }))
 
     const dialog = await screen.findByRole('alertdialog')
     await user.click(within(dialog).getByText('Delete'))

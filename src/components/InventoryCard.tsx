@@ -4,10 +4,11 @@ import { PreorderBadge } from './PreorderBadge'
 import { StatusPill } from './StatusPill'
 import { ThumbnailImage } from './ThumbnailImage'
 import { formatGrams, formatMoney } from '../lib/currency'
-import { CartIcon, CheckIcon, TrashIcon } from './icons'
+import { CartIcon, CheckIcon, EditIcon, TrashIcon } from './icons'
 import { cartItemFromInventoryItem, useAddToCartFeedback, useCartStore } from '../store/cartStore'
 import { Modal } from './Modal'
 import { InventoryDetailPage } from '../pages/InventoryDetailPage'
+import { IconButton } from './IconButton'
 import { QuantityStepper } from './QuantityStepper'
 import type { InventoryItem } from '../types/api'
 
@@ -106,15 +107,9 @@ export function InventoryCard({
 
       {(onEdit || onDelete) && (
         <div className="absolute inset-x-0 bottom-0 flex justify-end gap-1 bg-gradient-to-t from-ink/70 to-transparent p-2 opacity-0 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100">
-          {onEdit && (
-            <button type="button" className="btn-secondary px-2 py-1 text-xs" onClick={onEdit}>
-              Edit
-            </button>
-          )}
+          {onEdit && <IconButton label={`Edit ${item.title}`} onClick={onEdit} icon={<EditIcon size={14} />} />}
           {onDelete && (
-            <button type="button" className="btn-danger px-2 py-1 text-xs" onClick={onDelete} aria-label={`Delete ${item.title}`}>
-              <TrashIcon size={13} />
-            </button>
+            <IconButton variant="danger" label={`Delete ${item.title}`} onClick={onDelete} icon={<TrashIcon size={14} />} />
           )}
         </div>
       )}

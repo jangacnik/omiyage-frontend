@@ -10,11 +10,13 @@ import { useAuthStore } from '../store/authStore'
 import { orderDisplayName } from '../api/orders'
 import { DialogCloseButton } from '../components/DialogCloseButton'
 import { Field } from '../components/Field'
+import { IconButton } from '../components/IconButton'
 import { OrderIdHint } from '../components/OrderIdHint'
 import { OrderStatusBadge } from '../components/OrderStatusBadge'
 import { ShipmentStatusBadge } from '../components/ShipmentStatusBadge'
 import { OrderItemStatusBadge } from '../components/OrderItemStatusBadge'
 import { ButtonSpinner, Spinner } from '../components/Spinner'
+import { CheckIcon, CloseIcon, CopyIcon, EditIcon } from '../components/icons'
 import { formatGrams, formatMoney } from '../lib/currency'
 import type { MemberShipmentDto, OrderDto, PendingAmountDto, ShipmentDestination, ShipmentMemberDto, ShippingMethod } from '../types/api'
 
@@ -36,9 +38,12 @@ function CopyTrackingNumber({ trackingNumber }: { trackingNumber: string }) {
   }
 
   return (
-    <button type="button" className="btn-secondary px-2 py-0.5 text-xs" onClick={copy}>
-      {copied ? 'Copied' : 'Copy'}
-    </button>
+    <IconButton
+      className="h-6 w-6"
+      label={copied ? 'Copied' : 'Copy tracking number'}
+      onClick={copy}
+      icon={copied ? <CheckIcon size={12} /> : <CopyIcon size={12} />}
+    />
   )
 }
 
@@ -113,17 +118,14 @@ function TitleEditor({ id, title, editable }: { id: string; title: string | null
         <Field label="Shipment title" className="w-full sm:w-64">
           <input className="field-input" value={value} onChange={(e) => setValue(e.target.value)} autoFocus />
         </Field>
-        <button
-          type="button"
-          className="btn-primary px-3 py-1.5 text-sm"
+        <IconButton
+          variant="primary"
+          label="Save"
           onClick={() => updateTitle.mutate({ id, title: value.trim() || null }, { onSuccess: () => setEditing(false) })}
           disabled={updateTitle.isPending}
-        >
-          {updateTitle.isPending ? <ButtonSpinner /> : 'Save'}
-        </button>
-        <button type="button" className="btn-secondary px-3 py-1.5 text-sm" onClick={() => setEditing(false)}>
-          Cancel
-        </button>
+          icon={updateTitle.isPending ? <ButtonSpinner /> : <CheckIcon size={14} />}
+        />
+        <IconButton label="Cancel" onClick={() => setEditing(false)} icon={<CloseIcon size={14} />} />
       </div>
     )
   }
@@ -131,9 +133,7 @@ function TitleEditor({ id, title, editable }: { id: string; title: string | null
   return (
     <div className="flex flex-wrap items-baseline gap-2">
       <h1 className="page-title">{title ?? 'Untitled shipment'}</h1>
-      <button type="button" className="btn-secondary px-2 py-1 text-xs" onClick={() => setEditing(true)}>
-        Rename
-      </button>
+      <IconButton label="Rename" onClick={() => setEditing(true)} icon={<EditIcon size={14} />} />
     </div>
   )
 }
@@ -199,9 +199,13 @@ function ShippingEditor({ shipment, editable }: { shipment: MemberShipmentDto; e
         </select>
       </Field>
       {dirty && (
-        <button type="button" className="btn-primary px-3 py-1.5 text-sm" onClick={save} disabled={updateShipping.isPending}>
-          {updateShipping.isPending ? <ButtonSpinner /> : 'Save'}
-        </button>
+        <IconButton
+          variant="primary"
+          label="Save"
+          onClick={save}
+          disabled={updateShipping.isPending}
+          icon={updateShipping.isPending ? <ButtonSpinner /> : <CheckIcon size={14} />}
+        />
       )}
       {updateShipping.isError && <p className="error-text w-full">Could not save destination/shipping method.</p>}
     </>

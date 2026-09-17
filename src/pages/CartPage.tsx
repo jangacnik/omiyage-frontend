@@ -7,6 +7,7 @@ import { PreorderBadge } from '../components/PreorderBadge'
 import { QuantityStepper } from '../components/QuantityStepper'
 import { ButtonSpinner } from '../components/Spinner'
 import { ThumbnailImage } from '../components/ThumbnailImage'
+import { IconButton } from '../components/IconButton'
 import { TrashIcon } from '../components/icons'
 import { errorMessage } from '../lib/apiClient'
 import { formatMoney } from '../lib/currency'
@@ -84,14 +85,12 @@ export function CartPage() {
               <p className="w-24 text-right font-medium text-ink">
                 {formatMoney(item.priceAmount * item.quantity, item.currency)}
               </p>
-              <button
-                type="button"
-                className="btn-danger px-3 text-sm"
+              <IconButton
+                variant="danger"
+                label={`Remove ${item.title} from cart`}
                 onClick={() => removeItem(item.inventoryItemId)}
-                aria-label={`Remove ${item.title} from cart`}
-              >
-                <TrashIcon size={16} />
-              </button>
+                icon={<TrashIcon size={14} />}
+              />
             </div>
           </div>
         ))}

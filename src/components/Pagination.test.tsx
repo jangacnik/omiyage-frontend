@@ -11,8 +11,8 @@ describe('Pagination', () => {
 
   it('disables Previous on the first page and Next on the last page', () => {
     render(<Pagination page={0} totalPages={3} onPageChange={vi.fn()} />)
-    expect(screen.getByText('Previous')).toBeDisabled()
-    expect(screen.getByText('Next')).not.toBeDisabled()
+    expect(screen.getByRole('button', { name: 'Previous page' })).toBeDisabled()
+    expect(screen.getByRole('button', { name: 'Next page' })).not.toBeDisabled()
   })
 
   it('calls onPageChange with the next page number', async () => {
@@ -20,10 +20,10 @@ describe('Pagination', () => {
     const onPageChange = vi.fn()
     render(<Pagination page={1} totalPages={3} onPageChange={onPageChange} />)
 
-    await user.click(screen.getByText('Next'))
+    await user.click(screen.getByRole('button', { name: 'Next page' }))
     expect(onPageChange).toHaveBeenCalledWith(2)
 
-    await user.click(screen.getByText('Previous'))
+    await user.click(screen.getByRole('button', { name: 'Previous page' }))
     expect(onPageChange).toHaveBeenCalledWith(0)
   })
 })

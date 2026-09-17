@@ -7,9 +7,10 @@ import {
   type ShippingRateInput,
 } from '../../api/adminShippingRates'
 import { Field } from '../../components/Field'
-import { Spinner } from '../../components/Spinner'
+import { Spinner, ButtonSpinner } from '../../components/Spinner'
 import { useConfirm } from '../../components/ConfirmDialog'
-import { TrashIcon } from '../../components/icons'
+import { IconButton } from '../../components/IconButton'
+import { CheckIcon, CloseIcon, EditIcon, TrashIcon } from '../../components/icons'
 import { errorMessage } from '../../lib/apiClient'
 import { formatGrams, formatMoney } from '../../lib/currency'
 import type { ShipmentDestination, ShippingMethod, ShippingRateDto } from '../../types/api'
@@ -122,17 +123,14 @@ function RateRow({ rate }: { rate: ShippingRateDto }) {
               className="field-input py-1 text-sm"
             />
           </Field>
-          <button
-            type="button"
-            className="btn-primary px-2 py-1 text-xs"
+          <IconButton
+            variant="primary"
+            label="Save"
             onClick={handleSave}
             disabled={updateRate.isPending}
-          >
-            Save
-          </button>
-          <button type="button" className="btn-secondary px-2 py-1 text-xs" onClick={() => setEditing(false)}>
-            Cancel
-          </button>
+            icon={updateRate.isPending ? <ButtonSpinner /> : <CheckIcon size={14} />}
+          />
+          <IconButton label="Cancel" onClick={() => setEditing(false)} icon={<CloseIcon size={14} />} />
         </div>
         {error && <p className="error-text">{error}</p>}
       </li>
@@ -145,12 +143,8 @@ function RateRow({ rate }: { rate: ShippingRateDto }) {
         up to {formatGrams(rate.maxWeightGrams)} — {formatMoney(rate.costJpy, 'JPY')} — ~{rate.estimatedDays} days
       </span>
       <span className="flex gap-2">
-        <button type="button" className="btn-secondary px-2 py-1 text-xs" onClick={startEdit}>
-          Edit
-        </button>
-        <button type="button" className="btn-danger px-2 py-1 text-xs" onClick={handleDelete}>
-          <TrashIcon size={13} /> Delete
-        </button>
+        <IconButton label="Edit" onClick={startEdit} icon={<EditIcon size={14} />} />
+        <IconButton variant="danger" label="Delete" onClick={handleDelete} icon={<TrashIcon size={14} />} />
       </span>
     </li>
   )

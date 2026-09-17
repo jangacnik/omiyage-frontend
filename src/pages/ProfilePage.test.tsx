@@ -85,12 +85,12 @@ describe('ProfilePage', () => {
 
     renderWithProviders(<ProfilePage />)
     await screen.findByText('Nickname: bob')
-    await user.click(screen.getByText('Rename'))
+    await user.click(screen.getByRole('button', { name: 'Rename' }))
 
     const input = screen.getByLabelText('Nickname')
     await user.clear(input)
     await user.type(input, 'bobby')
-    await user.click(screen.getAllByText('Save')[0])
+    await user.click(screen.getByRole('button', { name: 'Save nickname' }))
 
     await waitFor(() => expect(capturedBody).toEqual({ nickname: 'bobby' }))
     expect(await screen.findByText('Nickname: bobby')).toBeInTheDocument()
@@ -105,8 +105,8 @@ describe('ProfilePage', () => {
 
     renderWithProviders(<ProfilePage />)
     await screen.findByText('Nickname: bob')
-    await user.click(screen.getByText('Rename'))
-    await user.click(screen.getAllByText('Save')[0])
+    await user.click(screen.getByRole('button', { name: 'Rename' }))
+    await user.click(screen.getByRole('button', { name: 'Save nickname' }))
 
     expect(await screen.findByText('That nickname is already taken.')).toBeInTheDocument()
   })

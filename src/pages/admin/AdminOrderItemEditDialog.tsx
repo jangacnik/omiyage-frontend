@@ -5,6 +5,8 @@ import { ImageDropInput } from '../../components/ImageDropInput'
 import { QuantityStepper } from '../../components/QuantityStepper'
 import { ORDER_ITEM_STATUSES } from '../../components/OrderItemStatusBadge'
 import { ButtonSpinner } from '../../components/Spinner'
+import { IconButton } from '../../components/IconButton'
+import { CheckIcon, CloseIcon } from '../../components/icons'
 import type { OrderItemDto, OrderItemStatus } from '../../types/api'
 
 export function AdminOrderItemEditDialog({
@@ -162,12 +164,14 @@ export function AdminOrderItemEditDialog({
         {updateItem.isError && <p className="error-text">Could not save the status/pricing/weight change.</p>}
 
         <div className="sticky bottom-0 -mx-4 -mb-4 mt-1 flex justify-end gap-2 border-t border-mist bg-surface px-4 py-3">
-          <button type="button" className="btn-secondary px-3 py-1.5 text-sm" onClick={onClose}>
-            Cancel
-          </button>
-          <button type="button" className="btn-primary px-3 py-1.5 text-sm" onClick={save} disabled={saving}>
-            {saving ? <ButtonSpinner /> : 'Save'}
-          </button>
+          <IconButton label="Cancel" onClick={onClose} icon={<CloseIcon size={14} />} />
+          <IconButton
+            variant="primary"
+            label="Save"
+            onClick={save}
+            disabled={saving}
+            icon={saving ? <ButtonSpinner /> : <CheckIcon size={14} />}
+          />
         </div>
       </div>
     </div>

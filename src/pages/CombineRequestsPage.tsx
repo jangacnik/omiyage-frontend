@@ -7,6 +7,8 @@ import {
 } from '../api/combineRequests'
 import { OrderIdHint } from '../components/OrderIdHint'
 import { ButtonSpinner, Spinner } from '../components/Spinner'
+import { IconButton } from '../components/IconButton'
+import { CheckIcon, CloseIcon } from '../components/icons'
 import type { CombineRequestDto, ShipmentSummaryDto } from '../types/api'
 
 function OrderSummary({ id, nickname }: { id: string; nickname: string | null }) {
@@ -33,12 +35,19 @@ function IncomingRow({ request }: { request: CombineRequestDto }) {
         <ShipmentSummary shipment={request.targetShipment} />
       </p>
       <div className="flex gap-2">
-        <button type="button" className="btn-primary px-3 py-1.5 text-sm" onClick={() => accept.mutate(request.id)} disabled={accept.isPending}>
-          {accept.isPending ? <ButtonSpinner /> : 'Accept'}
-        </button>
-        <button type="button" className="btn-secondary px-3 py-1.5 text-sm" onClick={() => decline.mutate(request.id)} disabled={decline.isPending}>
-          {decline.isPending ? <ButtonSpinner /> : 'Decline'}
-        </button>
+        <IconButton
+          variant="primary"
+          label="Accept"
+          onClick={() => accept.mutate(request.id)}
+          disabled={accept.isPending}
+          icon={accept.isPending ? <ButtonSpinner /> : <CheckIcon size={14} />}
+        />
+        <IconButton
+          label="Decline"
+          onClick={() => decline.mutate(request.id)}
+          disabled={decline.isPending}
+          icon={decline.isPending ? <ButtonSpinner /> : <CloseIcon size={14} />}
+        />
       </div>
       {(accept.isError || decline.isError) && <p className="error-text">Could not update this request.</p>}
     </li>
@@ -54,9 +63,12 @@ function OutgoingRow({ request }: { request: CombineRequestDto }) {
         Your order <OrderSummary id={request.requesterOrder.id} nickname={request.requesterOrder.nickname} /> asked to join{' '}
         <ShipmentSummary shipment={request.targetShipment} /> — waiting for them to respond.
       </p>
-      <button type="button" className="btn-secondary px-3 py-1.5 text-sm" onClick={() => cancel.mutate(request.id)} disabled={cancel.isPending}>
-        {cancel.isPending ? <ButtonSpinner /> : 'Cancel'}
-      </button>
+      <IconButton
+        label="Cancel request"
+        onClick={() => cancel.mutate(request.id)}
+        disabled={cancel.isPending}
+        icon={cancel.isPending ? <ButtonSpinner /> : <CloseIcon size={14} />}
+      />
       {cancel.isError && <p className="error-text">Could not cancel this request.</p>}
     </li>
   )

@@ -88,7 +88,7 @@ describe('MyShipmentPage', () => {
     await user.selectOptions(screen.getByLabelText('Destination'), 'AUSTRIA')
     expect(patched).toBeNull()
 
-    await user.click(await screen.findByText('Save'))
+    await user.click(await screen.findByRole('button', { name: 'Save' }))
     await waitFor(() => expect(patched).toEqual({ destination: 'AUSTRIA', shippingMethod: 'EMS' }))
   })
 

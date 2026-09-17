@@ -8,6 +8,7 @@ import { OrderStatusBadge } from '../../components/OrderStatusBadge'
 import { Pagination } from '../../components/Pagination'
 import { Spinner, ButtonSpinner } from '../../components/Spinner'
 import { StatusPill } from '../../components/StatusPill'
+import { IconButton } from '../../components/IconButton'
 import { TrashIcon } from '../../components/icons'
 import { formatMoney } from '../../lib/currency'
 import type { AdminOrderSortBy, OrderStatus, SortDirection } from '../../types/api'
@@ -194,14 +195,13 @@ export function AdminOrdersPage() {
               </label>
               <span className="flex items-center gap-3">
                 <span className="text-sm text-ink/60">{order.items.length} item(s)</span>
-                <button
-                  type="button"
-                  className="btn-danger px-2 py-1 text-xs"
+                <IconButton
+                  variant="danger"
+                  label="Delete"
                   onClick={() => handleDelete(order.id)}
                   disabled={deleteOrder.isPending}
-                >
-                  <TrashIcon size={13} /> Delete
-                </button>
+                  icon={<TrashIcon size={14} />}
+                />
               </span>
             </li>
           )

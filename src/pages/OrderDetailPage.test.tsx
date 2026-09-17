@@ -84,10 +84,10 @@ describe('OrderDetailPage', () => {
       ['/orders/order-1'],
     )
 
-    await user.click(await screen.findByText('Edit'))
+    await user.click(await screen.findByRole('button', { name: 'Edit' }))
     await user.clear(screen.getByLabelText('Title'))
     await user.type(screen.getByLabelText('Title'), 'Ghibli museum ticket (2x)')
-    await user.click(screen.getByText('Save'))
+    await user.click(screen.getByRole('button', { name: 'Save' }))
 
     await waitFor(() => expect(capturedBody).toMatchObject({ title: 'Ghibli museum ticket (2x)' }))
   })
@@ -124,9 +124,9 @@ describe('OrderDetailPage', () => {
       ['/orders/order-1'],
     )
 
-    await user.click(await screen.findByText('Rename'))
+    await user.click(await screen.findByRole('button', { name: 'Rename' }))
     await user.type(screen.getByLabelText('Order nickname'), "Grandma's Gifts")
-    await user.click(screen.getByText('Save'))
+    await user.click(screen.getByRole('button', { name: 'Save' }))
 
     await waitFor(() => expect(capturedBody).toEqual({ nickname: "Grandma's Gifts" }))
   })
@@ -149,9 +149,9 @@ describe('OrderDetailPage', () => {
       ['/orders/order-1'],
     )
 
-    await user.click(await screen.findByText('Rename'))
+    await user.click(await screen.findByRole('button', { name: 'Rename' }))
     await user.clear(screen.getByLabelText('Order nickname'))
-    await user.click(screen.getByText('Save'))
+    await user.click(screen.getByRole('button', { name: 'Save' }))
 
     await waitFor(() => expect(capturedBody).toEqual({ nickname: null }))
   })
@@ -167,9 +167,9 @@ describe('OrderDetailPage', () => {
       ['/orders/order-1'],
     )
 
-    await user.click(await screen.findByText('Rename'))
+    await user.click(await screen.findByRole('button', { name: 'Rename' }))
     await user.type(screen.getByLabelText('Order nickname'), ' extra text')
-    await user.click(screen.getByText('Cancel'))
+    await user.click(screen.getByRole('button', { name: 'Cancel' }))
 
     expect(screen.getByText(/Grandma's Gifts/)).toBeInTheDocument()
     expect(screen.queryByLabelText('Order nickname')).not.toBeInTheDocument()

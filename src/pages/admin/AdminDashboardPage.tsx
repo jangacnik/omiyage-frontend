@@ -12,6 +12,8 @@ import { OrderStatusBadge } from '../../components/OrderStatusBadge'
 import { OrderItemStatusBadge } from '../../components/OrderItemStatusBadge'
 import { Spinner, ButtonSpinner } from '../../components/Spinner'
 import { ThumbnailImage } from '../../components/ThumbnailImage'
+import { IconButton } from '../../components/IconButton'
+import { CheckIcon, CloseIcon, PlusIcon } from '../../components/icons'
 import { formatMoney } from '../../lib/currency'
 import type { OrderDto, OrderItemDto, PendingAmountDto, UserDashboardEntryDto } from '../../types/api'
 
@@ -83,14 +85,13 @@ function PaidToggleButton({ orderId, item }: { orderId: string; item: OrderItemD
   const setPaid = useAdminMarkItemPaid()
   return (
     <div className="flex flex-col items-end gap-1">
-      <button
-        type="button"
-        className={item.paid ? 'btn-secondary px-2 py-1 text-xs' : 'btn-primary px-2 py-1 text-xs'}
+      <IconButton
+        label={item.paid ? 'Mark unpaid' : 'Mark paid'}
         onClick={() => setPaid.mutate({ orderId, itemId: item.id, paid: !item.paid })}
         disabled={setPaid.isPending}
-      >
-        {setPaid.isPending ? <ButtonSpinner /> : item.paid ? 'Mark unpaid' : 'Mark paid'}
-      </button>
+        icon={setPaid.isPending ? <ButtonSpinner /> : <CheckIcon size={14} />}
+        variant={item.paid ? 'secondary' : 'primary'}
+      />
       {setPaid.isError && <p className="error-text text-xs">Could not update paid status.</p>}
     </div>
   )
@@ -182,9 +183,11 @@ function UserDashboardCard({ entry }: { entry: UserDashboardEntryDto }) {
         </button>
         <div className="flex items-center gap-3">
           <PendingSummary amounts={entry.pendingAmounts} />
-          <button type="button" className="btn-secondary px-2 py-1 text-xs" onClick={() => setCreatingOrder((v) => !v)}>
-            {creatingOrder ? 'Cancel' : 'Create order'}
-          </button>
+          <IconButton
+            label={creatingOrder ? 'Cancel' : 'Create order'}
+            onClick={() => setCreatingOrder((v) => !v)}
+            icon={creatingOrder ? <CloseIcon size={14} /> : <PlusIcon size={14} />}
+          />
           <span className="text-ink/40" aria-hidden="true">
             {expanded ? '▲' : '▼'}
           </span>

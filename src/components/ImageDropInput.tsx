@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { api } from '../lib/apiClient'
 import { ButtonSpinner } from './Spinner'
+import { CloseIcon } from './icons'
 import { mediaUrl } from '../lib/media'
 
 interface ImageDropInputProps {
@@ -120,9 +121,10 @@ export function ImageDropInput({ label = 'Photo', initialImageKey, disabled, onU
                 type="button"
                 onClick={handleRemove}
                 aria-label="Remove photo"
-                className="absolute right-0.5 top-0.5 flex h-5 w-5 items-center justify-center rounded-full bg-ink/70 text-xs text-white hover:bg-ink"
+                title="Remove photo"
+                className="absolute right-0.5 top-0.5 flex h-5 w-5 items-center justify-center rounded-full bg-ink/70 text-white hover:bg-ink"
               >
-                ×
+                <CloseIcon size={11} />
               </button>
             )}
             {uploading && (

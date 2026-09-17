@@ -92,12 +92,12 @@ describe('AdminItemTemplatesPage', () => {
 
     renderWithProviders(<AdminItemTemplatesPage />)
     await screen.findByText('Kit Kat box')
-    await user.click(screen.getByText('Edit'))
+    await user.click(screen.getByRole('button', { name: 'Edit' }))
 
     const nameInput = screen.getByLabelText('Template name (template-1)')
     await user.clear(nameInput)
     await user.type(nameInput, 'Renamed box')
-    await user.click(screen.getByText('Save'))
+    await user.click(screen.getByRole('button', { name: 'Save' }))
 
     await waitFor(() => expect(capturedBody).toMatchObject({ name: 'Renamed box' }))
   })
@@ -115,7 +115,7 @@ describe('AdminItemTemplatesPage', () => {
 
     renderWithProviders(<AdminItemTemplatesPage />)
     await screen.findByText('Kit Kat box')
-    await user.click(screen.getByText('Delete'))
+    await user.click(screen.getByRole('button', { name: 'Delete' }))
 
     const dialog = await screen.findByRole('alertdialog')
     await user.click(within(dialog).getByText('Delete'))

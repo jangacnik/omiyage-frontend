@@ -52,6 +52,97 @@ export function CloseIcon({ size = 14 }: IconProps) {
   )
 }
 
+export function EditIcon({ size = 14 }: IconProps) {
+  return (
+    <svg {...base(size)}>
+      <path d="M16.5 3.5 a2.12 2.12 0 0 1 3 3 L7 19 l-4 1 1-4 Z" />
+    </svg>
+  )
+}
+
+export function RefreshIcon({ size = 14 }: IconProps) {
+  return (
+    <svg {...base(size)}>
+      <path d="M4 4 V9 H9" />
+      <path d="M4.5 15 a8 8 0 1 0 2-11.5 L4 9" />
+    </svg>
+  )
+}
+
+export function LinkIcon({ size = 14 }: IconProps) {
+  return (
+    <svg {...base(size)}>
+      <path d="M9 15 L15 9" />
+      <path d="M11 6 L13.5 3.5 a4 4 0 0 1 5.5 5.5 L16.5 11.5" />
+      <path d="M13 18 L10.5 20.5 a4 4 0 0 1 -5.5 -5.5 L7.5 12.5" />
+    </svg>
+  )
+}
+
+export function SplitIcon({ size = 14 }: IconProps) {
+  return (
+    <svg {...base(size)}>
+      <path d="M8 4 H4 V9" />
+      <path d="M4 4 L11 11" />
+      <path d="M16 4 H20 V9" />
+      <path d="M20 4 L13 11" />
+      <path d="M12 13 V20" />
+    </svg>
+  )
+}
+
+export function SendIcon({ size = 14 }: IconProps) {
+  return (
+    <svg {...base(size)}>
+      <path d="M4 12 L20 4 L13 20 L11 13 Z" />
+      <path d="M11 13 L20 4" />
+    </svg>
+  )
+}
+
+export function MoveIcon({ size = 14 }: IconProps) {
+  return (
+    <svg {...base(size)}>
+      <path d="M5 9 L5 5 L9 5" />
+      <path d="M5 5 L11 11" />
+      <path d="M13 13 H20 V20 H13 Z" />
+    </svg>
+  )
+}
+
+export function PlusIcon({ size = 14 }: IconProps) {
+  return (
+    <svg {...base(size)}>
+      <path d="M12 5 V19 M5 12 H19" />
+    </svg>
+  )
+}
+
+export function CopyIcon({ size = 14 }: IconProps) {
+  return (
+    <svg {...base(size)}>
+      <path d="M9 9 H18 V18 H9 Z" />
+      <path d="M6 15 H5 a1 1 0 0 1 -1 -1 V6 a1 1 0 0 1 1 -1 h9 a1 1 0 0 1 1 1 v1" />
+    </svg>
+  )
+}
+
+export function ChevronLeftIcon({ size = 14 }: IconProps) {
+  return (
+    <svg {...base(size)}>
+      <path d="M15 5 L8 12 L15 19" />
+    </svg>
+  )
+}
+
+export function ChevronRightIcon({ size = 14 }: IconProps) {
+  return (
+    <svg {...base(size)}>
+      <path d="M9 5 L16 12 L9 19" />
+    </svg>
+  )
+}
+
 export function ExternalLinkIcon({ size = 14 }: IconProps) {
   return (
     <svg {...base(size)}>

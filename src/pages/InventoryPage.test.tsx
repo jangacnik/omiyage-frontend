@@ -140,7 +140,7 @@ describe('InventoryPage', () => {
     renderWithProviders(<InventoryPage />)
     await screen.findByText('Kit Kat matcha')
 
-    expect(screen.queryByText('Edit')).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /^Edit/ })).not.toBeInTheDocument()
   })
 
   it('shows edit and delete controls to an admin', async () => {
@@ -154,6 +154,6 @@ describe('InventoryPage', () => {
     renderWithProviders(<InventoryPage />)
     await screen.findByText('Kit Kat matcha')
 
-    expect(screen.getByText('Edit')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Edit Kit Kat matcha' })).toBeInTheDocument()
   })
 })

@@ -206,7 +206,7 @@ describe('AdminInventoryPage', () => {
 
     renderWithProviders(<AdminInventoryPage />)
     await screen.findByText(/Kit Kat matcha/)
-    await user.click(screen.getByText('Edit'))
+    await user.click(screen.getByRole('button', { name: 'Edit Kit Kat matcha' }))
 
     const linkInput = screen.getByLabelText('Link to store page')
     await user.type(linkInput, 'https://example.com/kitkat')
@@ -237,7 +237,7 @@ describe('AdminInventoryPage', () => {
 
     renderWithProviders(<AdminInventoryPage />)
     await screen.findByText(/Kit Kat matcha/)
-    await user.click(screen.getByText('Edit'))
+    await user.click(screen.getByRole('button', { name: 'Edit Kit Kat matcha' }))
 
     const tagsInput = screen.getByLabelText('Tags')
     expect(tagsInput).toHaveValue('limited, matcha')
@@ -258,7 +258,7 @@ describe('AdminInventoryPage', () => {
 
     renderWithProviders(<AdminInventoryPage />)
     await screen.findByText(/Kit Kat matcha/)
-    await user.click(screen.getByText('Edit'))
+    await user.click(screen.getByRole('button', { name: 'Edit Kit Kat matcha' }))
     await user.click(screen.getByText('Save'))
 
     expect(await screen.findByText('Could not save changes.')).toBeInTheDocument()

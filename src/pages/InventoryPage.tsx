@@ -5,9 +5,11 @@ import { useDeleteInventoryItem } from '../api/adminInventory'
 import { useAuthStore } from '../store/authStore'
 import { useConfirm } from '../components/ConfirmDialog'
 import { Pagination } from '../components/Pagination'
-import { Spinner } from '../components/Spinner'
+import { Spinner, ButtonSpinner } from '../components/Spinner'
 import { InventoryCard } from '../components/InventoryCard'
 import { InventoryItemFormDialog } from '../components/InventoryItemFormDialog'
+import { IconButton } from '../components/IconButton'
+import { RefreshIcon } from '../components/icons'
 import { Modal } from '../components/Modal'
 import { errorMessage } from '../lib/apiClient'
 
@@ -108,9 +110,13 @@ export function InventoryPage() {
       {isError && (
         <div className="card flex flex-col items-center gap-1 py-8 text-center">
           <p className="error-text">Could not load inventory.</p>
-          <button type="button" className="btn-secondary mt-2" onClick={() => refetch()} disabled={isRefetching}>
-            {isRefetching ? 'Retrying…' : 'Retry'}
-          </button>
+          <IconButton
+            className="mt-2"
+            label={isRefetching ? 'Retrying…' : 'Retry'}
+            onClick={() => refetch()}
+            disabled={isRefetching}
+            icon={isRefetching ? <ButtonSpinner /> : <RefreshIcon size={14} />}
+          />
         </div>
       )}
       {data && data.content.length === 0 && (

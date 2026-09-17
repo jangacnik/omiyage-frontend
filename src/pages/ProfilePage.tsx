@@ -8,6 +8,8 @@ import { Avatar } from '../components/Avatar'
 import { Field } from '../components/Field'
 import { ImageDropInput } from '../components/ImageDropInput'
 import { ButtonSpinner, Spinner } from '../components/Spinner'
+import { IconButton } from '../components/IconButton'
+import { CheckIcon, CloseIcon, EditIcon } from '../components/icons'
 import type { UserProfileDto } from '../types/api'
 
 function AvatarEditor({ profile }: { profile: UserProfileDto }) {
@@ -40,9 +42,7 @@ function NicknameEditor({ profile }: { profile: UserProfileDto }) {
     return (
       <p className="mb-4 flex items-center gap-2 text-ink/60">
         <span>Nickname: {profile.nickname}</span>
-        <button type="button" className="btn-secondary px-2 py-0.5 text-xs" onClick={() => setEditing(true)}>
-          Rename
-        </button>
+        <IconButton label="Rename" onClick={() => setEditing(true)} icon={<EditIcon size={14} />} />
       </p>
     )
   }
@@ -58,19 +58,21 @@ function NicknameEditor({ profile }: { profile: UserProfileDto }) {
           autoFocus
         />
       </Field>
-      <button type="button" className="btn-primary px-3 py-1.5 text-sm" onClick={save} disabled={updateNickname.isPending}>
-        {updateNickname.isPending ? <ButtonSpinner /> : 'Save'}
-      </button>
-      <button
-        type="button"
-        className="btn-secondary px-3 py-1.5 text-sm"
+      <IconButton
+        variant="primary"
+        label="Save nickname"
+        onClick={save}
+        disabled={updateNickname.isPending}
+        icon={updateNickname.isPending ? <ButtonSpinner /> : <CheckIcon size={14} />}
+      />
+      <IconButton
+        label="Cancel"
         onClick={() => {
           setNickname(profile.nickname ?? '')
           setEditing(false)
         }}
-      >
-        Cancel
-      </button>
+        icon={<CloseIcon size={14} />}
+      />
       {updateNickname.isError && (
         <p className="error-text w-full">
           {updateNickname.error instanceof ApiError && updateNickname.error.status === 409

@@ -3,6 +3,8 @@ import { Link } from 'react-router-dom'
 import { orderDisplayName, useMergeMyOrders, useMyOrders } from '../api/orders'
 import { CombineRequestModal } from '../components/CombineRequestModal'
 import { useConfirm } from '../components/ConfirmDialog'
+import { IconButton } from '../components/IconButton'
+import { LinkIcon } from '../components/icons'
 import { Modal } from '../components/Modal'
 import { OrderIdHint } from '../components/OrderIdHint'
 import { OrderStatusBadge } from '../components/OrderStatusBadge'
@@ -131,7 +133,7 @@ export function OrdersListPage() {
               {mergeOrders.isPending ? <ButtonSpinner /> : 'Merge selected'}
             </button>
           </div>
-          <p className="text-xs text-ink/50">Combines these orders of yours into one. To join a shipment with another member instead, use "Combine with…" on a single order.</p>
+          <p className="text-xs text-ink/50">Combines these orders of yours into one. To join a shipment with another member instead, use the combine icon on a single order.</p>
         </div>
       )}
 
@@ -160,14 +162,11 @@ export function OrdersListPage() {
               </div>
               <div className="flex items-center gap-2">
                 {group[0].open && (
-                  <button
-                    type="button"
-                    className="btn-secondary px-2 py-1 text-xs"
+                  <IconButton
+                    label="Ask to join another member's shipment with this order"
                     onClick={() => setCombiningOrderId(group[0].id)}
-                    title="Ask to join another member's shipment with this order"
-                  >
-                    Combine with…
-                  </button>
+                    icon={<LinkIcon size={14} />}
+                  />
                 )}
                 <OrderStatusBadge status={group[0].status} />
               </div>

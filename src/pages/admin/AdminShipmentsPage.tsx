@@ -17,7 +17,8 @@ import { OrderIdHint } from '../../components/OrderIdHint'
 import { OrderStatusBadge } from '../../components/OrderStatusBadge'
 import { OrderItemStatusBadge } from '../../components/OrderItemStatusBadge'
 import { Spinner, ButtonSpinner } from '../../components/Spinner'
-import { TrashIcon } from '../../components/icons'
+import { IconButton } from '../../components/IconButton'
+import { CheckIcon, EditIcon, TrashIcon } from '../../components/icons'
 import { AdminOrderEditor } from './AdminOrderEditor'
 import type { OrderDto, ShipmentDestination, ShipmentDto, ShipmentStatus, ShippingMethod } from '../../types/api'
 
@@ -69,9 +70,12 @@ function ShipmentOrderRow({
         {order.shippingCostShareJpy != null && (
           <span className="text-xs font-medium text-ink">{formatMoney(order.shippingCostShareJpy, 'JPY')} shipping</span>
         )}
-        <button type="button" className="btn-secondary ml-auto px-2 py-1 text-xs" onClick={() => setEditing((v) => !v)}>
-          {editing ? 'Done' : 'Edit'}
-        </button>
+        <IconButton
+          className="ml-auto"
+          label={editing ? 'Done' : 'Edit'}
+          onClick={() => setEditing((v) => !v)}
+          icon={editing ? <CheckIcon size={14} /> : <EditIcon size={14} />}
+        />
       </div>
       <p className="text-xs font-medium text-ink">
         {formatMoney(orderItemsTotalEur(order) + (order.shippingCostShareEur ?? 0), 'EUR')} total
@@ -185,26 +189,20 @@ function ShipmentCard({
             ))}
           </select>
           {updateShipment.isPending && <ButtonSpinner />}
-          <button
-            type="button"
-            className="btn-secondary px-2 py-1 text-xs"
+          <IconButton
+            label={allPaid ? 'Mark shipment unpaid' : 'Mark shipment paid'}
             onClick={handleMarkShipmentPaid}
             disabled={markShipmentPaid.isPending || items.length === 0}
-          >
-            {markShipmentPaid.isPending ? <ButtonSpinner /> : allPaid ? 'Mark shipment unpaid' : 'Mark shipment paid'}
-          </button>
-          <button
-            type="button"
-            className="btn-danger px-2 py-1 text-xs"
+            icon={markShipmentPaid.isPending ? <ButtonSpinner /> : <CheckIcon size={14} />}
+            className={allPaid ? 'bg-mint text-forest-deep ring-forest/40' : ''}
+          />
+          <IconButton
+            variant="danger"
+            label="Delete"
             onClick={handleDelete}
             disabled={deleteShipment.isPending}
-          >
-            {deleteShipment.isPending ? <ButtonSpinner /> : (
-              <>
-                <TrashIcon size={13} /> Delete
-              </>
-            )}
-          </button>
+            icon={deleteShipment.isPending ? <ButtonSpinner /> : <TrashIcon size={14} />}
+          />
         </div>
       </div>
 

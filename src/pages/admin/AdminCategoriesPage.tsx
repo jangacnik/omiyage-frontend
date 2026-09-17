@@ -3,6 +3,7 @@ import { useAdminCategories, useCreateCategory, useDeleteCategory } from '../../
 import { Field } from '../../components/Field'
 import { Spinner } from '../../components/Spinner'
 import { useConfirm } from '../../components/ConfirmDialog'
+import { IconButton } from '../../components/IconButton'
 import { TrashIcon } from '../../components/icons'
 
 function slugify(name: string): string {
@@ -54,9 +55,7 @@ export function AdminCategoriesPage() {
         {categories?.map((c) => (
           <li key={c.id} className="card flex items-center justify-between py-2">
             <span className="text-sm text-ink/80">{c.name}</span>
-            <button type="button" className="btn-danger px-2 py-1 text-xs" onClick={() => handleDelete(c.id, c.name)}>
-              <TrashIcon size={13} /> Delete
-            </button>
+            <IconButton variant="danger" label="Delete" onClick={() => handleDelete(c.id, c.name)} icon={<TrashIcon size={14} />} />
           </li>
         ))}
       </ul>

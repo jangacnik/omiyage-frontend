@@ -23,7 +23,8 @@ import { Spinner, ButtonSpinner } from '../components/Spinner'
 import { Field } from '../components/Field'
 import { ImageDropInput } from '../components/ImageDropInput'
 import { QuantityStepper } from '../components/QuantityStepper'
-import { TrashIcon } from '../components/icons'
+import { IconButton } from '../components/IconButton'
+import { CheckIcon, CloseIcon, EditIcon, TrashIcon } from '../components/icons'
 import { errorMessage } from '../lib/apiClient'
 import { formatMoney } from '../lib/currency'
 import type { OrderDto, OrderItemDto } from '../types/api'
@@ -79,19 +80,21 @@ function OrderNicknameEditor({ order }: { order: OrderDto }) {
             autoFocus
           />
         </Field>
-        <button type="button" className="btn-primary px-3 py-1.5 text-sm" onClick={save} disabled={updateNickname.isPending}>
-          {updateNickname.isPending ? <ButtonSpinner /> : 'Save'}
-        </button>
-        <button
-          type="button"
-          className="btn-secondary px-3 py-1.5 text-sm"
+        <IconButton
+          variant="primary"
+          label="Save"
+          onClick={save}
+          disabled={updateNickname.isPending}
+          icon={updateNickname.isPending ? <ButtonSpinner /> : <CheckIcon size={14} />}
+        />
+        <IconButton
+          label="Cancel"
           onClick={() => {
             setNickname(order.nickname ?? '')
             setEditing(false)
           }}
-        >
-          Cancel
-        </button>
+          icon={<CloseIcon size={14} />}
+        />
       </div>
     )
   }
@@ -102,9 +105,7 @@ function OrderNicknameEditor({ order }: { order: OrderDto }) {
         Order {orderDisplayName(order)}
         <OrderIdHint id={order.id} nickname={order.nickname} />
       </h1>
-      <button type="button" className="btn-secondary px-2 py-1 text-xs" onClick={() => setEditing(true)}>
-        Rename
-      </button>
+      <IconButton label="Rename" onClick={() => setEditing(true)} icon={<EditIcon size={14} />} />
     </div>
   )
 }
@@ -156,23 +157,14 @@ function EditableItem({ orderId, item, locked }: { orderId: string; item: OrderI
       <OrderItemCard item={item}>
         {editable && (
           <>
-            <button type="button" className="btn-secondary px-2 py-1 text-xs" onClick={() => setEditing(true)}>
-              Edit
-            </button>
-            <button
-              type="button"
-              className="btn-danger px-2 py-1 text-xs"
+            <IconButton label="Edit" onClick={() => setEditing(true)} icon={<EditIcon size={14} />} />
+            <IconButton
+              variant="danger"
+              label="Remove"
               onClick={remove}
               disabled={removeItem.isPending}
-            >
-              {removeItem.isPending ? (
-                <ButtonSpinner />
-              ) : (
-                <>
-                  <TrashIcon size={13} /> Remove
-                </>
-              )}
-            </button>
+              icon={removeItem.isPending ? <ButtonSpinner /> : <TrashIcon size={14} />}
+            />
           </>
         )}
       </OrderItemCard>
@@ -228,12 +220,14 @@ function EditableItem({ orderId, item, locked }: { orderId: string; item: OrderI
             </Field>
             <ImageDropInput label="Photo" initialImageKey={item.imageKey ?? undefined} onUploaded={setImageKey} />
             <div className="flex gap-2">
-              <button type="submit" className="btn-primary px-3 py-1.5 text-sm" disabled={updateItem.isPending}>
-                {updateItem.isPending ? <ButtonSpinner /> : 'Save'}
-              </button>
-              <button type="button" className="btn-secondary px-3 py-1.5 text-sm" onClick={() => setEditing(false)}>
-                Cancel
-              </button>
+              <IconButton
+                type="submit"
+                variant="primary"
+                label="Save"
+                disabled={updateItem.isPending}
+                icon={updateItem.isPending ? <ButtonSpinner /> : <CheckIcon size={14} />}
+              />
+              <IconButton label="Cancel" onClick={() => setEditing(false)} icon={<CloseIcon size={14} />} />
             </div>
             {updateItem.isError && (
               <p className="error-text">{errorMessage(updateItem.error, 'Could not save changes.')}</p>

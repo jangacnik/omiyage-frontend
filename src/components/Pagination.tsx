@@ -1,3 +1,6 @@
+import { IconButton } from './IconButton'
+import { ChevronLeftIcon, ChevronRightIcon } from './icons'
+
 interface PaginationProps {
   page: number
   totalPages: number
@@ -9,15 +12,16 @@ export function Pagination({ page, totalPages, onPageChange }: PaginationProps) 
 
   return (
     <div className="flex items-center justify-center gap-3 py-4">
-      <button type="button" className="btn-secondary" disabled={page <= 0} onClick={() => onPageChange(page - 1)}>
-        Previous
-      </button>
+      <IconButton label="Previous page" disabled={page <= 0} onClick={() => onPageChange(page - 1)} icon={<ChevronLeftIcon size={14} />} />
       <span className="text-sm text-ink/60">
         Page {page + 1} of {totalPages}
       </span>
-      <button type="button" className="btn-secondary" disabled={page >= totalPages - 1} onClick={() => onPageChange(page + 1)}>
-        Next
-      </button>
+      <IconButton
+        label="Next page"
+        disabled={page >= totalPages - 1}
+        onClick={() => onPageChange(page + 1)}
+        icon={<ChevronRightIcon size={14} />}
+      />
     </div>
   )
 }

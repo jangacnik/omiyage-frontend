@@ -14,6 +14,7 @@ import { PreorderBadge } from './PreorderBadge'
 import { QuantityStepper } from './QuantityStepper'
 import { ButtonSpinner } from './Spinner'
 import { ThumbnailImage } from './ThumbnailImage'
+import { IconButton } from './IconButton'
 import { TrashIcon } from './icons'
 import { errorMessage } from '../lib/apiClient'
 import { formatMoney } from '../lib/currency'
@@ -374,9 +375,7 @@ export function OrderItemBuilder({
                   onChange={(quantity) => onUpdateQuantity(index, quantity)}
                   label={`Quantity for ${item.displayTitle}`}
                 />
-                <button type="button" className="btn-danger px-2 py-1 text-xs" onClick={() => onRemove(index)}>
-                  <TrashIcon size={13} /> Remove
-                </button>
+                <IconButton variant="danger" label="Remove" onClick={() => onRemove(index)} icon={<TrashIcon size={14} />} />
               </span>
             </li>
           ))}

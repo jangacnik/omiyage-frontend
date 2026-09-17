@@ -18,7 +18,8 @@ import { OrderItemCard } from '../../components/OrderItemCard'
 import { AddItemPanel, preservedItemFields } from '../../components/OrderItemBuilder'
 import { ORDER_ITEM_STATUSES, ORDER_ITEM_STATUS_LABELS } from '../../components/OrderItemStatusBadge'
 import { ButtonSpinner } from '../../components/Spinner'
-import { TrashIcon } from '../../components/icons'
+import { IconButton } from '../../components/IconButton'
+import { CheckIcon, CloseIcon, EditIcon, MoveIcon, TrashIcon } from '../../components/icons'
 import { ApiError, errorMessage } from '../../lib/apiClient'
 import { formatMoney } from '../../lib/currency'
 import { AdminOrderItemEditDialog } from './AdminOrderItemEditDialog'
@@ -172,27 +173,22 @@ function AdminItemRow({
           <div className="flex flex-col items-end gap-2">
             <QuickStatusSelect orderId={orderId} item={item} />
             <div className="flex flex-wrap justify-end gap-2">
-              <button
-                type="button"
-                className="btn-secondary px-2 py-1 text-xs"
+              <IconButton
+                label={item.paid ? 'Mark unpaid' : 'Mark paid'}
                 onClick={() => markPaid.mutate({ orderId, itemId: item.id, paid: !item.paid })}
                 disabled={markPaid.isPending}
-              >
-                {markPaid.isPending ? <ButtonSpinner /> : item.paid ? 'Mark unpaid' : 'Mark paid'}
-              </button>
-              <button type="button" className="btn-secondary px-2 py-1 text-xs" onClick={() => setEditing(true)}>
-                Edit
-              </button>
-              <button type="button" className="btn-secondary px-2 py-1 text-xs" onClick={() => setMoving(true)}>
-                Move
-              </button>
-              <button type="button" className="btn-danger px-2 py-1 text-xs" onClick={remove} disabled={removeItem.isPending}>
-                {removeItem.isPending ? <ButtonSpinner /> : (
-                  <>
-                    <TrashIcon size={13} /> Remove
-                  </>
-                )}
-              </button>
+                icon={markPaid.isPending ? <ButtonSpinner /> : <CheckIcon size={14} />}
+                className={item.paid ? 'bg-mint text-forest-deep ring-forest/40' : ''}
+              />
+              <IconButton label="Edit" onClick={() => setEditing(true)} icon={<EditIcon size={14} />} />
+              <IconButton label="Move to another order" onClick={() => setMoving(true)} icon={<MoveIcon size={14} />} />
+              <IconButton
+                variant="danger"
+                label="Remove"
+                onClick={remove}
+                disabled={removeItem.isPending}
+                icon={removeItem.isPending ? <ButtonSpinner /> : <TrashIcon size={14} />}
+              />
             </div>
             {(removeItem.isError || markPaid.isError) && (
               <p className="error-text">
@@ -381,11 +377,7 @@ function AdminOrderNicknameEditor({ order }: { order: OrderDto }) {
   }
 
   if (!editing) {
-    return (
-      <button type="button" className="btn-secondary self-start px-2 py-1 text-xs" onClick={() => setEditing(true)}>
-        Rename
-      </button>
-    )
+    return <IconButton label="Rename" onClick={() => setEditing(true)} icon={<EditIcon size={14} />} className="self-start" />
   }
 
   return (
@@ -399,19 +391,21 @@ function AdminOrderNicknameEditor({ order }: { order: OrderDto }) {
           autoFocus
         />
       </Field>
-      <button type="button" className="btn-primary px-3 py-1.5 text-sm" onClick={save} disabled={updateNickname.isPending}>
-        {updateNickname.isPending ? <ButtonSpinner /> : 'Save'}
-      </button>
-      <button
-        type="button"
-        className="btn-secondary px-3 py-1.5 text-sm"
+      <IconButton
+        variant="primary"
+        label="Save"
+        onClick={save}
+        disabled={updateNickname.isPending}
+        icon={updateNickname.isPending ? <ButtonSpinner /> : <CheckIcon size={14} />}
+      />
+      <IconButton
+        label="Cancel"
         onClick={() => {
           setNickname(order.nickname ?? '')
           setEditing(false)
         }}
-      >
-        Cancel
-      </button>
+        icon={<CloseIcon size={14} />}
+      />
       {updateNickname.isError && <p className="error-text">Could not save the nickname.</p>}
     </div>
   )
@@ -489,14 +483,13 @@ export function AdminOrderEditor({ order }: { order: OrderDto }) {
           </span>
         </label>
 
-        <button
-          type="button"
-          className="btn-secondary px-3 py-1.5 text-sm"
+        <IconButton
+          label={allPaid ? 'Mark order unpaid' : 'Mark order paid'}
           onClick={handleMarkOrderPaid}
           disabled={markOrderPaid.isPending || order.items.length === 0}
-        >
-          {markOrderPaid.isPending ? <ButtonSpinner /> : allPaid ? 'Mark order unpaid' : 'Mark order paid'}
-        </button>
+          icon={markOrderPaid.isPending ? <ButtonSpinner /> : <CheckIcon size={14} />}
+          className={allPaid ? 'bg-mint text-forest-deep ring-forest/40' : ''}
+        />
       </div>
       {markOrderPaid.isError && <p className="error-text">Could not update paid status for this order.</p>}
 

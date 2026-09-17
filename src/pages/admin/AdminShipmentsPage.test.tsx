@@ -136,7 +136,7 @@ describe('AdminShipmentsPage', () => {
 
     renderWithProviders(<AdminShipmentsPage />)
     await screen.findByText(/Shipment ship-1/)
-    await user.click(screen.getByText('Delete'))
+    await user.click(screen.getByRole('button', { name: 'Delete' }))
 
     const dialog = await screen.findByRole('alertdialog')
     await user.click(within(dialog).getByText('Delete'))
@@ -153,7 +153,7 @@ describe('AdminShipmentsPage', () => {
 
     renderWithProviders(<AdminShipmentsPage />)
     await screen.findByText(/Shipment ship-1/)
-    await user.click(screen.getByText('Delete'))
+    await user.click(screen.getByRole('button', { name: 'Delete' }))
 
     const dialog = await screen.findByRole('alertdialog')
     await user.click(within(dialog).getByText('Delete'))
@@ -218,11 +218,11 @@ describe('AdminShipmentsPage', () => {
     await screen.findByText('Ghibli museum ticket')
     expect(screen.queryByLabelText('Update order status')).not.toBeInTheDocument()
 
-    await user.click(screen.getByText('Edit'))
+    await user.click(screen.getByRole('button', { name: 'Edit' }))
 
     expect(await screen.findByLabelText('Update order status')).toBeInTheDocument()
 
-    await user.click(screen.getByText('Done'))
+    await user.click(screen.getByRole('button', { name: 'Done' }))
 
     expect(screen.queryByLabelText('Update order status')).not.toBeInTheDocument()
   })
@@ -244,12 +244,12 @@ describe('AdminShipmentsPage', () => {
 
     renderAt('/admin/shipments')
     await screen.findByText('Ghibli museum ticket')
-    await user.click(screen.getByText('Edit'))
+    await user.click(screen.getByRole('button', { name: 'Edit' }))
 
     const statusSelect = await screen.findByLabelText('Update order status')
     await user.selectOptions(statusSelect, 'IN_PROGRESS')
 
-    await user.click(screen.getByText('Done'))
+    await user.click(screen.getByRole('button', { name: 'Done' }))
 
     await waitFor(() => expect(callCount).toBeGreaterThan(1))
     expect(await screen.findByText('In progress', { exact: false })).toBeInTheDocument()

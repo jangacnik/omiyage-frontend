@@ -7,9 +7,10 @@ import {
   type ItemTemplateInput,
 } from '../../api/adminItemTemplates'
 import { Field } from '../../components/Field'
-import { Spinner } from '../../components/Spinner'
+import { Spinner, ButtonSpinner } from '../../components/Spinner'
 import { useConfirm } from '../../components/ConfirmDialog'
-import { TrashIcon } from '../../components/icons'
+import { IconButton } from '../../components/IconButton'
+import { CheckIcon, CloseIcon, EditIcon, TrashIcon } from '../../components/icons'
 import { errorMessage } from '../../lib/apiClient'
 import { formatGrams, formatMoney } from '../../lib/currency'
 import type { ItemTemplateDto } from '../../types/api'
@@ -158,12 +159,14 @@ function TemplateRow({ template }: { template: ItemTemplateDto }) {
       <li className="card flex flex-col gap-2 py-3">
         <TemplateFields form={form} onChange={updateField} idPrefix={template.id} />
         <div className="flex gap-2">
-          <button type="button" className="btn-primary px-2 py-1 text-xs" onClick={handleSave} disabled={updateTemplate.isPending}>
-            Save
-          </button>
-          <button type="button" className="btn-secondary px-2 py-1 text-xs" onClick={() => setEditing(false)}>
-            Cancel
-          </button>
+          <IconButton
+            variant="primary"
+            label="Save"
+            onClick={handleSave}
+            disabled={updateTemplate.isPending}
+            icon={updateTemplate.isPending ? <ButtonSpinner /> : <CheckIcon size={14} />}
+          />
+          <IconButton label="Cancel" onClick={() => setEditing(false)} icon={<CloseIcon size={14} />} />
         </div>
         {error && <p className="error-text">{error}</p>}
       </li>
@@ -186,12 +189,8 @@ function TemplateRow({ template }: { template: ItemTemplateDto }) {
         </span>
       </div>
       <span className="flex shrink-0 gap-2">
-        <button type="button" className="btn-secondary px-2 py-1 text-xs" onClick={startEdit}>
-          Edit
-        </button>
-        <button type="button" className="btn-danger px-2 py-1 text-xs" onClick={handleDelete}>
-          <TrashIcon size={13} /> Delete
-        </button>
+        <IconButton label="Edit" onClick={startEdit} icon={<EditIcon size={14} />} />
+        <IconButton variant="danger" label="Delete" onClick={handleDelete} icon={<TrashIcon size={14} />} />
       </span>
     </li>
   )

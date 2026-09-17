@@ -140,7 +140,7 @@ describe('AdminDashboardPage', () => {
     await user.click(screen.getByText('Alice'))
 
     expect(await screen.findByText('Ghibli museum ticket')).toBeInTheDocument()
-    expect(screen.getByText('Mark paid')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Mark paid' })).toBeInTheDocument()
   })
 
   it('lazily fetches delivered orders only once the accordion is opened', async () => {
@@ -179,7 +179,7 @@ describe('AdminDashboardPage', () => {
     renderWithProviders(<AdminDashboardPage />)
     await screen.findByText('Alice')
     await user.click(screen.getByText('Alice'))
-    await user.click(await screen.findByText('Mark paid'))
+    await user.click(await screen.findByRole('button', { name: 'Mark paid' }))
 
     expect(await screen.findByText('Could not update paid status.')).toBeInTheDocument()
   })
@@ -197,7 +197,7 @@ describe('AdminDashboardPage', () => {
 
     renderWithProviders(<AdminDashboardPage />)
     await screen.findByText('Alice')
-    await user.click(screen.getByText('Create order'))
+    await user.click(screen.getByRole('button', { name: 'Create order' }))
 
     await user.type(screen.getByLabelText('Order nickname'), 'Test order')
     await user.click(screen.getByText("Can't find it? Create a custom request"))
@@ -219,7 +219,7 @@ describe('AdminDashboardPage', () => {
 
     renderWithProviders(<AdminDashboardPage />)
     await screen.findByText('Alice')
-    await user.click(screen.getByText('Create order'))
+    await user.click(screen.getByRole('button', { name: 'Create order' }))
     await user.click(screen.getByText("Can't find it? Create a custom request"))
     await user.type(screen.getByLabelText('Title'), 'Custom souvenir')
     await user.click(screen.getByText('Add item'))
