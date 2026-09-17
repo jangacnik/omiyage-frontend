@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useQueryClient } from '@tanstack/react-query'
 import { useUserDashboard, useUserDeliveredOrders } from '../../api/adminDashboard'
 import { useAdminCreateOrderForUser, useAdminMarkItemPaid } from '../../api/adminOrders'
 import { orderDisplayName } from '../../api/orders'
@@ -117,10 +118,17 @@ function OrderItemRow({ orderId, item }: { orderId: string; item: OrderItemDto }
 
 function DashboardOrderRow({ order }: { order: OrderDto }) {
   const [showDetail, setShowDetail] = useState(false)
+  const queryClient = useQueryClient()
+
+  function openDetail() {
+    queryClient.setQueryData(['orders', order.id], order)
+    setShowDetail(true)
+  }
+
   return (
     <div className="flex flex-col gap-1.5 py-2">
       <div className="flex flex-wrap items-center gap-2">
-        <button type="button" onClick={() => setShowDetail(true)} className="font-medium text-ink hover:text-forest">
+        <button type="button" onClick={openDetail} className="font-medium text-ink hover:text-forest">
           Order {orderDisplayName(order)}
         </button>
         <OrderIdHint id={order.id} nickname={order.nickname} />

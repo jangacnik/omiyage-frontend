@@ -113,11 +113,16 @@ export function InventoryDetailPage({ id: idProp, onClose }: { id?: string; onCl
   }
 
   return (
-    <div className="card relative flex max-h-[90vh] w-full max-w-3xl flex-col gap-4 overflow-y-auto md:flex-row">
+    <div
+      className="card relative flex max-h-[90vh] w-full max-w-3xl flex-col gap-4 overflow-y-auto md:flex-row"
+      role={onClose ? 'dialog' : undefined}
+      aria-modal={onClose ? true : undefined}
+      aria-labelledby={onClose ? 'inventory-detail-title' : undefined}
+    >
       {onClose && <DialogCloseButton onClose={onClose} />}
       {item.images.length > 0 && <ImageCarousel images={item.images} alt={item.title} />}
       <div className="flex flex-1 flex-col gap-2">
-        <h1 className="page-title">{item.title}</h1>
+        <h1 id="inventory-detail-title" className="page-title">{item.title}</h1>
         {item.isPreorder && <PreorderBadge expectedReleaseDate={item.expectedReleaseDate} />}
         {item.description && <p className="text-ink/70">{item.description}</p>}
         <p className="text-2xl font-semibold text-forest">{formatMoney(item.priceAmount, item.currency)}</p>

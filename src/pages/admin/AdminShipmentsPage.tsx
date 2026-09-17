@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
+import { useQueryClient } from '@tanstack/react-query'
 import { Modal } from '../../components/Modal'
 import {
   useAdminDeleteShipment,
@@ -49,6 +50,12 @@ function ShipmentOrderRow({
 }) {
   const [editing, setEditing] = useState(false)
   const [showDetail, setShowDetail] = useState(false)
+  const queryClient = useQueryClient()
+
+  function openDetail() {
+    queryClient.setQueryData(['orders', order.id], order)
+    setShowDetail(true)
+  }
 
   return (
     <div className="flex flex-col gap-1 py-2">
@@ -61,7 +68,7 @@ function ShipmentOrderRow({
             aria-label={`Select order ${order.id.slice(0, 8)} to split off`}
           />
         )}
-        <button type="button" onClick={() => setShowDetail(true)} className="font-medium text-ink hover:text-forest">
+        <button type="button" onClick={openDetail} className="font-medium text-ink hover:text-forest">
           Order {orderDisplayName(order)}
         </button>
         <OrderIdHint id={order.id} nickname={order.nickname} />

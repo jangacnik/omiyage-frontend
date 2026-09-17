@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useQueryClient } from '@tanstack/react-query'
 import { PreorderBadge } from './PreorderBadge'
 import { StatusPill } from './StatusPill'
 import { ThumbnailImage } from './ThumbnailImage'
@@ -27,7 +28,15 @@ export function InventoryCard({
   const { justAdded, announce } = useAddToCartFeedback()
   const [quantity, setQuantity] = useState(1)
   const [showDetail, setShowDetail] = useState(false)
+  const queryClient = useQueryClient()
   const canShop = !onEdit && !onDelete
+
+  // The card already has the full item - prime the dialog's query so it renders instantly
+  // instead of flashing a spinner for data that's already on screen.
+  function openDetail() {
+    queryClient.setQueryData(['inventory-item', item.id], item)
+    setShowDetail(true)
+  }
 
   function handleAddToCart() {
     addToCart(cartItemFromInventoryItem(item), quantity)
@@ -37,7 +46,7 @@ export function InventoryCard({
 
   return (
     <div className="card card-interactive group relative overflow-hidden p-0">
-      <button type="button" onClick={() => setShowDetail(true)} className="block w-full text-left">
+      <button type="button" onClick={openDetail} className="block w-full text-left">
         <ThumbnailImage
           imageKey={item.images[0]}
           alt={item.title}

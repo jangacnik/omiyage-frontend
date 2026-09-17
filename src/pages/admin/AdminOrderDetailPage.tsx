@@ -47,18 +47,26 @@ export function AdminOrderDetailPage({ id: idProp, onClose }: { id?: string; onC
     if (!ok) return
     try {
       await deleteOrder.mutateAsync(order.id)
-      onClose?.()
-      navigate('/admin/orders')
+      if (onClose) {
+        onClose()
+      } else {
+        navigate('/admin/orders')
+      }
     } catch {
       // deleteOrder.isError renders the message below - nothing else to do here.
     }
   }
 
   return (
-    <div className="card relative flex max-h-[90vh] w-full max-w-3xl flex-col gap-4 overflow-y-auto">
+    <div
+      className="card relative flex max-h-[90vh] w-full max-w-3xl flex-col gap-4 overflow-y-auto"
+      role={onClose ? 'dialog' : undefined}
+      aria-modal={onClose ? true : undefined}
+      aria-labelledby={onClose ? 'admin-order-detail-title' : undefined}
+    >
       {onClose && <DialogCloseButton onClose={onClose} />}
       <div className="flex flex-wrap items-center gap-3">
-        <h1 className="page-title">
+        <h1 id="admin-order-detail-title" className="page-title">
           Order {orderDisplayName(order)}
           <OrderIdHint id={order.id} nickname={order.nickname} />
         </h1>

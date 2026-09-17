@@ -230,7 +230,12 @@ export function MyShipmentPage({ id: idProp, onClose }: { id?: string; onClose?:
   const isOwner = shipment.ownerUserId === myUserId
 
   return (
-    <div className="card relative flex max-h-[90vh] w-full max-w-2xl flex-col gap-4 overflow-y-auto">
+    <div
+      className="card relative flex max-h-[90vh] w-full max-w-2xl flex-col gap-4 overflow-y-auto"
+      role={onClose ? 'dialog' : undefined}
+      aria-modal={onClose ? true : undefined}
+      aria-label={onClose ? (shipment.title ?? 'Shipment') : undefined}
+    >
       {onClose && <DialogCloseButton onClose={onClose} />}
       <div className="flex flex-wrap items-center justify-between gap-3">
         <TitleEditor id={shipment.id} title={shipment.title} editable={isOwner} />

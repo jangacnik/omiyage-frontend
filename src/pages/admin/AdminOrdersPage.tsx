@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useQueryClient } from '@tanstack/react-query'
 import { useAdminDeleteOrder, useAdminMergeOrders, useAdminOrders, useCreateShipment } from '../../api/adminOrders'
 import { orderDisplayName } from '../../api/orders'
 import { useConfirm } from '../../components/ConfirmDialog'
@@ -12,7 +13,7 @@ import { StatusPill } from '../../components/StatusPill'
 import { TrashIcon } from '../../components/icons'
 import { formatMoney } from '../../lib/currency'
 import { AdminOrderDetailPage } from './AdminOrderDetailPage'
-import type { AdminOrderSortBy, OrderStatus, SortDirection } from '../../types/api'
+import type { AdminOrderSortBy, OrderDto, OrderStatus, SortDirection } from '../../types/api'
 
 const STATUSES: OrderStatus[] = ['REQUESTED', 'IN_PROGRESS', 'PURCHASED', 'PREPARING_SHIPPING', 'SENT', 'DELIVERED', 'CANCELLED']
 
@@ -38,6 +39,12 @@ export function AdminOrdersPage() {
   const deleteOrder = useAdminDeleteOrder()
   const confirm = useConfirm()
   const navigate = useNavigate()
+  const queryClient = useQueryClient()
+
+  function openOrder(order: OrderDto) {
+    queryClient.setQueryData(['orders', order.id], order)
+    setOpenOrderId(order.id)
+  }
 
   const selectedOrders = data?.content.filter((o) => selected.includes(o.id)) ?? []
   // Only meaningful once every selected order is resolvable on the current page - a selection
@@ -170,7 +177,7 @@ export function AdminOrdersPage() {
                 />
                 <button
                   type="button"
-                  onClick={() => setOpenOrderId(order.id)}
+                  onClick={() => openOrder(order)}
                   className="flex flex-wrap items-center gap-2 font-medium text-ink hover:text-forest"
                 >
                   Order {orderDisplayName(order)}

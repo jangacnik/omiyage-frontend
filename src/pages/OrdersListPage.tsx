@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
+import { useQueryClient } from '@tanstack/react-query'
 import { orderDisplayName, useMergeMyOrders, useMyOrders } from '../api/orders'
 import { CombineRequestModal } from '../components/CombineRequestModal'
 import { useConfirm } from '../components/ConfirmDialog'
@@ -18,6 +19,12 @@ function ShipmentGroup({ orders }: { orders: OrderDto[] }) {
   const active = orders.find((o) => o.id === activeId) ?? orders[0]
   const [showShipment, setShowShipment] = useState(false)
   const [showOrder, setShowOrder] = useState(false)
+  const queryClient = useQueryClient()
+
+  function openOrder() {
+    queryClient.setQueryData(['orders', active.id], active)
+    setShowOrder(true)
+  }
 
   return (
     <li className="card flex flex-col gap-3">
@@ -44,7 +51,7 @@ function ShipmentGroup({ orders }: { orders: OrderDto[] }) {
         ))}
       </div>
       <div className="flex items-center justify-between">
-        <button type="button" onClick={() => setShowOrder(true)} className="font-medium text-ink hover:text-forest">
+        <button type="button" onClick={openOrder} className="font-medium text-ink hover:text-forest">
           {active.items.length} item(s)
         </button>
         <OrderStatusBadge status={active.status} />
@@ -72,6 +79,12 @@ export function OrdersListPage() {
   const { data, isLoading, isError } = useMyOrders(page)
   const mergeOrders = useMergeMyOrders()
   const confirm = useConfirm()
+  const queryClient = useQueryClient()
+
+  function openOrder(order: OrderDto) {
+    queryClient.setQueryData(['orders', order.id], order)
+    setOpenOrderId(order.id)
+  }
 
   const groups: OrderDto[][] = []
   if (data) {
@@ -163,7 +176,7 @@ export function OrdersListPage() {
                 {!group[0].open && <span className="text-xs text-ink/40">not open</span>}
                 <button
                   type="button"
-                  onClick={() => setOpenOrderId(group[0].id)}
+                  onClick={() => openOrder(group[0])}
                   className="font-medium text-ink hover:text-forest"
                 >
                   Order {orderDisplayName(group[0])}

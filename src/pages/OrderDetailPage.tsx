@@ -361,7 +361,12 @@ export function OrderDetailPage({ id: idProp, onClose }: { id?: string; onClose?
   }
 
   return (
-    <div className="card relative flex max-h-[90vh] w-full max-w-2xl flex-col gap-3 overflow-y-auto">
+    <div
+      className="card relative flex max-h-[90vh] w-full max-w-2xl flex-col gap-3 overflow-y-auto"
+      role={onClose ? 'dialog' : undefined}
+      aria-modal={onClose ? true : undefined}
+      aria-label={onClose ? `Order ${orderDisplayName(order)}` : undefined}
+    >
       {onClose && <DialogCloseButton onClose={onClose} />}
       <div className="flex flex-wrap items-center gap-3">
         <OrderNicknameEditor order={order} />

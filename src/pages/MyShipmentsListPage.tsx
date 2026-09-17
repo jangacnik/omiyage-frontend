@@ -1,17 +1,25 @@
 import { useState } from 'react'
+import { useQueryClient } from '@tanstack/react-query'
 import { useMyShipments } from '../api/myShipments'
 import { formatGrams, formatMoney } from '../lib/currency'
 import { Modal } from '../components/Modal'
 import { ShipmentStatusBadge } from '../components/ShipmentStatusBadge'
 import { Spinner } from '../components/Spinner'
 import { MyShipmentPage } from './MyShipmentPage'
+import type { MemberShipmentDto } from '../types/api'
 
 export function MyShipmentsListPage() {
   const { data: shipments, isLoading, isError } = useMyShipments()
   const [openShipmentId, setOpenShipmentId] = useState<string | null>(null)
+  const queryClient = useQueryClient()
 
   if (isLoading) return <Spinner fullPage label="Fetching shipments" />
   if (isError) return <p className="error-text">Could not load your shipments.</p>
+
+  function openShipment(shipment: MemberShipmentDto) {
+    queryClient.setQueryData(['shipments', 'mine', shipment.id], shipment)
+    setOpenShipmentId(shipment.id)
+  }
 
   return (
     <div>
@@ -26,7 +34,7 @@ export function MyShipmentsListPage() {
           <li key={shipment.id}>
             <button
               type="button"
-              onClick={() => setOpenShipmentId(shipment.id)}
+              onClick={() => openShipment(shipment)}
               className="card flex w-full flex-col gap-1 text-left sm:flex-row sm:items-center sm:justify-between"
             >
               <span className="font-medium text-ink">{shipment.title ?? `Shipment ${shipment.id.slice(0, 8)}`}</span>
