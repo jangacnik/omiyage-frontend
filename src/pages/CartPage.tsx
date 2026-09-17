@@ -4,6 +4,7 @@ import { useCartStore } from '../store/cartStore'
 import { useCreateOrder } from '../api/orders'
 import { Field } from '../components/Field'
 import { PreorderBadge } from '../components/PreorderBadge'
+import { QuantityStepper } from '../components/QuantityStepper'
 import { ButtonSpinner } from '../components/Spinner'
 import { ThumbnailImage } from '../components/ThumbnailImage'
 import { TrashIcon } from '../components/icons'
@@ -75,26 +76,11 @@ export function CartPage() {
               </div>
             </div>
             <div className="flex items-center justify-between gap-3 sm:justify-end">
-              <Field label="Qty" className="w-20">
-                <input
-                  type="number"
-                  min={1}
-                  step={1}
-                  value={item.quantity}
-                  onChange={(e) => {
-                    // Don't clamp an empty field back to 1 immediately - see the identical note on
-                    // OrderItemBuilder's quantity input.
-                    if (e.target.value === '') return
-                    const parsed = Math.floor(Number(e.target.value))
-                    if (Number.isFinite(parsed)) setQuantity(item.inventoryItemId, Math.max(1, parsed))
-                  }}
-                  onBlur={(e) => {
-                    if (e.target.value === '') setQuantity(item.inventoryItemId, 1)
-                  }}
-                  aria-label={`Quantity for ${item.title}`}
-                  className="field-input text-center"
-                />
-              </Field>
+              <QuantityStepper
+                quantity={item.quantity}
+                onChange={(quantity) => setQuantity(item.inventoryItemId, quantity)}
+                label={`Quantity for ${item.title}`}
+              />
               <p className="w-24 text-right font-medium text-ink">
                 {formatMoney(item.priceAmount * item.quantity, item.currency)}
               </p>

@@ -22,6 +22,7 @@ import { OrderStatusBadge } from '../components/OrderStatusBadge'
 import { Spinner, ButtonSpinner } from '../components/Spinner'
 import { Field } from '../components/Field'
 import { ImageDropInput } from '../components/ImageDropInput'
+import { QuantityStepper } from '../components/QuantityStepper'
 import { TrashIcon } from '../components/icons'
 import { errorMessage } from '../lib/apiClient'
 import { formatMoney } from '../lib/currency'
@@ -113,7 +114,7 @@ function EditableItem({ orderId, item, locked }: { orderId: string; item: OrderI
   const [title, setTitle] = useState(item.title)
   const [description, setDescription] = useState(item.description ?? '')
   const [maxPrice, setMaxPrice] = useState(item.maxPrice?.toString() ?? '')
-  const [quantity, setQuantity] = useState(item.quantity.toString())
+  const [quantity, setQuantity] = useState(item.quantity)
   const [link, setLink] = useState(item.link ?? '')
   const [imageKey, setImageKey] = useState(item.imageKey ?? undefined)
   const updateItem = useUpdateMyOrderItem()
@@ -132,7 +133,7 @@ function EditableItem({ orderId, item, locked }: { orderId: string; item: OrderI
         title,
         description,
         maxPrice: maxPrice ? Number(maxPrice) : undefined,
-        quantity: quantity ? Number(quantity) : undefined,
+        quantity,
         link: link || undefined,
         imageKey,
       },
@@ -213,14 +214,7 @@ function EditableItem({ orderId, item, locked }: { orderId: string; item: OrderI
                 />
               </Field>
               <Field label="Qty" className="sm:w-24">
-                <input
-                  type="number"
-                  min={1}
-                  className="field-input"
-                  value={quantity}
-                  onChange={(e) => setQuantity(e.target.value)}
-                  aria-label="Quantity"
-                />
+                <QuantityStepper quantity={quantity} onChange={setQuantity} label="Quantity" />
               </Field>
             </div>
             <Field label="Link to store page" hint="Optional">

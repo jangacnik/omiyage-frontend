@@ -3,7 +3,7 @@ import { useQueryClient } from '@tanstack/react-query'
 import { PreorderBadge } from './PreorderBadge'
 import { StatusPill } from './StatusPill'
 import { ThumbnailImage } from './ThumbnailImage'
-import { formatMoney } from '../lib/currency'
+import { formatGrams, formatMoney } from '../lib/currency'
 import { CartIcon, CheckIcon, TrashIcon } from './icons'
 import { cartItemFromInventoryItem, useAddToCartFeedback, useCartStore } from '../store/cartStore'
 import { Modal } from './Modal'
@@ -65,22 +65,14 @@ export function InventoryCard({
             {/* profitEur is pre-converted server-side: priceAmount[EUR] - boughtPrice[JPY] can't
                 be subtracted directly, they're different currencies. */}
             {item.profitEur != null && <> · profit {formatMoney(item.profitEur, 'EUR')}</>}
+            {item.weight != null && <> · {formatGrams(item.weight)}</>}
           </p>
         </div>
       </button>
 
       {canShop && (
-        <div className="flex flex-col gap-1.5 px-3 pb-3">
+        <div className="px-3 pb-3">
           <QuantityStepper quantity={quantity} onChange={setQuantity} label={`Quantity of ${item.title} to add`} />
-          <button type="button" className="btn-primary w-full text-sm" onClick={handleAddToCart}>
-            {justAdded ? (
-              <>
-                <CheckIcon size={14} /> Added
-              </>
-            ) : (
-              'Add to cart'
-            )}
-          </button>
           <span className="sr-only" role="status" aria-live="polite">
             {justAdded ? `${item.title} added to cart` : ''}
           </span>
@@ -95,19 +87,14 @@ export function InventoryCard({
         )}
       </div>
 
-      {/* Quick-add on the thumbnail itself - the full-width button below still exists for anyone
-          who wants to see the label, but this one-click shortcut means never having to look past
-          the image while browsing. Always adds just one, regardless of the stepper above - the
-          stepper's count is for a deliberate bulk add. Sits outside the card-opening button, not
-          nested in it, so it doesn't need its own click-propagation handling - same trick the
-          edit/delete overlay below already uses. */}
+      {/* Quick-add on the thumbnail itself - the only add-to-cart control on the card now, using
+          whatever quantity the stepper below is set to (so the stepper isn't just decorative).
+          Sits outside the card-opening button, not nested in it, so it doesn't need its own
+          click-propagation handling - same trick the edit/delete overlay below already uses. */}
       {canShop && (
         <button
           type="button"
-          onClick={() => {
-            addToCart(cartItemFromInventoryItem(item))
-            announce()
-          }}
+          onClick={handleAddToCart}
           aria-label={justAdded ? `${item.title} added to cart` : `Add ${item.title} to cart`}
           className={`absolute right-2 top-2 flex h-9 w-9 items-center justify-center rounded-full shadow-md transition-colors ${
             justAdded ? 'bg-forest text-paper' : 'bg-ink/70 text-paper hover:bg-ink'

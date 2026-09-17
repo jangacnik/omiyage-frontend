@@ -11,6 +11,7 @@ import { CONDITION_LABELS } from './OrderItemCard'
 import { Field } from './Field'
 import { ImageDropInput } from './ImageDropInput'
 import { PreorderBadge } from './PreorderBadge'
+import { QuantityStepper } from './QuantityStepper'
 import { ButtonSpinner } from './Spinner'
 import { ThumbnailImage } from './ThumbnailImage'
 import { TrashIcon } from './icons'
@@ -130,12 +131,14 @@ export function CustomItemForm({
     handleSubmit,
     reset,
     watch,
+    setValue,
     formState: { errors },
   } = useForm<CustomItemForm>({
     resolver: zodResolver(customItemSchema),
     defaultValues: { condition: 'NEW', quantity: '1', ...defaultValues },
   })
   const isPreorder = watch('isPreorder')
+  const quantity = Number(watch('quantity')) || 1
 
   async function onSubmit(data: CustomItemForm) {
     try {
@@ -190,7 +193,7 @@ export function CustomItemForm({
           <input type="number" step="0.01" className="field-input" {...register('maxPrice')} aria-label="Max price" />
         </Field>
         <Field label="Qty" className="sm:w-32">
-          <input type="number" min={1} className="field-input" {...register('quantity')} aria-label="Quantity" />
+          <QuantityStepper quantity={quantity} onChange={(q) => setValue('quantity', String(q))} label="Quantity" />
         </Field>
       </div>
       <Field label="Link to store page" hint="Optional">
@@ -366,26 +369,11 @@ export function OrderItemBuilder({
                 {item.isPreorder && <PreorderBadge expectedReleaseDate={item.expectedReleaseDate ?? null} />}
               </span>
               <span className="flex items-center gap-2 self-end sm:self-auto">
-                <Field label="Qty" className="w-20">
-                  <input
-                    type="number"
-                    min={1}
-                    value={item.input.quantity ?? 1}
-                    onChange={(e) => {
-                      // Don't clamp an empty field back to 1 immediately - that makes clearing the
-                      // box to retype a multi-digit number impossible, since every intermediate ''
-                      // would otherwise snap straight back to 1.
-                      if (e.target.value === '') return
-                      const parsed = Math.floor(Number(e.target.value))
-                      if (Number.isFinite(parsed)) onUpdateQuantity(index, Math.max(1, parsed))
-                    }}
-                    onBlur={(e) => {
-                      if (e.target.value === '') onUpdateQuantity(index, 1)
-                    }}
-                    aria-label={`Quantity for ${item.displayTitle}`}
-                    className="field-input text-center"
-                  />
-                </Field>
+                <QuantityStepper
+                  quantity={item.input.quantity ?? 1}
+                  onChange={(quantity) => onUpdateQuantity(index, quantity)}
+                  label={`Quantity for ${item.displayTitle}`}
+                />
                 <button type="button" className="btn-danger px-2 py-1 text-xs" onClick={() => onRemove(index)}>
                   <TrashIcon size={13} /> Remove
                 </button>

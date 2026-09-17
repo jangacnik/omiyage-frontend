@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useAdminUpdateOrderItemContent, useUpdateOrderItem } from '../../api/adminOrders'
 import { Field } from '../../components/Field'
 import { ImageDropInput } from '../../components/ImageDropInput'
+import { QuantityStepper } from '../../components/QuantityStepper'
 import { ORDER_ITEM_STATUSES } from '../../components/OrderItemStatusBadge'
 import { ButtonSpinner } from '../../components/Spinner'
 import type { OrderItemDto, OrderItemStatus } from '../../types/api'
@@ -18,7 +19,7 @@ export function AdminOrderItemEditDialog({
   const [title, setTitle] = useState(item.title)
   const [description, setDescription] = useState(item.description ?? '')
   const [maxPrice, setMaxPrice] = useState(item.maxPrice?.toString() ?? '')
-  const [quantity, setQuantity] = useState(item.quantity.toString())
+  const [quantity, setQuantity] = useState(item.quantity)
   const [link, setLink] = useState(item.link ?? '')
   const [imageKey, setImageKey] = useState(item.imageKey ?? undefined)
   const [status, setStatus] = useState<OrderItemStatus>(item.status)
@@ -43,7 +44,7 @@ export function AdminOrderItemEditDialog({
         title,
         description,
         maxPrice: maxPrice ? Number(maxPrice) : undefined,
-        quantity: quantity ? Number(quantity) : undefined,
+        quantity,
         link: link || undefined,
         imageKey,
       }),
@@ -92,14 +93,7 @@ export function AdminOrderItemEditDialog({
             />
           </Field>
           <Field label="Quantity">
-            <input
-              type="number"
-              min={1}
-              className="field-input"
-              value={quantity}
-              onChange={(e) => setQuantity(e.target.value)}
-              aria-label="Quantity"
-            />
+            <QuantityStepper quantity={quantity} onChange={setQuantity} label="Quantity" />
           </Field>
         </div>
 

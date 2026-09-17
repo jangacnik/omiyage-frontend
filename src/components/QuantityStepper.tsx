@@ -12,7 +12,7 @@ export function QuantityStepper({
   label: string
 }) {
   return (
-    <div className="inline-flex h-9 items-center rounded-lg ring-1 ring-inset ring-mist" role="group" aria-label={label}>
+    <div className="inline-flex h-9 shrink-0 items-center rounded-lg ring-1 ring-inset ring-mist" role="group" aria-label={label}>
       <button
         type="button"
         onClick={() => onChange(Math.max(min, quantity - 1))}
