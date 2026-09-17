@@ -61,7 +61,17 @@ export function AnchoredDialog({
       left = Math.min(left, viewportWidth - rect.width - VIEWPORT_MARGIN)
       left = Math.max(left, VIEWPORT_MARGIN)
 
-      setStyle({ position: 'fixed', top, left, visibility: 'visible' })
+      setStyle({
+        position: 'fixed',
+        top,
+        left,
+        visibility: 'visible',
+        // Caller content isn't always short (e.g. an image-heavy preview) - cap it to the
+        // viewport regardless of anchor position so it scrolls internally instead of running off
+        // the bottom of the screen with no way to reach it, same safety the centered fallback
+        // below already has.
+        maxHeight: viewportHeight - 2 * VIEWPORT_MARGIN,
+      })
     }
 
     reposition()
@@ -83,7 +93,7 @@ export function AnchoredDialog({
         role={role}
         aria-modal="true"
         aria-labelledby={labelledBy}
-        className={`card animate-pop w-full max-w-sm ${anchor ? '' : 'fixed inset-4 m-auto h-fit max-h-[calc(100vh-2rem)] overflow-y-auto'} ${className}`}
+        className={`card animate-pop w-full max-w-sm overflow-y-auto ${anchor ? '' : 'fixed inset-4 m-auto h-fit max-h-[calc(100vh-2rem)]'} ${className}`}
         style={style}
         onClick={(e) => e.stopPropagation()}
       >

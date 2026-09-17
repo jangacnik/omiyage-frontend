@@ -27,25 +27,22 @@ function priceLabel(unitPrice: number, currency: Currency, label: string, quanti
   )
 }
 
-/** Its own component so useTriggerAnchor's mount-time capture runs fresh every time the preview
- *  opens, anchored next to the thumbnail that was clicked instead of jumping to screen-center. */
-function ItemPreviewPanel({ item, onClose }: { item: OrderItemDto; onClose: () => void }) {
-  const anchor = useTriggerAnchor()
-
+/** Everything but the thumbnail - shared verbatim between the card's own body and its preview
+ *  dialog so the two can never drift apart on what they show for the same item. `titleId` lets
+ *  the dialog point its aria-labelledby at the title actually rendered here. */
+function ItemDetails({ item, descriptionClassName = 'mt-0.5', titleId }: { item: OrderItemDto; descriptionClassName?: string; titleId?: string }) {
   return (
-    <AnchoredDialog anchor={anchor} onClose={onClose} labelledBy="order-item-preview-title" className="relative">
-      <DialogCloseButton onClose={onClose} />
-      <ThumbnailImage imageKey={item.imageKey} alt={item.title} className="mb-3 aspect-square w-full rounded-lg" />
-      <div className="flex flex-wrap items-center gap-2 pr-6">
-        <h2 id="order-item-preview-title" className="page-title text-base">
+    <>
+      <div className="flex flex-wrap items-center gap-2">
+        <p id={titleId} className="font-medium text-ink">
           {item.title}
-        </h2>
+        </p>
         <OrderItemStatusBadge status={item.status} />
         {item.paid && <StatusPill tone="done" label="Paid" size="sm" />}
         {item.isPreorder && <PreorderBadge expectedReleaseDate={item.expectedReleaseDate} />}
       </div>
 
-      {item.description && <p className="mt-1 text-sm text-ink/60">{item.description}</p>}
+      {item.description && <p className={`${descriptionClassName} text-sm text-ink/60`}>{item.description}</p>}
 
       <p className="mt-1 text-sm text-ink/60">
         {item.condition && `${CONDITION_LABELS[item.condition]} · `}
@@ -76,6 +73,20 @@ function ItemPreviewPanel({ item, onClose }: { item: OrderItemDto; onClose: () =
           View item <ExternalLinkIcon size={12} />
         </a>
       )}
+    </>
+  )
+}
+
+/** Its own component so useTriggerAnchor's mount-time capture runs fresh every time the preview
+ *  opens, anchored next to the thumbnail that was clicked instead of jumping to screen-center. */
+function ItemPreviewPanel({ item, onClose }: { item: OrderItemDto; onClose: () => void }) {
+  const anchor = useTriggerAnchor()
+
+  return (
+    <AnchoredDialog anchor={anchor} onClose={onClose} labelledBy="order-item-preview-title" className="relative">
+      <DialogCloseButton onClose={onClose} />
+      <ThumbnailImage imageKey={item.imageKey} alt={item.title} className="mb-3 aspect-square w-full rounded-lg" />
+      <ItemDetails item={item} titleId="order-item-preview-title" descriptionClassName="mt-1" />
     </AnchoredDialog>
   )
 }
@@ -103,44 +114,7 @@ export function OrderItemCard({ item, children }: { item: OrderItemDto; children
         }
         actions={children}
       >
-        <div className="flex flex-wrap items-center gap-2">
-          <p className="font-medium text-ink">{item.title}</p>
-          <OrderItemStatusBadge status={item.status} />
-          {item.paid && <StatusPill tone="done" label="Paid" size="sm" />}
-          {item.isPreorder && <PreorderBadge expectedReleaseDate={item.expectedReleaseDate} />}
-        </div>
-
-        {item.description && <p className="mt-0.5 text-sm text-ink/60">{item.description}</p>}
-
-        <p className="mt-1 text-sm text-ink/60">
-          {item.condition && `${CONDITION_LABELS[item.condition]} · `}
-          qty {item.quantity}
-          {item.weight != null && ` · ${item.weight} g`}
-        </p>
-
-        <p className="mt-1 flex flex-wrap items-baseline gap-x-3 gap-y-0.5 text-sm">
-          {item.maxPrice != null && (
-            <span className="text-ink/60">Max you set: {priceLabel(item.maxPrice, item.currency, '', item.quantity)}</span>
-          )}
-          {item.soldPrice != null ? (
-            <span className="font-medium text-forest">
-              You pay: {priceLabel(item.soldPrice, item.soldPriceCurrency ?? item.currency, '', item.quantity)}
-            </span>
-          ) : (
-            <span className="text-ink/40">Price not set yet</span>
-          )}
-        </p>
-
-        {item.link && (
-          <a
-            href={item.link}
-            target="_blank"
-            rel="noreferrer"
-            className="mt-1 inline-flex items-center gap-1 text-sm text-forest hover:underline"
-          >
-            View item <ExternalLinkIcon size={12} />
-          </a>
-        )}
+        <ItemDetails item={item} />
       </ItemCardShell>
       {showPreview && <ItemPreviewPanel item={item} onClose={() => setShowPreview(false)} />}
     </>
