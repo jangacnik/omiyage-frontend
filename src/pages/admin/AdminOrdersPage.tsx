@@ -1,10 +1,8 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { useQueryClient } from '@tanstack/react-query'
+import { Link, useNavigate } from 'react-router-dom'
 import { useAdminDeleteOrder, useAdminMergeOrders, useAdminOrders, useCreateShipment } from '../../api/adminOrders'
 import { orderDisplayName } from '../../api/orders'
 import { useConfirm } from '../../components/ConfirmDialog'
-import { Modal } from '../../components/Modal'
 import { OrderIdHint } from '../../components/OrderIdHint'
 import { OrderStatusBadge } from '../../components/OrderStatusBadge'
 import { Pagination } from '../../components/Pagination'
@@ -12,8 +10,7 @@ import { Spinner, ButtonSpinner } from '../../components/Spinner'
 import { StatusPill } from '../../components/StatusPill'
 import { TrashIcon } from '../../components/icons'
 import { formatMoney } from '../../lib/currency'
-import { AdminOrderDetailPage } from './AdminOrderDetailPage'
-import type { AdminOrderSortBy, OrderDto, OrderStatus, SortDirection } from '../../types/api'
+import type { AdminOrderSortBy, OrderStatus, SortDirection } from '../../types/api'
 
 const STATUSES: OrderStatus[] = ['REQUESTED', 'IN_PROGRESS', 'PURCHASED', 'PREPARING_SHIPPING', 'SENT', 'DELIVERED', 'CANCELLED']
 
@@ -31,7 +28,6 @@ export function AdminOrdersPage() {
   const [page, setPage] = useState(0)
   const [sort, setSort] = useState<`${AdminOrderSortBy}:${SortDirection}`>('UPDATED_AT:DESC')
   const [selected, setSelected] = useState<string[]>([])
-  const [openOrderId, setOpenOrderId] = useState<string | null>(null)
   const [sortBy, direction] = sort.split(':') as [AdminOrderSortBy, SortDirection]
   const { data, isLoading } = useAdminOrders(status, page, sortBy, direction)
   const createShipment = useCreateShipment()
@@ -39,12 +35,6 @@ export function AdminOrdersPage() {
   const deleteOrder = useAdminDeleteOrder()
   const confirm = useConfirm()
   const navigate = useNavigate()
-  const queryClient = useQueryClient()
-
-  function openOrder(order: OrderDto) {
-    queryClient.setQueryData(['orders', order.id], order)
-    setOpenOrderId(order.id)
-  }
 
   const selectedOrders = data?.content.filter((o) => selected.includes(o.id)) ?? []
   // Only meaningful once every selected order is resolvable on the current page - a selection
@@ -175,9 +165,8 @@ export function AdminOrdersPage() {
                   onChange={() => toggle(order.id)}
                   aria-label={`Select order ${order.id.slice(0, 8)}`}
                 />
-                <button
-                  type="button"
-                  onClick={() => openOrder(order)}
+                <Link
+                  to={`/admin/orders/${order.id}`}
                   className="flex flex-wrap items-center gap-2 font-medium text-ink hover:text-forest"
                 >
                   Order {orderDisplayName(order)}
@@ -201,7 +190,7 @@ export function AdminOrdersPage() {
                   {order.profit != null && (
                     <span className="text-xs font-medium text-ink/60">{formatMoney(order.profit, 'EUR')} profit</span>
                   )}
-                </button>
+                </Link>
               </label>
               <span className="flex items-center gap-3">
                 <span className="text-sm text-ink/60">{order.items.length} item(s)</span>
@@ -221,12 +210,6 @@ export function AdminOrdersPage() {
       {deleteOrder.isError && <p className="error-text">Could not delete that order.</p>}
 
       {data && <Pagination page={data.page} totalPages={data.totalPages} onPageChange={setPage} />}
-
-      {openOrderId && (
-        <Modal onClose={() => setOpenOrderId(null)}>
-          <AdminOrderDetailPage id={openOrderId} onClose={() => setOpenOrderId(null)} />
-        </Modal>
-      )}
     </div>
   )
 }

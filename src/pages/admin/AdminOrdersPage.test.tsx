@@ -54,24 +54,14 @@ function page(content: OrderDto[]): Page<OrderDto> {
 }
 
 describe('AdminOrdersPage', () => {
-  it('lists orders and opens the management view in a dialog on click', async () => {
-    server.use(
-      http.get(`${BASE}/api/admin/orders`, () => HttpResponse.json(page([order()]))),
-      http.get(`${BASE}/api/orders/order-12345678`, () => HttpResponse.json(order())),
-      http.get(`${BASE}/api/admin/shipments`, () => HttpResponse.json([])),
-    )
-    const user = userEvent.setup()
+  it('lists orders and links to the management page', async () => {
+    server.use(http.get(`${BASE}/api/admin/orders`, () => HttpResponse.json(page([order()]))))
 
     renderWithProviders(<AdminOrdersPage />)
 
     expect(await screen.findByText(/Order order-12/)).toBeInTheDocument()
     expect(screen.getByText('1 item(s)')).toBeInTheDocument()
-    expect(screen.queryByRole('link', { name: /Order order-12/ })).not.toBeInTheDocument()
-
-    await user.click(screen.getByRole('button', { name: /Order order-12/ }))
-
-    expect(await screen.findByRole('button', { name: 'Close' })).toBeInTheDocument()
-    expect(screen.getByText(/Total price:/)).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /Order order-12/ })).toHaveAttribute('href', '/admin/orders/order-12345678')
   })
 
   it('shows an empty state when there are no orders', async () => {

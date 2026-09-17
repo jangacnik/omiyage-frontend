@@ -1,7 +1,5 @@
 import { useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
-import { useQueryClient } from '@tanstack/react-query'
-import { Modal } from '../../components/Modal'
 import {
   useAdminDeleteShipment,
   useAdminDeliveredShipments,
@@ -20,7 +18,6 @@ import { OrderStatusBadge } from '../../components/OrderStatusBadge'
 import { OrderItemStatusBadge } from '../../components/OrderItemStatusBadge'
 import { Spinner, ButtonSpinner } from '../../components/Spinner'
 import { TrashIcon } from '../../components/icons'
-import { AdminOrderDetailPage } from './AdminOrderDetailPage'
 import { AdminOrderEditor } from './AdminOrderEditor'
 import type { OrderDto, ShipmentDestination, ShipmentDto, ShipmentStatus, ShippingMethod } from '../../types/api'
 
@@ -49,13 +46,6 @@ function ShipmentOrderRow({
   onToggleSplit?: () => void
 }) {
   const [editing, setEditing] = useState(false)
-  const [showDetail, setShowDetail] = useState(false)
-  const queryClient = useQueryClient()
-
-  function openDetail() {
-    queryClient.setQueryData(['orders', order.id], order)
-    setShowDetail(true)
-  }
 
   return (
     <div className="flex flex-col gap-1 py-2">
@@ -68,9 +58,9 @@ function ShipmentOrderRow({
             aria-label={`Select order ${order.id.slice(0, 8)} to split off`}
           />
         )}
-        <button type="button" onClick={openDetail} className="font-medium text-ink hover:text-forest">
+        <Link to={`/admin/orders/${order.id}`} className="font-medium text-ink hover:text-forest">
           Order {orderDisplayName(order)}
-        </button>
+        </Link>
         <OrderIdHint id={order.id} nickname={order.nickname} />
         <OrderStatusBadge status={order.status} />
         {order.orderWeightGrams != null && (
@@ -96,11 +86,6 @@ function ShipmentOrderRow({
             </li>
           ))}
         </ul>
-      )}
-      {showDetail && (
-        <Modal onClose={() => setShowDetail(false)}>
-          <AdminOrderDetailPage id={order.id} onClose={() => setShowDetail(false)} />
-        </Modal>
       )}
     </div>
   )

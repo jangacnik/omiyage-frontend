@@ -1,12 +1,11 @@
 import { useState } from 'react'
-import { useQueryClient } from '@tanstack/react-query'
+import { Link } from 'react-router-dom'
 import { useUserDashboard, useUserDeliveredOrders } from '../../api/adminDashboard'
 import { useAdminCreateOrderForUser, useAdminMarkItemPaid } from '../../api/adminOrders'
 import { orderDisplayName } from '../../api/orders'
 import { errorMessage } from '../../lib/apiClient'
 import { Avatar } from '../../components/Avatar'
 import { Field } from '../../components/Field'
-import { Modal } from '../../components/Modal'
 import { OrderIdHint } from '../../components/OrderIdHint'
 import { OrderItemBuilder, type DraftItem } from '../../components/OrderItemBuilder'
 import { OrderStatusBadge } from '../../components/OrderStatusBadge'
@@ -14,7 +13,6 @@ import { OrderItemStatusBadge } from '../../components/OrderItemStatusBadge'
 import { Spinner, ButtonSpinner } from '../../components/Spinner'
 import { ThumbnailImage } from '../../components/ThumbnailImage'
 import { formatMoney } from '../../lib/currency'
-import { AdminOrderDetailPage } from './AdminOrderDetailPage'
 import type { OrderDto, OrderItemDto, PendingAmountDto, UserDashboardEntryDto } from '../../types/api'
 
 function CreateOrderForUser({ userId, onDone }: { userId: string; onDone: () => void }) {
@@ -117,20 +115,12 @@ function OrderItemRow({ orderId, item }: { orderId: string; item: OrderItemDto }
 }
 
 function DashboardOrderRow({ order }: { order: OrderDto }) {
-  const [showDetail, setShowDetail] = useState(false)
-  const queryClient = useQueryClient()
-
-  function openDetail() {
-    queryClient.setQueryData(['orders', order.id], order)
-    setShowDetail(true)
-  }
-
   return (
     <div className="flex flex-col gap-1.5 py-2">
       <div className="flex flex-wrap items-center gap-2">
-        <button type="button" onClick={openDetail} className="font-medium text-ink hover:text-forest">
+        <Link to={`/admin/orders/${order.id}`} className="font-medium text-ink hover:text-forest">
           Order {orderDisplayName(order)}
-        </button>
+        </Link>
         <OrderIdHint id={order.id} nickname={order.nickname} />
         <OrderStatusBadge status={order.status} />
       </div>
@@ -139,11 +129,6 @@ function DashboardOrderRow({ order }: { order: OrderDto }) {
           <OrderItemRow key={item.id} orderId={order.id} item={item} />
         ))}
       </ul>
-      {showDetail && (
-        <Modal onClose={() => setShowDetail(false)}>
-          <AdminOrderDetailPage id={order.id} onClose={() => setShowDetail(false)} />
-        </Modal>
-      )}
     </div>
   )
 }
