@@ -1,4 +1,5 @@
 import { render, screen } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { describe, expect, it } from 'vitest'
 import { OrderItemCard } from './OrderItemCard'
 import type { OrderItemDto } from '../types/api'
@@ -51,5 +52,17 @@ describe('OrderItemCard', () => {
     render(<OrderItemCard item={item({ maxPrice: 10, actualPrice: 1500, actualPriceCurrency: 'JPY' })} />)
     expect(screen.queryByText(/1,?500/)).not.toBeInTheDocument()
     expect(screen.queryByText(/¥/)).not.toBeInTheDocument()
+  })
+
+  it('opens a preview dialog with the item image and details when the thumbnail is clicked', async () => {
+    const user = userEvent.setup()
+    render(<OrderItemCard item={item({ title: 'Kit Kat matcha', description: 'Green tea flavor', maxPrice: 10 })} />)
+
+    expect(screen.queryByRole('button', { name: 'Close' })).not.toBeInTheDocument()
+
+    await user.click(screen.getByRole('button', { name: 'Preview Kit Kat matcha' }))
+
+    expect(screen.getByRole('button', { name: 'Close' })).toBeInTheDocument()
+    expect(screen.getAllByText('Green tea flavor').length).toBeGreaterThan(0)
   })
 })
