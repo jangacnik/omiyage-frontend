@@ -1,4 +1,5 @@
 import { useLayoutEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react'
+import { createPortal } from 'react-dom'
 
 const VIEWPORT_MARGIN = 12
 const GAP = 8
@@ -75,7 +76,7 @@ export function AnchoredDialog({
     return () => observer.disconnect()
   }, [anchor])
 
-  return (
+  return createPortal(
     <div className="animate-fade fixed inset-0 z-50 bg-ink/50 backdrop-blur-sm" role="presentation" onClick={onClose}>
       <div
         ref={panelRef}
@@ -88,6 +89,7 @@ export function AnchoredDialog({
       >
         {children}
       </div>
-    </div>
+    </div>,
+    document.body,
   )
 }

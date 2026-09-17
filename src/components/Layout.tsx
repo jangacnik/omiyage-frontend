@@ -89,7 +89,7 @@ export function Layout() {
   const isFullWidth = FULL_WIDTH_PATHS.has(location.pathname)
 
   return (
-    <div className="min-h-screen bg-paper">
+    <div className="flex min-h-screen flex-col bg-paper">
       {!isAdmin && <OnboardingModal />}
       <nav className="sticky top-0 z-20 bg-ink text-paper shadow-[0_1px_0_0_rgba(0,26,35,0.15)]">
         <div className="mx-auto flex max-w-6xl items-center gap-2 px-4 py-3 sm:px-6">
@@ -203,7 +203,7 @@ export function Layout() {
       </nav>
       <main
         key={location.pathname}
-        className={`animate-rise px-4 py-6 sm:px-6 sm:py-8 ${isFullWidth ? 'w-full' : 'mx-auto max-w-6xl'}`}
+        className={`animate-rise flex flex-1 flex-col px-4 py-6 sm:px-6 sm:py-8 ${isFullWidth ? 'w-full' : 'mx-auto max-w-6xl'}`}
       >
         <Outlet />
       </main>

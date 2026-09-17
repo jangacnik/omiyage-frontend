@@ -27,7 +27,7 @@ export function AdminInventoryPage() {
   }
 
   return (
-    <div>
+    <div className="flex h-full flex-col">
       <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
         <h1 className="page-title">Admin: Inventory</h1>
         <button type="button" className="btn-primary" onClick={() => setCreating(true)}>
@@ -37,7 +37,7 @@ export function AdminInventoryPage() {
 
       {isLoading && <Spinner label="Fetching inventory" />}
 
-      <div className="max-h-[calc(100vh-280px)] overflow-y-auto pr-1">
+      <div className="min-h-0 flex-1 overflow-y-auto pr-1">
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
           {data?.content.map((item) => (
             <InventoryCard

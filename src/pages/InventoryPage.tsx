@@ -56,7 +56,7 @@ export function InventoryPage() {
   }
 
   return (
-    <div>
+    <div className="flex h-full flex-col">
       <div className="mb-5 flex flex-wrap items-baseline gap-x-3 gap-y-1">
         <h1 className="page-title">Inventory</h1>
         {data && (
@@ -120,7 +120,7 @@ export function InventoryPage() {
         </div>
       )}
 
-      <div className="max-h-[calc(100vh-320px)] overflow-y-auto pr-1">
+      <div className="min-h-0 flex-1 overflow-y-auto pr-1">
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
           {data?.content.map((item, i) => (
             <div key={item.id} className="animate-rise" style={{ animationDelay: `${Math.min(i, 11) * 0.04}s` }}>
