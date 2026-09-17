@@ -44,6 +44,14 @@ export function CartIcon({ size = 14 }: IconProps) {
   )
 }
 
+export function CloseIcon({ size = 14 }: IconProps) {
+  return (
+    <svg {...base(size)}>
+      <path d="M5 5 L19 19 M19 5 L5 19" />
+    </svg>
+  )
+}
+
 export function ExternalLinkIcon({ size = 14 }: IconProps) {
   return (
     <svg {...base(size)}>

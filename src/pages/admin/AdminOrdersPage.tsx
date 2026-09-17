@@ -1,8 +1,9 @@
 import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { useAdminDeleteOrder, useAdminMergeOrders, useAdminOrders, useCreateShipment } from '../../api/adminOrders'
 import { orderDisplayName } from '../../api/orders'
 import { useConfirm } from '../../components/ConfirmDialog'
+import { Modal } from '../../components/Modal'
 import { OrderIdHint } from '../../components/OrderIdHint'
 import { OrderStatusBadge } from '../../components/OrderStatusBadge'
 import { Pagination } from '../../components/Pagination'
@@ -10,6 +11,7 @@ import { Spinner, ButtonSpinner } from '../../components/Spinner'
 import { StatusPill } from '../../components/StatusPill'
 import { TrashIcon } from '../../components/icons'
 import { formatMoney } from '../../lib/currency'
+import { AdminOrderDetailPage } from './AdminOrderDetailPage'
 import type { AdminOrderSortBy, OrderStatus, SortDirection } from '../../types/api'
 
 const STATUSES: OrderStatus[] = ['REQUESTED', 'IN_PROGRESS', 'PURCHASED', 'PREPARING_SHIPPING', 'SENT', 'DELIVERED', 'CANCELLED']
@@ -28,6 +30,7 @@ export function AdminOrdersPage() {
   const [page, setPage] = useState(0)
   const [sort, setSort] = useState<`${AdminOrderSortBy}:${SortDirection}`>('UPDATED_AT:DESC')
   const [selected, setSelected] = useState<string[]>([])
+  const [openOrderId, setOpenOrderId] = useState<string | null>(null)
   const [sortBy, direction] = sort.split(':') as [AdminOrderSortBy, SortDirection]
   const { data, isLoading } = useAdminOrders(status, page, sortBy, direction)
   const createShipment = useCreateShipment()
@@ -165,7 +168,11 @@ export function AdminOrdersPage() {
                   onChange={() => toggle(order.id)}
                   aria-label={`Select order ${order.id.slice(0, 8)}`}
                 />
-                <Link to={`/admin/orders/${order.id}`} className="flex flex-wrap items-center gap-2 font-medium text-ink hover:text-forest">
+                <button
+                  type="button"
+                  onClick={() => setOpenOrderId(order.id)}
+                  className="flex flex-wrap items-center gap-2 font-medium text-ink hover:text-forest"
+                >
                   Order {orderDisplayName(order)}
                   <OrderIdHint id={order.id} nickname={order.nickname} />
                   {order.userNickname && (
@@ -187,7 +194,7 @@ export function AdminOrdersPage() {
                   {order.profit != null && (
                     <span className="text-xs font-medium text-ink/60">{formatMoney(order.profit, 'EUR')} profit</span>
                   )}
-                </Link>
+                </button>
               </label>
               <span className="flex items-center gap-3">
                 <span className="text-sm text-ink/60">{order.items.length} item(s)</span>
@@ -207,6 +214,12 @@ export function AdminOrdersPage() {
       {deleteOrder.isError && <p className="error-text">Could not delete that order.</p>}
 
       {data && <Pagination page={data.page} totalPages={data.totalPages} onPageChange={setPage} />}
+
+      {openOrderId && (
+        <Modal onClose={() => setOpenOrderId(null)}>
+          <AdminOrderDetailPage id={openOrderId} onClose={() => setOpenOrderId(null)} />
+        </Modal>
+      )}
     </div>
   )
 }

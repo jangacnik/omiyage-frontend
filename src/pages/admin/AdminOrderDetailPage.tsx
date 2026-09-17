@@ -2,6 +2,7 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { orderDisplayName, useOrder } from '../../api/orders'
 import { useAdminDeleteOrder, useAdminShipments, useAssignOrderShipment } from '../../api/adminOrders'
 import { useConfirm } from '../../components/ConfirmDialog'
+import { DialogCloseButton } from '../../components/DialogCloseButton'
 import { OrderIdHint } from '../../components/OrderIdHint'
 import { OrderStatusBadge } from '../../components/OrderStatusBadge'
 import { Spinner, ButtonSpinner } from '../../components/Spinner'
@@ -9,8 +10,11 @@ import { TrashIcon } from '../../components/icons'
 import { formatMoney } from '../../lib/currency'
 import { AdminOrderEditor } from './AdminOrderEditor'
 
-export function AdminOrderDetailPage() {
-  const { id } = useParams<{ id: string }>()
+/** Doubles as a routed page (`/admin/orders/:id`) and as dialog content (id + onClose passed
+ *  directly by a caller rendering it inside a Modal instead of navigating away). */
+export function AdminOrderDetailPage({ id: idProp, onClose }: { id?: string; onClose?: () => void } = {}) {
+  const params = useParams<{ id: string }>()
+  const id = idProp ?? params.id
   const { data: order, isLoading, isError } = useOrder(id)
   const { data: shipments } = useAdminShipments()
   const assignShipment = useAssignOrderShipment()
@@ -19,7 +23,14 @@ export function AdminOrderDetailPage() {
   const navigate = useNavigate()
 
   if (isLoading) return <Spinner fullPage label="Fetching order" />
-  if (isError || !order) return <p className="error-text">Order not found.</p>
+  if (isError || !order) {
+    return (
+      <div className="card relative py-4 text-center">
+        {onClose && <DialogCloseButton onClose={onClose} />}
+        <p className="error-text">Order not found.</p>
+      </div>
+    )
+  }
 
   // soldPrice and maxPrice are both always EUR, unlike actualPrice (the JPY bought-for cost).
   const totalPrice = order.items.reduce((sum, item) => sum + (item.soldPrice ?? item.maxPrice ?? 0) * item.quantity, 0)
@@ -36,6 +47,7 @@ export function AdminOrderDetailPage() {
     if (!ok) return
     try {
       await deleteOrder.mutateAsync(order.id)
+      onClose?.()
       navigate('/admin/orders')
     } catch {
       // deleteOrder.isError renders the message below - nothing else to do here.
@@ -43,7 +55,8 @@ export function AdminOrderDetailPage() {
   }
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="card relative flex max-h-[90vh] w-full max-w-3xl flex-col gap-4 overflow-y-auto">
+      {onClose && <DialogCloseButton onClose={onClose} />}
       <div className="flex flex-wrap items-center gap-3">
         <h1 className="page-title">
           Order {orderDisplayName(order)}

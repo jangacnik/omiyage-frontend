@@ -14,6 +14,7 @@ import {
   useUpdateOrderNickname,
 } from '../api/orders'
 import { useConfirm } from '../components/ConfirmDialog'
+import { DialogCloseButton } from '../components/DialogCloseButton'
 import { Modal } from '../components/Modal'
 import { OrderIdHint } from '../components/OrderIdHint'
 import { OrderItemCard } from '../components/OrderItemCard'
@@ -252,7 +253,7 @@ function EditableItem({ orderId, item, locked }: { orderId: string; item: OrderI
 }
 
 
-function SplitItemsPanel({ order }: { order: OrderDto }) {
+function SplitItemsPanel({ order, onClose }: { order: OrderDto; onClose?: () => void }) {
   const [selected, setSelected] = useState<string[]>([])
   const splitOrder = useSplitMyOrder()
   const navigate = useNavigate()
@@ -264,7 +265,12 @@ function SplitItemsPanel({ order }: { order: OrderDto }) {
   function submit() {
     splitOrder.mutate(
       { orderId: order.id, itemIds: selected },
-      { onSuccess: (result) => navigate(`/orders/${result.created.id}`) },
+      {
+        onSuccess: (result) => {
+          onClose?.()
+          navigate(`/orders/${result.created.id}`)
+        },
+      },
     )
   }
 
@@ -299,8 +305,11 @@ function SplitItemsPanel({ order }: { order: OrderDto }) {
   )
 }
 
-export function OrderDetailPage() {
-  const { id } = useParams<{ id: string }>()
+/** Doubles as a routed page (`/orders/:id`) and as dialog content (id + onClose passed directly by
+ *  a caller rendering it inside a Modal instead of navigating away). */
+export function OrderDetailPage({ id: idProp, onClose }: { id?: string; onClose?: () => void } = {}) {
+  const params = useParams<{ id: string }>()
+  const id = idProp ?? params.id
   const { data: order, isLoading, isError } = useOrder(id)
   const cancelOrder = useCancelMyOrder()
   const submitForShipping = useSubmitForShipping()
@@ -308,7 +317,14 @@ export function OrderDetailPage() {
   const confirm = useConfirm()
 
   if (isLoading) return <Spinner fullPage label="Fetching order" />
-  if (isError || !order) return <p className="error-text">Order not found.</p>
+  if (isError || !order) {
+    return (
+      <div className="card relative py-4 text-center">
+        {onClose && <DialogCloseButton onClose={onClose} />}
+        <p className="error-text">Order not found.</p>
+      </div>
+    )
+  }
 
   const hasLockedItem = order.items.some(isItemLocked)
   const hasPreorderItem = order.items.some((item) => item.isPreorder)
@@ -345,7 +361,8 @@ export function OrderDetailPage() {
   }
 
   return (
-    <div className="card flex flex-col gap-3">
+    <div className="card relative flex max-h-[90vh] w-full max-w-2xl flex-col gap-3 overflow-y-auto">
+      {onClose && <DialogCloseButton onClose={onClose} />}
       <div className="flex flex-wrap items-center gap-3">
         <OrderNicknameEditor order={order} />
         <OrderStatusBadge status={order.status} />
@@ -425,7 +442,7 @@ export function OrderDetailPage() {
           isLocked={isItemLocked}
         />
       )}
-      {order.open && <SplitItemsPanel order={order} />}
+      {order.open && <SplitItemsPanel order={order} onClose={onClose} />}
     </div>
   )
 }

@@ -1,14 +1,19 @@
-import { Link } from 'react-router-dom'
+import { useState } from 'react'
 import { PreorderBadge } from './PreorderBadge'
 import { StatusPill } from './StatusPill'
 import { ThumbnailImage } from './ThumbnailImage'
 import { formatMoney } from '../lib/currency'
 import { CartIcon, CheckIcon, TrashIcon } from './icons'
 import { cartItemFromInventoryItem, useAddToCartFeedback, useCartStore } from '../store/cartStore'
+import { Modal } from './Modal'
+import { InventoryDetailPage } from '../pages/InventoryDetailPage'
+import { QuantityStepper } from './QuantityStepper'
 import type { InventoryItem } from '../types/api'
 
 /** Card-grid tile shared by the public inventory browse page and the admin inventory page.
- *  Edit/delete only render (on hover) when the caller passes them - i.e. for an admin viewer. */
+ *  Edit/delete only render (on hover) when the caller passes them - i.e. for an admin viewer.
+ *  Clicking the card itself opens the item's details in a dialog rather than navigating away -
+ *  self-contained here so neither caller needs any state of its own for that. */
 export function InventoryCard({
   item,
   onEdit,
@@ -20,15 +25,19 @@ export function InventoryCard({
 }) {
   const addToCart = useCartStore((s) => s.addItem)
   const { justAdded, announce } = useAddToCartFeedback()
+  const [quantity, setQuantity] = useState(1)
+  const [showDetail, setShowDetail] = useState(false)
+  const canShop = !onEdit && !onDelete
 
   function handleAddToCart() {
-    addToCart(cartItemFromInventoryItem(item))
+    addToCart(cartItemFromInventoryItem(item), quantity)
     announce()
+    setQuantity(1)
   }
 
   return (
     <div className="card card-interactive group relative overflow-hidden p-0">
-      <Link to={`/inventory/${item.id}`} className="block">
+      <button type="button" onClick={() => setShowDetail(true)} className="block w-full text-left">
         <ThumbnailImage
           imageKey={item.images[0]}
           alt={item.title}
@@ -49,10 +58,11 @@ export function InventoryCard({
             {item.profitEur != null && <> · profit {formatMoney(item.profitEur, 'EUR')}</>}
           </p>
         </div>
-      </Link>
+      </button>
 
-      {!onEdit && !onDelete && (
-        <div className="px-3 pb-3">
+      {canShop && (
+        <div className="flex flex-col gap-1.5 px-3 pb-3">
+          <QuantityStepper quantity={quantity} onChange={setQuantity} label={`Quantity of ${item.title} to add`} />
           <button type="button" className="btn-primary w-full text-sm" onClick={handleAddToCart}>
             {justAdded ? (
               <>
@@ -78,12 +88,17 @@ export function InventoryCard({
 
       {/* Quick-add on the thumbnail itself - the full-width button below still exists for anyone
           who wants to see the label, but this one-click shortcut means never having to look past
-          the image while browsing. Sits outside <Link>, not nested in it, so it doesn't need its
-          own click-propagation handling - same trick the edit/delete overlay below already uses. */}
-      {!onEdit && !onDelete && (
+          the image while browsing. Always adds just one, regardless of the stepper above - the
+          stepper's count is for a deliberate bulk add. Sits outside the card-opening button, not
+          nested in it, so it doesn't need its own click-propagation handling - same trick the
+          edit/delete overlay below already uses. */}
+      {canShop && (
         <button
           type="button"
-          onClick={handleAddToCart}
+          onClick={() => {
+            addToCart(cartItemFromInventoryItem(item))
+            announce()
+          }}
           aria-label={justAdded ? `${item.title} added to cart` : `Add ${item.title} to cart`}
           className={`absolute right-2 top-2 flex h-9 w-9 items-center justify-center rounded-full shadow-md transition-colors ${
             justAdded ? 'bg-forest text-paper' : 'bg-ink/70 text-paper hover:bg-ink'
@@ -106,6 +121,12 @@ export function InventoryCard({
             </button>
           )}
         </div>
+      )}
+
+      {showDetail && (
+        <Modal onClose={() => setShowDetail(false)}>
+          <InventoryDetailPage id={item.id} onClose={() => setShowDetail(false)} />
+        </Modal>
       )}
     </div>
   )

@@ -8,6 +8,7 @@ import {
 } from '../api/myShipments'
 import { useAuthStore } from '../store/authStore'
 import { orderDisplayName } from '../api/orders'
+import { DialogCloseButton } from '../components/DialogCloseButton'
 import { Field } from '../components/Field'
 import { OrderIdHint } from '../components/OrderIdHint'
 import { OrderStatusBadge } from '../components/OrderStatusBadge'
@@ -207,19 +208,30 @@ function ShippingEditor({ shipment, editable }: { shipment: MemberShipmentDto; e
   )
 }
 
-export function MyShipmentPage() {
-  const { id } = useParams<{ id: string }>()
+/** Doubles as a routed page (`/shipments/:id`) and as dialog content (id + onClose passed directly
+ *  by a caller rendering it inside a Modal instead of navigating away). */
+export function MyShipmentPage({ id: idProp, onClose }: { id?: string; onClose?: () => void } = {}) {
+  const params = useParams<{ id: string }>()
+  const id = idProp ?? params.id
   const { data: shipment, isLoading, isError } = useMyShipmentDetail(id)
   const markArrived = useMarkShipmentArrived()
   const myUserId = useAuthStore((s) => s.claims?.sub)
 
   if (isLoading) return <Spinner fullPage label="Fetching shipment" />
-  if (isError || !shipment) return <p className="error-text">Shipment not found.</p>
+  if (isError || !shipment) {
+    return (
+      <div className="card relative py-4 text-center">
+        {onClose && <DialogCloseButton onClose={onClose} />}
+        <p className="error-text">Shipment not found.</p>
+      </div>
+    )
+  }
 
   const isOwner = shipment.ownerUserId === myUserId
 
   return (
-    <div className="card flex flex-col gap-4">
+    <div className="card relative flex max-h-[90vh] w-full max-w-2xl flex-col gap-4 overflow-y-auto">
+      {onClose && <DialogCloseButton onClose={onClose} />}
       <div className="flex flex-wrap items-center justify-between gap-3">
         <TitleEditor id={shipment.id} title={shipment.title} editable={isOwner} />
         <ShipmentStatusBadge status={shipment.status} />

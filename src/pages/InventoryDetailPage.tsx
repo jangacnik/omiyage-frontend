@@ -1,7 +1,9 @@
 import { useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { useInventoryItem } from '../api/inventory'
+import { DialogCloseButton } from '../components/DialogCloseButton'
 import { PreorderBadge } from '../components/PreorderBadge'
+import { QuantityStepper } from '../components/QuantityStepper'
 import { Spinner } from '../components/Spinner'
 import { StatusPill } from '../components/StatusPill'
 import { ThumbnailImage } from '../components/ThumbnailImage'
@@ -58,11 +60,16 @@ function ImageCarousel({ images, alt }: { images: string[]; alt: string }) {
   )
 }
 
-export function InventoryDetailPage() {
-  const { id } = useParams<{ id: string }>()
+/** Doubles as a routed page (`/inventory/:id`, id from the URL) and as dialog content (id passed
+ *  directly, onClose given so a caller like InventoryCard can render it inside a Modal instead of
+ *  navigating away). */
+export function InventoryDetailPage({ id: idProp, onClose }: { id?: string; onClose?: () => void } = {}) {
+  const params = useParams<{ id: string }>()
+  const id = idProp ?? params.id
   const { data: item, isLoading, isError, error, refetch, isRefetching } = useInventoryItem(id)
   const addToCart = useCartStore((s) => s.addItem)
   const { justAdded, announce } = useAddToCartFeedback()
+  const [quantity, setQuantity] = useState(1)
 
   if (isLoading) return <Spinner fullPage label="Fetching item" />
   // Check item presence before isError - once a page has loaded, a failed background refetch (a
@@ -70,7 +77,8 @@ export function InventoryDetailPage() {
   if (!item) {
     if (isError && !(error instanceof ApiError && error.status === 404)) {
       return (
-        <div className="card flex flex-col items-center gap-2 py-12 text-center">
+        <div className="card relative flex flex-col items-center gap-2 py-12 text-center">
+          {onClose && <DialogCloseButton onClose={onClose} />}
           <p className="font-medium text-ink">Could not load this item</p>
           <p className="text-sm text-ink/55">Something went wrong reaching the server.</p>
           <button type="button" className="btn-secondary mt-2" onClick={() => refetch()} disabled={isRefetching}>
@@ -80,24 +88,33 @@ export function InventoryDetailPage() {
       )
     }
     return (
-      <div className="card flex flex-col items-center gap-1 py-12 text-center">
+      <div className="card relative flex flex-col items-center gap-1 py-12 text-center">
+        {onClose && <DialogCloseButton onClose={onClose} />}
         <p className="font-medium text-ink">Item not found</p>
         <p className="text-sm text-ink/55">It may have been removed from the catalog.</p>
-        <Link to="/inventory" className="btn-secondary mt-2">
-          Back to inventory
-        </Link>
+        {onClose ? (
+          <button type="button" className="btn-secondary mt-2" onClick={onClose}>
+            Close
+          </button>
+        ) : (
+          <Link to="/inventory" className="btn-secondary mt-2">
+            Back to inventory
+          </Link>
+        )}
       </div>
     )
   }
 
   function handleAddToCart() {
     if (!item) return
-    addToCart(cartItemFromInventoryItem(item))
+    addToCart(cartItemFromInventoryItem(item), quantity)
     announce()
+    setQuantity(1)
   }
 
   return (
-    <div className="card flex flex-col gap-4 md:flex-row">
+    <div className="card relative flex max-h-[90vh] w-full max-w-3xl flex-col gap-4 overflow-y-auto md:flex-row">
+      {onClose && <DialogCloseButton onClose={onClose} />}
       {item.images.length > 0 && <ImageCarousel images={item.images} alt={item.title} />}
       <div className="flex flex-1 flex-col gap-2">
         <h1 className="page-title">{item.title}</h1>
@@ -122,6 +139,7 @@ export function InventoryDetailPage() {
           )}
         </dl>
         <div className="mt-2 flex flex-wrap items-center gap-2">
+          <QuantityStepper quantity={quantity} onChange={setQuantity} label={`Quantity of ${item.title} to add`} />
           <button type="button" className="btn-primary self-start" onClick={handleAddToCart}>
             {justAdded ? (
               <>

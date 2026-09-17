@@ -3,23 +3,32 @@ import { Link } from 'react-router-dom'
 import { orderDisplayName, useMergeMyOrders, useMyOrders } from '../api/orders'
 import { CombineRequestModal } from '../components/CombineRequestModal'
 import { useConfirm } from '../components/ConfirmDialog'
+import { Modal } from '../components/Modal'
 import { OrderIdHint } from '../components/OrderIdHint'
 import { OrderStatusBadge } from '../components/OrderStatusBadge'
 import { Pagination } from '../components/Pagination'
 import { Spinner, ButtonSpinner } from '../components/Spinner'
 import { errorMessage } from '../lib/apiClient'
+import { OrderDetailPage } from './OrderDetailPage'
+import { MyShipmentPage } from './MyShipmentPage'
 import type { OrderDto } from '../types/api'
 
 function ShipmentGroup({ orders }: { orders: OrderDto[] }) {
   const [activeId, setActiveId] = useState(orders[0].id)
   const active = orders.find((o) => o.id === activeId) ?? orders[0]
+  const [showShipment, setShowShipment] = useState(false)
+  const [showOrder, setShowOrder] = useState(false)
 
   return (
     <li className="card flex flex-col gap-3">
       <div className="flex items-center justify-between">
-        <Link to={`/shipments/${active.shipmentId}`} className="text-sm font-medium text-ink/60 hover:text-forest hover:underline">
+        <button
+          type="button"
+          onClick={() => setShowShipment(true)}
+          className="text-sm font-medium text-ink/60 hover:text-forest hover:underline"
+        >
           Shipment {active.shipmentId?.slice(0, 8)}
-        </Link>
+        </button>
       </div>
       <div className="flex flex-wrap gap-1 border-b border-mist pb-2">
         {orders.map((order) => (
@@ -35,11 +44,21 @@ function ShipmentGroup({ orders }: { orders: OrderDto[] }) {
         ))}
       </div>
       <div className="flex items-center justify-between">
-        <Link to={`/orders/${active.id}`} className="font-medium text-ink hover:text-forest">
+        <button type="button" onClick={() => setShowOrder(true)} className="font-medium text-ink hover:text-forest">
           {active.items.length} item(s)
-        </Link>
+        </button>
         <OrderStatusBadge status={active.status} />
       </div>
+      {showShipment && active.shipmentId && (
+        <Modal onClose={() => setShowShipment(false)}>
+          <MyShipmentPage id={active.shipmentId} onClose={() => setShowShipment(false)} />
+        </Modal>
+      )}
+      {showOrder && (
+        <Modal onClose={() => setShowOrder(false)}>
+          <OrderDetailPage id={active.id} onClose={() => setShowOrder(false)} />
+        </Modal>
+      )}
     </li>
   )
 }
@@ -49,6 +68,7 @@ export function OrdersListPage() {
   const [selected, setSelected] = useState<string[]>([])
   const [mergeError, setMergeError] = useState<string | null>(null)
   const [combiningOrderId, setCombiningOrderId] = useState<string | null>(null)
+  const [openOrderId, setOpenOrderId] = useState<string | null>(null)
   const { data, isLoading, isError } = useMyOrders(page)
   const mergeOrders = useMergeMyOrders()
   const confirm = useConfirm()
@@ -141,10 +161,14 @@ export function OrdersListPage() {
                 {/* Visible, not just a title tooltip - same reasoning as the preorder/locked-item
                     disabled-reasons on OrderDetailPage: a tooltip never appears on touch devices. */}
                 {!group[0].open && <span className="text-xs text-ink/40">not open</span>}
-                <Link to={`/orders/${group[0].id}`} className="font-medium text-ink hover:text-forest">
+                <button
+                  type="button"
+                  onClick={() => setOpenOrderId(group[0].id)}
+                  className="font-medium text-ink hover:text-forest"
+                >
                   Order {orderDisplayName(group[0])}
                   <OrderIdHint id={group[0].id} nickname={group[0].nickname} /> — {group[0].items.length} item(s)
-                </Link>
+                </button>
               </div>
               <div className="flex items-center gap-2">
                 {group[0].open && (
@@ -167,6 +191,11 @@ export function OrdersListPage() {
       {data && <Pagination page={data.page} totalPages={data.totalPages} onPageChange={setPage} />}
 
       {combiningOrderId && <CombineRequestModal orderId={combiningOrderId} onClose={() => setCombiningOrderId(null)} />}
+      {openOrderId && (
+        <Modal onClose={() => setOpenOrderId(null)}>
+          <OrderDetailPage id={openOrderId} onClose={() => setOpenOrderId(null)} />
+        </Modal>
+      )}
     </div>
   )
 }

@@ -1,11 +1,14 @@
-import { Link } from 'react-router-dom'
+import { useState } from 'react'
 import { useMyShipments } from '../api/myShipments'
 import { formatGrams, formatMoney } from '../lib/currency'
+import { Modal } from '../components/Modal'
 import { ShipmentStatusBadge } from '../components/ShipmentStatusBadge'
 import { Spinner } from '../components/Spinner'
+import { MyShipmentPage } from './MyShipmentPage'
 
 export function MyShipmentsListPage() {
   const { data: shipments, isLoading, isError } = useMyShipments()
+  const [openShipmentId, setOpenShipmentId] = useState<string | null>(null)
 
   if (isLoading) return <Spinner fullPage label="Fetching shipments" />
   if (isError) return <p className="error-text">Could not load your shipments.</p>
@@ -21,9 +24,10 @@ export function MyShipmentsListPage() {
       <ul className="flex flex-col gap-2">
         {shipments?.map((shipment) => (
           <li key={shipment.id}>
-            <Link
-              to={`/shipments/${shipment.id}`}
-              className="card flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between"
+            <button
+              type="button"
+              onClick={() => setOpenShipmentId(shipment.id)}
+              className="card flex w-full flex-col gap-1 text-left sm:flex-row sm:items-center sm:justify-between"
             >
               <span className="font-medium text-ink">{shipment.title ?? `Shipment ${shipment.id.slice(0, 8)}`}</span>
               <span className="flex items-center gap-3 text-sm text-ink/60">
@@ -32,10 +36,15 @@ export function MyShipmentsListPage() {
                 <span>{formatGrams(shipment.totalWeightGrams)}</span>
                 {shipment.shippingCostEur != null && <span>{formatMoney(shipment.shippingCostEur, 'EUR')}</span>}
               </span>
-            </Link>
+            </button>
           </li>
         ))}
       </ul>
+      {openShipmentId && (
+        <Modal onClose={() => setOpenShipmentId(null)}>
+          <MyShipmentPage id={openShipmentId} onClose={() => setOpenShipmentId(null)} />
+        </Modal>
+      )}
     </div>
   )
 }
