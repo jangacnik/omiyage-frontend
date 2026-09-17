@@ -14,6 +14,7 @@ import {
   useUpdateOrderNickname,
 } from '../api/orders'
 import { useConfirm } from '../components/ConfirmDialog'
+import { Modal } from '../components/Modal'
 import { OrderIdHint } from '../components/OrderIdHint'
 import { OrderItemCard } from '../components/OrderItemCard'
 import { AddItemPanel } from '../components/OrderItemBuilder'
@@ -122,7 +123,8 @@ function EditableItem({ orderId, item, locked }: { orderId: string; item: OrderI
   // open) - these checks just keep the UI from offering a button that would 409.
   const editable = !locked && !isItemLocked(item)
 
-  function save() {
+  function save(e: React.FormEvent) {
+    e.preventDefault()
     updateItem.mutate(
       {
         orderId,
@@ -148,94 +150,102 @@ function EditableItem({ orderId, item, locked }: { orderId: string; item: OrderI
     if (ok) removeItem.mutate({ orderId, itemId: item.id })
   }
 
-  if (!editing) {
-    return (
-      <li className="py-3">
-        <OrderItemCard item={item}>
-          {editable && (
-            <>
-              <button type="button" className="btn-secondary px-2 py-1 text-xs" onClick={() => setEditing(true)}>
-                Edit
-              </button>
-              <button
-                type="button"
-                className="btn-danger px-2 py-1 text-xs"
-                onClick={remove}
-                disabled={removeItem.isPending}
-              >
-                {removeItem.isPending ? (
-                  <ButtonSpinner />
-                ) : (
-                  <>
-                    <TrashIcon size={13} /> Remove
-                  </>
-                )}
-              </button>
-            </>
-          )}
-        </OrderItemCard>
-        {removeItem.isError && (
-          <p className="error-text mt-1">{errorMessage(removeItem.error, 'Could not remove this item.')}</p>
-        )}
-      </li>
-    )
-  }
-
   return (
-    <li className="flex flex-col gap-2 rounded-lg border border-mist p-3">
-      <Field label="Title">
-        <input className="field-input" value={title} onChange={(e) => setTitle(e.target.value)} aria-label={`Title for ${item.title}`} />
-      </Field>
-      <Field label="Description" hint="Optional">
-        <textarea
-          className="field-input"
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
-          aria-label={`Description for ${item.title}`}
-        />
-      </Field>
-      <div className="flex flex-col gap-2 sm:flex-row">
-        <Field label="Max price" hint="In EUR" className="sm:w-32">
-          <input
-            type="number"
-            step="0.01"
-            className="field-input"
-            value={maxPrice}
-            onChange={(e) => setMaxPrice(e.target.value)}
-            aria-label={`Max price for ${item.title}`}
-          />
-        </Field>
-        <Field label="Qty" className="sm:w-24">
-          <input
-            type="number"
-            min={1}
-            className="field-input"
-            value={quantity}
-            onChange={(e) => setQuantity(e.target.value)}
-            aria-label={`Quantity for ${item.title}`}
-          />
-        </Field>
-      </div>
-      <Field label="Link to store page" hint="Optional">
-        <input
-          type="url"
-          className="field-input"
-          value={link}
-          onChange={(e) => setLink(e.target.value)}
-          aria-label={`Link for ${item.title}`}
-        />
-      </Field>
-      <ImageDropInput label="Photo" initialImageKey={item.imageKey ?? undefined} onUploaded={setImageKey} />
-      <div className="flex gap-2">
-        <button type="button" className="btn-primary px-3 py-1.5 text-sm" onClick={save} disabled={updateItem.isPending}>
-          {updateItem.isPending ? <ButtonSpinner /> : 'Save'}
-        </button>
-        <button type="button" className="btn-secondary px-3 py-1.5 text-sm" onClick={() => setEditing(false)}>
-          Cancel
-        </button>
-      </div>
-      {updateItem.isError && (
-        <p className="error-text">{errorMessage(updateItem.error, 'Could not save changes.')}</p>
+    <li className="py-3">
+      <OrderItemCard item={item}>
+        {editable && (
+          <>
+            <button type="button" className="btn-secondary px-2 py-1 text-xs" onClick={() => setEditing(true)}>
+              Edit
+            </button>
+            <button
+              type="button"
+              className="btn-danger px-2 py-1 text-xs"
+              onClick={remove}
+              disabled={removeItem.isPending}
+            >
+              {removeItem.isPending ? (
+                <ButtonSpinner />
+              ) : (
+                <>
+                  <TrashIcon size={13} /> Remove
+                </>
+              )}
+            </button>
+          </>
+        )}
+      </OrderItemCard>
+      {removeItem.isError && (
+        <p className="error-text mt-1">{errorMessage(removeItem.error, 'Could not remove this item.')}</p>
+      )}
+      {editing && (
+        <Modal onClose={() => setEditing(false)}>
+          <form
+            onSubmit={save}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby={`edit-order-item-${item.id}-title`}
+            className="card flex max-h-[90vh] w-full max-w-lg flex-col gap-2 overflow-y-auto"
+          >
+            <h2 id={`edit-order-item-${item.id}-title`} className="page-title mb-1 text-lg">
+              Edit item
+            </h2>
+            <Field label="Title">
+              <input className="field-input" value={title} onChange={(e) => setTitle(e.target.value)} aria-label="Title" />
+            </Field>
+            <Field label="Description" hint="Optional">
+              <textarea
+                className="field-input"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                aria-label="Description"
+              />
+            </Field>
+            <div className="flex flex-col gap-2 sm:flex-row">
+              <Field label="Max price" hint="In EUR" className="sm:w-32">
+                <input
+                  type="number"
+                  step="0.01"
+                  className="field-input"
+                  value={maxPrice}
+                  onChange={(e) => setMaxPrice(e.target.value)}
+                  aria-label="Max price"
+                />
+              </Field>
+              <Field label="Qty" className="sm:w-24">
+                <input
+                  type="number"
+                  min={1}
+                  className="field-input"
+                  value={quantity}
+                  onChange={(e) => setQuantity(e.target.value)}
+                  aria-label="Quantity"
+                />
+              </Field>
+            </div>
+            <Field label="Link to store page" hint="Optional">
+              <input
+                type="url"
+                className="field-input"
+                value={link}
+                onChange={(e) => setLink(e.target.value)}
+                aria-label="Link to store page"
+              />
+            </Field>
+            <ImageDropInput label="Photo" initialImageKey={item.imageKey ?? undefined} onUploaded={setImageKey} />
+            <div className="flex gap-2">
+              <button type="submit" className="btn-primary px-3 py-1.5 text-sm" disabled={updateItem.isPending}>
+                {updateItem.isPending ? <ButtonSpinner /> : 'Save'}
+              </button>
+              <button type="button" className="btn-secondary px-3 py-1.5 text-sm" onClick={() => setEditing(false)}>
+                Cancel
+              </button>
+            </div>
+            {updateItem.isError && (
+              <p className="error-text">{errorMessage(updateItem.error, 'Could not save changes.')}</p>
+            )}
+          </form>
+        </Modal>
       )}
     </li>
   )

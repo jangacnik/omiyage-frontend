@@ -85,8 +85,8 @@ describe('OrderDetailPage', () => {
     )
 
     await user.click(await screen.findByText('Edit'))
-    await user.clear(screen.getByLabelText('Title for Ghibli museum ticket'))
-    await user.type(screen.getByLabelText('Title for Ghibli museum ticket'), 'Ghibli museum ticket (2x)')
+    await user.clear(screen.getByLabelText('Title'))
+    await user.type(screen.getByLabelText('Title'), 'Ghibli museum ticket (2x)')
     await user.click(screen.getByText('Save'))
 
     await waitFor(() => expect(capturedBody).toMatchObject({ title: 'Ghibli museum ticket (2x)' }))
