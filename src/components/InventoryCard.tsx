@@ -46,7 +46,7 @@ export function InventoryCard({
   }
 
   return (
-    <div className="card card-interactive group relative overflow-hidden p-0">
+    <div className="card card-interactive relative overflow-hidden p-0">
       <button type="button" onClick={openDetail} className="block w-full text-left">
         <ThumbnailImage
           imageKey={item.images[0]}
@@ -79,6 +79,15 @@ export function InventoryCard({
         </div>
       )}
 
+      {(onEdit || onDelete) && (
+        <div className="flex justify-end gap-2 border-t border-mist px-3 py-2">
+          {onEdit && <IconButton label={`Edit ${item.title}`} onClick={onEdit} icon={<EditIcon size={14} />} />}
+          {onDelete && (
+            <IconButton variant="danger" label={`Delete ${item.title}`} onClick={onDelete} icon={<TrashIcon size={14} />} />
+          )}
+        </div>
+      )}
+
       <div className="absolute left-2 top-2">
         {item.stockQuantity > 0 ? (
           <StatusPill tone="idle" label={`${item.stockQuantity} in stock`} size="sm" />
@@ -90,7 +99,7 @@ export function InventoryCard({
       {/* Quick-add on the thumbnail itself - the only add-to-cart control on the card now, using
           whatever quantity the stepper below is set to (so the stepper isn't just decorative).
           Sits outside the card-opening button, not nested in it, so it doesn't need its own
-          click-propagation handling - same trick the edit/delete overlay below already uses. */}
+          click-propagation handling - same trick the edit/delete row below uses. */}
       {canShop && (
         <button
           type="button"
@@ -102,15 +111,6 @@ export function InventoryCard({
         >
           {justAdded ? <CheckIcon size={16} /> : <CartIcon size={16} />}
         </button>
-      )}
-
-      {(onEdit || onDelete) && (
-        <div className="absolute inset-x-0 bottom-0 flex justify-end gap-2 p-2 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100">
-          {onEdit && <IconButton label={`Edit ${item.title}`} onClick={onEdit} icon={<EditIcon size={14} />} />}
-          {onDelete && (
-            <IconButton variant="danger" label={`Delete ${item.title}`} onClick={onDelete} icon={<TrashIcon size={14} />} />
-          )}
-        </div>
       )}
 
       {showDetail && (

@@ -48,6 +48,16 @@ export function InventoryPage() {
   const { data, isLoading, isError, refetch, isRefetching } = useInventory({ title, categoryId: categoryId || undefined, inStockOnly, page })
   const editingItem = data?.content.find((item) => item.id === editingId)
 
+  const hasFilters = title !== '' || categoryId !== '' || inStockOnly
+
+  function clearFilters() {
+    setTitleInput('')
+    setTitle('')
+    setCategoryId('')
+    setInStockOnly(false)
+    setPage(0)
+  }
+
   async function handleDelete(id: string, itemTitle: string) {
     const ok = await confirm({
       title: 'Delete item',
@@ -123,9 +133,18 @@ export function InventoryPage() {
         </div>
       )}
       {data && data.content.length === 0 && (
-        <div className="card flex flex-col items-center gap-1 py-12 text-center">
-          <p className="font-medium text-ink">Nothing here yet</p>
-          <p className="text-sm text-muted">Try a different search term or category.</p>
+        <div className="card flex flex-col items-center gap-2 py-12 text-center">
+          {hasFilters ? (
+            <>
+              <p className="font-medium text-ink">No items match</p>
+              <p className="text-sm text-muted">Try a different search term or category.</p>
+              <button type="button" className="btn-secondary mt-2" onClick={clearFilters}>
+                Clear filters
+              </button>
+            </>
+          ) : (
+            <p className="font-medium text-ink">No inventory yet</p>
+          )}
         </div>
       )}
 

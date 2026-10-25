@@ -65,7 +65,25 @@ describe('InventoryPage', () => {
 
     renderWithProviders(<InventoryPage />)
 
-    expect(await screen.findByText('Nothing here yet')).toBeInTheDocument()
+    expect(await screen.findByText('No inventory yet')).toBeInTheDocument()
+  })
+
+  it('offers Clear filters when a search matches nothing', async () => {
+    const user = userEvent.setup()
+    server.use(
+      http.get(`${BASE}/api/inventory`, ({ request }) =>
+        HttpResponse.json(page(new URL(request.url).searchParams.get('title') ? [] : [item()])),
+      ),
+      http.get(`${BASE}/api/categories`, () => HttpResponse.json([])),
+    )
+
+    renderWithProviders(<InventoryPage />)
+    await screen.findByText('Kit Kat matcha')
+    await user.type(screen.getByLabelText('Search'), 'zzz')
+    await user.click(await screen.findByRole('button', { name: 'Clear filters' }))
+
+    expect(await screen.findByText('Kit Kat matcha')).toBeInTheDocument()
+    expect(screen.getByLabelText('Search')).toHaveValue('')
   })
 
   it('sends the typed search term as a title filter', async () => {
