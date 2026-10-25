@@ -15,7 +15,7 @@ function CartNavLink({ count, onClick }: { count: number; onClick?: () => void }
       onClick={onClick}
       aria-label={count > 0 ? `Cart, ${count} item${count === 1 ? '' : 's'}` : 'Cart'}
       className={({ isActive }) =>
-        `relative flex h-11 w-11 shrink-0 items-center justify-center rounded-lg text-paper/80 transition-colors hover:bg-paper/10 hover:text-paper ${isActive ? 'bg-paper/10 text-paper' : ''}`
+        `relative flex h-11 w-11 shrink-0 items-center justify-center rounded-lg text-paper/80 hover:bg-paper/10 hover:text-paper ${isActive ? 'bg-paper/10 text-paper' : ''}`
       }
     >
       <CartIcon size={22} />
@@ -60,7 +60,7 @@ function AccountMenu({ nickname, onLogout, onNavigate }: { nickname: string; onL
         <span>{nickname}</span>
         <span aria-hidden="true" className="text-[0.6rem]">▾</span>
       </summary>
-      <div className="absolute right-0 z-30 mt-2 flex w-36 flex-col overflow-hidden rounded-lg bg-ink shadow-lg ring-1 ring-paper/15">
+      <div className="absolute right-0 z-30 mt-2 flex w-36 flex-col overflow-hidden rounded-lg bg-ink ring-1 ring-paper/15">
         <Link to="/profile" className="flex min-h-11 items-center px-3 py-2 text-sm text-paper hover:bg-paper/10" onClick={select()}>
           Profile
         </Link>
@@ -91,11 +91,11 @@ export function Layout() {
   return (
     <div className="flex min-h-screen flex-col bg-paper">
       {!isAdmin && <OnboardingModal />}
-      <nav className="sticky top-0 z-20 bg-ink text-paper shadow-[0_1px_0_0_rgba(0,26,35,0.15)]">
+      <nav className="sticky top-0 z-20 bg-ink text-paper">
         <div className="mx-auto flex max-w-6xl items-center gap-2 px-4 py-3 sm:px-6">
           <Link
             to="/inventory"
-            className="mr-2 flex shrink-0 items-center gap-2 text-base font-bold text-paper transition-transform duration-200 ease-[var(--ease-out-soft)] hover:-rotate-2"
+            className="mr-2 flex shrink-0 items-center gap-2 text-base font-bold text-paper"
             style={{ fontFamily: 'var(--font-display)' }}
             onClick={closeMenu}
           >
@@ -132,27 +132,17 @@ export function Layout() {
 
             <button
               type="button"
-              className="flex h-11 w-11 items-center justify-center rounded-lg text-paper transition-colors hover:bg-paper/10 md:hidden"
+              className="flex h-11 w-11 items-center justify-center rounded-lg text-paper hover:bg-paper/10 md:hidden"
               aria-label={menuOpen ? 'Close menu' : 'Open menu'}
               aria-expanded={menuOpen}
               onClick={() => setMenuOpen((open) => !open)}
             >
               <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-                <path
-                  d="M4 7 H20"
-                  className="origin-center transition-transform duration-300 ease-[var(--ease-out-soft)]"
-                  style={menuOpen ? { transform: 'translateY(5px) rotate(45deg)' } : undefined}
-                />
-                <path
-                  d="M4 12 H20"
-                  className="transition-opacity duration-200"
-                  style={menuOpen ? { opacity: 0 } : undefined}
-                />
-                <path
-                  d="M4 17 H20"
-                  className="origin-center transition-transform duration-300 ease-[var(--ease-out-soft)]"
-                  style={menuOpen ? { transform: 'translateY(-5px) rotate(-45deg)' } : undefined}
-                />
+                {menuOpen ? (
+                  <path d="M6 6 L18 18 M18 6 L6 18" />
+                ) : (
+                  <path d="M4 7 H20 M4 12 H20 M4 17 H20" />
+                )}
               </svg>
             </button>
           </div>
