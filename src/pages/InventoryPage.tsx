@@ -128,8 +128,8 @@ export function InventoryPage() {
 
       <div className="min-h-0 flex-1 overflow-y-auto pr-1">
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
-          {data?.content.map((item, i) => (
-            <div key={item.id} className="animate-rise" style={{ animationDelay: `${Math.min(i, 11) * 0.04}s` }}>
+          {data?.content.map((item) => (
+            <div key={item.id}>
               <InventoryCard
                 item={item}
                 onEdit={isAdmin ? () => setEditingId(item.id) : undefined}

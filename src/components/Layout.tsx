@@ -159,7 +159,7 @@ export function Layout() {
         </div>
 
         {menuOpen && (
-          <div className="animate-sheet-in flex flex-col items-start gap-1 border-t border-paper/15 px-4 pb-4 pt-3 md:hidden">
+          <div className="flex flex-col items-start gap-1 border-t border-paper/15 px-4 pb-4 pt-3 md:hidden">
             {!isAdmin && (
               <>
                 <TopNavLink to="/inventory" onClick={closeMenu}>
@@ -202,8 +202,7 @@ export function Layout() {
         )}
       </nav>
       <main
-        key={location.pathname}
-        className={`animate-rise flex flex-1 flex-col px-4 py-6 sm:px-6 sm:py-8 ${isFullWidth ? 'w-full' : 'mx-auto max-w-6xl'}`}
+        className={`flex flex-1 flex-col px-4 py-6 sm:px-6 sm:py-8 ${isFullWidth ? 'w-full' : 'mx-auto max-w-6xl'}`}
       >
         <Outlet />
       </main>

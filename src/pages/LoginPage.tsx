@@ -40,7 +40,7 @@ export function LoginPage() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-paper px-4">
       <div className="w-full max-w-sm">
-        <div className="animate-rise mb-6 flex flex-col items-center gap-2 text-center">
+        <div className="mb-6 flex flex-col items-center gap-2 text-center">
           <BrandMark size={44} />
           <h1 className="page-title">Omiyage</h1>
           <p className="text-sm text-muted">Sign in to browse and request souvenirs.</p>
@@ -48,8 +48,7 @@ export function LoginPage() {
 
         <form
           onSubmit={handleSubmit(onSubmit)}
-          className="card animate-rise flex flex-col gap-4"
-          style={{ animationDelay: '0.08s' }}
+          className="card flex flex-col gap-4"
         >
           <div className="flex flex-col gap-1">
             <label htmlFor="nickname" className="field-label">

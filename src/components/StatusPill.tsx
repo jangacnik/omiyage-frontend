@@ -17,7 +17,7 @@ export function StatusPill({ tone, label, size = 'md' }: { tone: StatusTone; lab
   const { pill, dot } = TONES[tone]
   return (
     <span
-      className={`animate-pop inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 font-medium ${
+      className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 font-medium ${
         size === 'sm' ? 'text-xs' : 'text-sm'
       } ${pill}`}
     >
