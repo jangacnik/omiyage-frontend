@@ -90,7 +90,7 @@ export function draftFromInventoryItem(item: InventoryItem): DraftItem {
 
 const customItemSchema = z
   .object({
-    title: z.string().min(1, 'Title is required'),
+    title: z.string().min(1, 'Enter a title for the item'),
     description: z.string().optional(),
     link: z.string().optional(),
     condition: z.enum(['NEW', 'USED']),
@@ -100,7 +100,7 @@ const customItemSchema = z
     expectedReleaseDate: z.string().optional(),
   })
   .refine((data) => !data.isPreorder || !!data.expectedReleaseDate, {
-    message: 'Expected release date is required for a preorder',
+    message: 'Enter the expected release date for a preorder',
     path: ['expectedReleaseDate'],
   })
 
@@ -174,16 +174,15 @@ export function CustomItemForm({
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="card flex flex-col gap-2">
-      <Field label="Title">
-        <input className="field-input" {...register('title')} aria-label="Title" />
+      <Field label="Title" error={errors.title?.message}>
+        <input className="field-input" {...register('title')} />
       </Field>
-      {errors.title && <p className="error-text">{errors.title.message}</p>}
       <Field label="Description" hint="Optional">
-        <textarea className="field-input" {...register('description')} aria-label="Description" />
+        <textarea className="field-input" {...register('description')} />
       </Field>
       <div className="flex flex-col gap-2 sm:flex-row">
         <Field label="Condition" className="sm:w-40">
-          <select {...register('condition')} className="field-input" aria-label="Condition">
+          <select {...register('condition')} className="field-input">
             <option value="NEW">New</option>
             <option value="USED">Used</option>
           </select>
@@ -191,14 +190,14 @@ export function CustomItemForm({
       </div>
       <div className="flex flex-col gap-2 sm:flex-row">
         <Field label="Max price" hint="Optional - in EUR">
-          <input type="number" step="0.01" className="field-input" {...register('maxPrice')} aria-label="Max price" />
+          <input type="number" step="0.01" className="field-input" {...register('maxPrice')} />
         </Field>
         <Field label="Qty" className="sm:w-32">
           <QuantityStepper quantity={quantity} onChange={(q) => setValue('quantity', String(q))} label="Quantity" />
         </Field>
       </div>
       <Field label="Link to store page" hint="Optional">
-        <input type="url" className="field-input" {...register('link')} aria-label="Link to store page" />
+        <input type="url" className="field-input" {...register('link')} />
       </Field>
       <ImageDropInput
         key={photoResetKey}
@@ -212,9 +211,8 @@ export function CustomItemForm({
         This is a preorder
       </label>
       {isPreorder && (
-        <Field label="Expected release date">
-          <input type="date" className="field-input sm:w-48" {...register('expectedReleaseDate')} aria-label="Expected release date" />
-          {errors.expectedReleaseDate && <p className="error-text">{errors.expectedReleaseDate.message}</p>}
+        <Field label="Expected release date" error={errors.expectedReleaseDate?.message}>
+          <input type="date" className="field-input sm:w-48" {...register('expectedReleaseDate')} />
         </Field>
       )}
       <button type="submit" className="btn-secondary self-start" disabled={uploading}>

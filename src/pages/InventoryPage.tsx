@@ -10,6 +10,7 @@ import { InventoryCard } from '../components/InventoryCard'
 import { InventoryItemFormDialog } from '../components/InventoryItemFormDialog'
 import { IconButton } from '../components/IconButton'
 import { RefreshIcon } from '../components/icons'
+import { Field } from '../components/Field'
 import { Modal } from '../components/Modal'
 import { errorMessage } from '../lib/apiClient'
 
@@ -68,31 +69,33 @@ export function InventoryPage() {
         )}
       </div>
 
-      <div className="mb-5 flex flex-col gap-3 sm:flex-row">
-        <input
-          type="search"
-          placeholder="Search by title"
-          value={titleInput}
-          onChange={(e) => setTitleInput(e.target.value)}
-          aria-label="Search by title"
-          className="field-input sm:max-w-xs"
-        />
-        <select
-          value={categoryId}
-          onChange={(e) => {
-            setCategoryId(e.target.value)
-            setPage(0)
-          }}
-          aria-label="Filter by category"
-          className="field-input sm:max-w-xs"
-        >
-          <option value="">All categories</option>
-          {categories?.map((c) => (
-            <option key={c.id} value={c.id}>
-              {c.name}
-            </option>
-          ))}
-        </select>
+      <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-end">
+        <Field label="Search" className="sm:max-w-xs">
+          <input
+            type="search"
+            placeholder="Search by title"
+            value={titleInput}
+            onChange={(e) => setTitleInput(e.target.value)}
+            className="field-input"
+          />
+        </Field>
+        <Field label="Category" className="sm:max-w-xs">
+          <select
+            value={categoryId}
+            onChange={(e) => {
+              setCategoryId(e.target.value)
+              setPage(0)
+            }}
+            className="field-input"
+          >
+            <option value="">All categories</option>
+            {categories?.map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.name}
+              </option>
+            ))}
+          </select>
+        </Field>
         <label className="flex items-center gap-2 text-sm text-ink/80">
           <input
             type="checkbox"

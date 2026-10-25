@@ -82,7 +82,7 @@ describe('InventoryPage', () => {
     renderWithProviders(<InventoryPage />)
     await screen.findByText('Kit Kat matcha')
 
-    await user.type(screen.getByLabelText('Search by title'), 'kitkat')
+    await user.type(screen.getByLabelText('Search'), 'kitkat')
 
     await waitFor(() => expect(capturedTitle).toBe('kitkat'))
   })

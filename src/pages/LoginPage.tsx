@@ -5,12 +5,13 @@ import { z } from 'zod'
 import { useLogin } from '../api/auth'
 import { useAuthStore } from '../store/authStore'
 import { ApiError } from '../lib/apiClient'
+import { Field } from '../components/Field'
 import { BrandMark } from '../components/BrandMark'
 import { ButtonSpinner } from '../components/Spinner'
 
 const loginSchema = z.object({
-  nickname: z.string().min(1, 'Nickname is required'),
-  password: z.string().min(1, 'Password is required'),
+  nickname: z.string().min(1, 'Enter your nickname'),
+  password: z.string().min(1, 'Enter your password'),
 })
 
 type LoginForm = z.infer<typeof loginSchema>
@@ -50,31 +51,15 @@ export function LoginPage() {
           onSubmit={handleSubmit(onSubmit)}
           className="card flex flex-col gap-4"
         >
-          <div className="flex flex-col gap-1">
-            <label htmlFor="nickname" className="field-label">
-              Nickname
-            </label>
-            <input id="nickname" className="field-input" autoComplete="username" {...register('nickname')} aria-label="Nickname" />
-            {errors.nickname && <p className="error-text">{errors.nickname.message}</p>}
-          </div>
-
-          <div className="flex flex-col gap-1">
-            <label htmlFor="password" className="field-label">
-              Password
-            </label>
-            <input
-              id="password"
-              type="password"
-              className="field-input"
-              autoComplete="current-password"
-              {...register('password')}
-              aria-label="Password"
-            />
-            {errors.password && <p className="error-text">{errors.password.message}</p>}
-          </div>
+          <Field label="Nickname" error={errors.nickname?.message}>
+            <input className="field-input" autoComplete="username" {...register('nickname')} />
+          </Field>
+          <Field label="Password" error={errors.password?.message}>
+            <input type="password" className="field-input" autoComplete="current-password" {...register('password')} />
+          </Field>
 
           {sessionExpired && <p role="alert" className="error-text">Session expired, please sign in again.</p>}
-          {errorMessage && <p className="error-text">{errorMessage}</p>}
+          {errorMessage && <p role="alert" className="error-text">{errorMessage}</p>}
 
           <button type="submit" className="btn-primary w-full" disabled={login.isPending}>
             {login.isPending ? (

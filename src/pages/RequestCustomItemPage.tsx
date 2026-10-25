@@ -48,7 +48,7 @@ export function RequestCustomItemPage() {
       </p>
 
       <Field label="Add to" hint={openOrders.length === 0 ? "You don't have any open orders yet, so this starts a new one" : undefined} className="mb-4">
-        <select value={targetOrderId} onChange={(e) => setTargetOrderId(e.target.value)} className="field-input" aria-label="Add to order">
+        <select value={targetOrderId} onChange={(e) => setTargetOrderId(e.target.value)} className="field-input">
           <option value={NEW_ORDER}>New order</option>
           {openOrders.map((order) => (
             <option key={order.id} value={order.id}>
@@ -60,7 +60,7 @@ export function RequestCustomItemPage() {
 
       {!targetOrderId && (
         <Field label="Order nickname" hint="Optional - helps tell this order apart from others" className="mb-4">
-          <input className="field-input" value={nickname} onChange={(e) => setNickname(e.target.value)} aria-label="Order nickname" />
+          <input className="field-input" value={nickname} onChange={(e) => setNickname(e.target.value)} />
         </Field>
       )}
 

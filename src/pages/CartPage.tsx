@@ -97,7 +97,7 @@ export function CartPage() {
       </div>
 
       <Field label="Order nickname" hint="Optional - helps tell this order apart from others" className="mt-4">
-        <input className="field-input" value={nickname} onChange={(e) => setNickname(e.target.value)} aria-label="Order nickname" />
+        <input className="field-input" value={nickname} onChange={(e) => setNickname(e.target.value)} />
       </Field>
 
       <div className="mt-4 flex items-center justify-between border-t border-mist pt-4">

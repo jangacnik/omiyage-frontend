@@ -115,7 +115,7 @@ describe('RequestCustomItemPage', () => {
 
     renderPage()
     await screen.findByLabelText('Title')
-    await user.selectOptions(screen.getByLabelText('Add to order'), 'order-1')
+    await user.selectOptions(screen.getByLabelText('Add to'), 'order-1')
     await user.click(screen.getByText('Add to order'))
 
     await waitFor(() => expect(screen.getByText('order detail page')).toBeInTheDocument())
