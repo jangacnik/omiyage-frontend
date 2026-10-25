@@ -97,7 +97,7 @@ export function InventoryCard({
           type="button"
           onClick={handleAddToCart}
           aria-label={justAdded ? `${item.title} added to cart` : `Add ${item.title} to cart`}
-          className={`absolute right-2 top-2 flex h-9 w-9 items-center justify-center rounded-full shadow-md transition-colors ${
+          className={`absolute right-2 top-2 flex h-11 w-11 items-center justify-center rounded-full shadow-md transition-colors ${
             justAdded ? 'bg-forest text-paper' : 'bg-ink/70 text-paper hover:bg-ink'
           }`}
         >
@@ -106,7 +106,7 @@ export function InventoryCard({
       )}
 
       {(onEdit || onDelete) && (
-        <div className="absolute inset-x-0 bottom-0 flex justify-end gap-1 bg-gradient-to-t from-ink/70 to-transparent p-2 opacity-0 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100">
+        <div className="absolute inset-x-0 bottom-0 flex justify-end gap-2 bg-gradient-to-t from-ink/70 to-transparent p-2 opacity-0 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100">
           {onEdit && <IconButton label={`Edit ${item.title}`} onClick={onEdit} icon={<EditIcon size={14} />} />}
           {onDelete && (
             <IconButton variant="danger" label={`Delete ${item.title}`} onClick={onDelete} icon={<TrashIcon size={14} />} />

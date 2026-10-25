@@ -26,7 +26,7 @@ function ImageCarousel({ images, alt }: { images: string[]; alt: string }) {
               type="button"
               onClick={() => setIndex((i) => (i - 1 + images.length) % images.length)}
               aria-label="Previous photo"
-              className="absolute left-2 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full bg-ink/60 text-white hover:bg-ink"
+              className="absolute left-2 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-ink/60 text-white hover:bg-ink"
             >
               ‹
             </button>
@@ -34,7 +34,7 @@ function ImageCarousel({ images, alt }: { images: string[]; alt: string }) {
               type="button"
               onClick={() => setIndex((i) => (i + 1) % images.length)}
               aria-label="Next photo"
-              className="absolute right-2 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full bg-ink/60 text-white hover:bg-ink"
+              className="absolute right-2 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-ink/60 text-white hover:bg-ink"
             >
               ›
             </button>

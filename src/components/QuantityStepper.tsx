@@ -12,24 +12,24 @@ export function QuantityStepper({
   label: string
 }) {
   return (
-    <div className="inline-flex h-9 shrink-0 items-center rounded-lg ring-1 ring-inset ring-mist" role="group" aria-label={label}>
+    <div className="inline-flex h-11 shrink-0 items-center rounded-lg ring-1 ring-inset ring-mist" role="group" aria-label={label}>
       <button
         type="button"
         onClick={() => onChange(Math.max(min, quantity - 1))}
         disabled={quantity <= min}
         aria-label="Decrease quantity"
-        className="flex h-full w-8 items-center justify-center text-ink/60 transition-colors hover:bg-mist disabled:cursor-not-allowed disabled:opacity-30"
+        className="flex h-full w-11 items-center justify-center text-ink/60 transition-colors hover:bg-mist disabled:cursor-not-allowed disabled:opacity-30"
       >
         −
       </button>
-      <span className="flex h-full min-w-7 items-center justify-center text-sm font-medium text-ink" aria-live="polite">
+      <span className="flex h-full min-w-8 items-center justify-center text-sm font-medium text-ink" aria-live="polite">
         {quantity}
       </span>
       <button
         type="button"
         onClick={() => onChange(quantity + 1)}
         aria-label="Increase quantity"
-        className="flex h-full w-8 items-center justify-center text-ink/60 transition-colors hover:bg-mist"
+        className="flex h-full w-11 items-center justify-center text-ink/60 transition-colors hover:bg-mist"
       >
         +
       </button>

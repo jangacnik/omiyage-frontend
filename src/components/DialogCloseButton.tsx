@@ -9,7 +9,7 @@ export function DialogCloseButton({ onClose }: { onClose: () => void }) {
       type="button"
       onClick={onClose}
       aria-label="Close"
-      className="absolute right-3 top-3 flex h-8 w-8 items-center justify-center rounded-full text-ink/40 transition-colors hover:bg-mist hover:text-ink"
+      className="absolute right-1 top-1 flex h-11 w-11 items-center justify-center rounded-full text-ink/40 transition-colors hover:bg-mist hover:text-ink"
     >
       <CloseIcon size={16} />
     </button>

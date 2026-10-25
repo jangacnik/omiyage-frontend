@@ -55,16 +55,16 @@ function AccountMenu({ nickname, onLogout, onNavigate }: { nickname: string; onL
 
   return (
     <details ref={detailsRef} className="relative">
-      <summary className="flex cursor-pointer list-none items-center gap-2 text-sm font-medium text-paper/65 hover:text-paper">
+      <summary className="flex min-h-11 cursor-pointer list-none items-center gap-2 text-sm font-medium text-paper/65 hover:text-paper">
         <Avatar imageKey={profile?.avatarKey} nickname={nickname} size="sm" />
         <span>{nickname}</span>
         <span aria-hidden="true" className="text-[0.6rem]">▾</span>
       </summary>
       <div className="absolute right-0 z-30 mt-2 flex w-36 flex-col overflow-hidden rounded-lg bg-ink shadow-lg ring-1 ring-paper/15">
-        <Link to="/profile" className="px-3 py-2 text-sm text-paper hover:bg-paper/10" onClick={select()}>
+        <Link to="/profile" className="flex min-h-11 items-center px-3 py-2 text-sm text-paper hover:bg-paper/10" onClick={select()}>
           Profile
         </Link>
-        <button type="button" className="px-3 py-2 text-left text-sm text-paper hover:bg-paper/10" onClick={select(onLogout)}>
+        <button type="button" className="min-h-11 px-3 py-2 text-left text-sm text-paper hover:bg-paper/10" onClick={select(onLogout)}>
           Log out
         </button>
       </div>
@@ -132,7 +132,7 @@ export function Layout() {
 
             <button
               type="button"
-              className="flex h-10 w-10 items-center justify-center rounded-lg text-paper transition-colors hover:bg-paper/10 md:hidden"
+              className="flex h-11 w-11 items-center justify-center rounded-lg text-paper transition-colors hover:bg-paper/10 md:hidden"
               aria-label={menuOpen ? 'Close menu' : 'Open menu'}
               aria-expanded={menuOpen}
               onClick={() => setMenuOpen((open) => !open)}

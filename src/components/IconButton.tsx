@@ -31,7 +31,7 @@ export function IconButton({
   return (
     <button
       type={type}
-      className={`${VARIANT_CLASS[variant]} h-8 min-h-0 w-8 shrink-0 gap-0 p-0 ${className}`}
+      className={`${VARIANT_CLASS[variant]} h-11 w-11 shrink-0 gap-0 p-0 ${className}`}
       onClick={onClick}
       disabled={disabled}
       aria-label={label}

@@ -101,7 +101,7 @@ body::before {
 
   /* The top bar sits on ink, so nav links are tinted paper rather than ink. */
   .nav-link {
-    @apply relative rounded-md px-3 py-1.5 text-sm font-medium text-paper/65 transition-colors duration-150 hover:text-paper;
+    @apply relative inline-flex min-h-11 items-center rounded-md md:min-h-0 px-3 py-1.5 text-sm font-medium text-paper/65 transition-colors duration-150 hover:text-paper;
   }
   .nav-link::after {
     content: "";
