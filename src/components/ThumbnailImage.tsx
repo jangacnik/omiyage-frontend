@@ -14,7 +14,7 @@ export function ThumbnailImage({
 }) {
   return (
     <div className={`overflow-hidden bg-mist ${className}`}>
-      {imageKey && <img src={mediaUrl(imageKey)} alt={alt} className="h-full w-full object-contain" />}
+      {imageKey && <img src={mediaUrl(imageKey)} alt={alt} loading="lazy" decoding="async" className="h-full w-full object-contain" />}
     </div>
   )
 }
