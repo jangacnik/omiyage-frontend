@@ -1,5 +1,5 @@
-# __IMAGE__ is substituted by the deploy CI job with $CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA.
-# Static build - VITE_* URLs are baked in at build time (see .gitlab-ci.yml build-args),
+# __IMAGE__ is substituted at deploy time with the image built by CI (see .gitea/workflows/ci.yaml).
+# Static build - VITE_* URLs are baked in at build time (see .gitea/workflows/ci.yaml build-args),
 # no runtime secrets needed.
 apiVersion: apps/v1
 kind: Deployment
