@@ -1,6 +1,6 @@
 import { defineConfig, devices } from '@playwright/test'
 
-// Assumes docker-compose deps (postgres, minio) and the omiyage-api backend are already
+// Assumes docker-compose deps (postgres) and the omiyage-api backend are already
 // running (see the omiyage-api repo). Only the frontend dev server is auto-started here.
 export default defineConfig({
   testDir: './e2e',

@@ -1,5 +1,5 @@
-const MEDIA_BASE_URL = import.meta.env.VITE_MEDIA_BASE_URL ?? 'http://localhost:9000/omiyage'
+import { BASE_URL } from './apiClient'
 
 export function mediaUrl(key: string): string {
-  return `${MEDIA_BASE_URL}/${key}`
+  return `${BASE_URL}/api/images/${key}`
 }
