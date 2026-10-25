@@ -3,7 +3,8 @@ import { useNavigate } from 'react-router-dom'
 import { useCreateOrder } from '../api/orders'
 import { errorMessage } from '../lib/apiClient'
 import { ButtonSpinner } from '../components/Spinner'
-import { OrderItemBuilder, type DraftItem } from '../components/OrderItemBuilder'
+import { OrderItemBuilder } from '../components/OrderItemBuilder'
+import type { DraftItem } from '../lib/orderItemDrafts'
 import { Field } from '../components/Field'
 
 export function OrdersNewPage() {

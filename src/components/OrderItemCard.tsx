@@ -1,5 +1,6 @@
 import { useState, type ReactNode } from 'react'
-import { AnchoredDialog, useTriggerAnchor } from './AnchoredDialog'
+import { AnchoredDialog } from './AnchoredDialog'
+import { useTriggerAnchor } from './useTriggerAnchor'
 import { DialogCloseButton } from './DialogCloseButton'
 import { ItemCardShell } from './ItemCardShell'
 import { OrderItemStatusBadge } from './OrderItemStatusBadge'
@@ -8,9 +9,8 @@ import { StatusPill } from './StatusPill'
 import { ThumbnailImage } from './ThumbnailImage'
 import { ExternalLinkIcon } from './icons'
 import { formatMoney } from '../lib/currency'
+import { CONDITION_LABELS } from '../lib/orderItemLabels'
 import type { Currency, OrderItemDto } from '../types/api'
-
-export const CONDITION_LABELS: Record<'NEW' | 'USED', string> = { NEW: 'New', USED: 'Used' }
 
 function priceLabel(unitPrice: number, currency: Currency, label: string, quantity: number) {
   const suffix = label ? ` ${label}` : ''

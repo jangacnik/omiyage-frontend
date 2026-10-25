@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useBrowsableShipments, useSendCombineRequest } from '../api/combineRequests'
-import { AnchoredDialog, useTriggerAnchor } from './AnchoredDialog'
+import { AnchoredDialog } from './AnchoredDialog'
+import { useTriggerAnchor } from './useTriggerAnchor'
 import { errorMessage } from '../lib/apiClient'
 import { formatGrams } from '../lib/currency'
 import { ButtonSpinner, Spinner } from './Spinner'

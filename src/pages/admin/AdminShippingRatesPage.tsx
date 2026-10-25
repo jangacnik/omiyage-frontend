@@ -8,7 +8,7 @@ import {
 } from '../../api/adminShippingRates'
 import { Field } from '../../components/Field'
 import { Spinner, ButtonSpinner } from '../../components/Spinner'
-import { useConfirm } from '../../components/ConfirmDialog'
+import { useConfirm } from '../../components/confirmContext'
 import { IconButton } from '../../components/IconButton'
 import { CheckIcon, CloseIcon, EditIcon, TrashIcon } from '../../components/icons'
 import { errorMessage } from '../../lib/apiClient'

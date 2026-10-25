@@ -3,7 +3,7 @@ import { useAdminUpdateOrderItemContent, useUpdateOrderItem } from '../../api/ad
 import { Field } from '../../components/Field'
 import { ImageDropInput } from '../../components/ImageDropInput'
 import { QuantityStepper } from '../../components/QuantityStepper'
-import { ORDER_ITEM_STATUSES } from '../../components/OrderItemStatusBadge'
+import { ORDER_ITEM_STATUSES } from '../../lib/orderItemLabels'
 import { ButtonSpinner } from '../../components/Spinner'
 import { IconButton } from '../../components/IconButton'
 import { CheckIcon, CloseIcon } from '../../components/icons'

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { useExchangeRate, useSetExchangeRate, useShippingExchangeRate, useSetShippingExchangeRate } from '../../api/exchangeRate'
 import { ButtonSpinner, Spinner } from '../../components/Spinner'
 
@@ -22,10 +22,11 @@ function RateForm({
   onSubmit: (value: number) => void
 }) {
   const [input, setInput] = useState('')
-
-  useEffect(() => {
+  const [syncedValue, setSyncedValue] = useState(value)
+  if (value !== syncedValue) {
+    setSyncedValue(value)
     if (value !== undefined) setInput(value.toString())
-  }, [value])
+  }
 
   function submit(e: React.FormEvent) {
     e.preventDefault()

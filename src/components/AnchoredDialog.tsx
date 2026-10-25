@@ -4,18 +4,6 @@ import { Modal } from './Modal'
 const VIEWPORT_MARGIN = 12
 const GAP = 8
 
-/** Captured once, at the moment a short dialog first mounts - `document.activeElement` is still
- *  the button that triggered it (nothing else has stolen focus yet in the same tick), so every
- *  call site gets a sensible anchor with zero changes to its own onClick handler. Falls back to
- *  screen-center (anchor null) if nothing was focused, e.g. a dialog opened programmatically. */
-export function useTriggerAnchor(): DOMRect | null {
-  const [anchor] = useState<DOMRect | null>(() => {
-    const el = document.activeElement
-    return el instanceof HTMLElement && el !== document.body ? el.getBoundingClientRect() : null
-  })
-  return anchor
-}
-
 /** Backdrop + panel for a short dialog (confirm, move-item, combine-request) that opens next to
  *  whatever was clicked instead of always dead-center - keeps the triggering row/card in view
  *  instead of forcing a jump to the middle of the screen. Not for tall multi-field forms: a click

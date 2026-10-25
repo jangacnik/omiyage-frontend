@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { useForm } from 'react-hook-form'
+import { useForm, useWatch } from 'react-hook-form'
 import { z } from 'zod'
 import { useAdminCategories, useCreateInventoryItem, useUpdateInventoryItem } from '../api/adminInventory'
 import { useItemTemplates } from '../api/adminItemTemplates'
@@ -29,10 +29,9 @@ const itemSchema = z
     path: ['expectedReleaseDate'],
   })
 
-export type InventoryItemForm = z.infer<typeof itemSchema>
-export { itemSchema }
+type InventoryItemForm = z.infer<typeof itemSchema>
 
-export function parseTags(input: string | undefined): string[] {
+function parseTags(input: string | undefined): string[] {
   return (input ?? '').split(',').map((t) => t.trim()).filter(Boolean)
 }
 
@@ -85,14 +84,14 @@ export function InventoryItemFormDialog({ item, onDone }: { item?: InventoryItem
   const {
     register,
     handleSubmit,
-    watch,
+    control,
     setValue,
     formState: { errors },
   } = useForm<InventoryItemForm>({
     resolver: zodResolver(itemSchema),
     defaultValues: defaultsFor(item),
   })
-  const isPreorder = watch('isPreorder')
+  const isPreorder = useWatch({ control, name: 'isPreorder' })
 
   function toggleCategory(id: string) {
     setCategoryIds((current) => (current.includes(id) ? current.filter((c) => c !== id) : [...current, id]))

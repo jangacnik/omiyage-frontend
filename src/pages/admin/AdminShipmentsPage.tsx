@@ -11,7 +11,7 @@ import {
   useUpdateShipment,
 } from '../../api/adminOrders'
 import { orderDisplayName } from '../../api/orders'
-import { useConfirm } from '../../components/ConfirmDialog'
+import { useConfirm } from '../../components/confirmContext'
 import { formatGrams, formatMoney } from '../../lib/currency'
 import { OrderIdHint } from '../../components/OrderIdHint'
 import { OrderStatusBadge } from '../../components/OrderStatusBadge'

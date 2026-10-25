@@ -1,24 +1,8 @@
-import { createContext, useCallback, useContext, useRef, useState } from 'react'
-import { AnchoredDialog, useTriggerAnchor } from './AnchoredDialog'
+import { useCallback, useRef, useState } from 'react'
+import { AnchoredDialog } from './AnchoredDialog'
+import { useTriggerAnchor } from './useTriggerAnchor'
+import { ConfirmContext, type ConfirmOptions } from './confirmContext'
 import { TrashIcon } from './icons'
-
-interface ConfirmOptions {
-  title?: string
-  message: string
-  confirmLabel?: string
-  cancelLabel?: string
-  danger?: boolean
-}
-
-type ConfirmFn = (options: ConfirmOptions) => Promise<boolean>
-
-const ConfirmContext = createContext<ConfirmFn | null>(null)
-
-export function useConfirm(): ConfirmFn {
-  const ctx = useContext(ConfirmContext)
-  if (!ctx) throw new Error('useConfirm must be used within a ConfirmProvider')
-  return ctx
-}
 
 /** Its own component (not inlined in the provider) so useTriggerAnchor's mount-time capture runs
  *  fresh every time a confirm opens, anchored next to whatever button called confirm() - that

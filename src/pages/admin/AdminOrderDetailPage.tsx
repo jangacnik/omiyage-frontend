@@ -1,7 +1,7 @@
 import { useNavigate, useParams } from 'react-router-dom'
 import { orderDisplayName, useOrder } from '../../api/orders'
 import { useAdminDeleteOrder, useAdminShipments, useAssignOrderShipment } from '../../api/adminOrders'
-import { useConfirm } from '../../components/ConfirmDialog'
+import { useConfirm } from '../../components/confirmContext'
 import { OrderIdHint } from '../../components/OrderIdHint'
 import { OrderStatusBadge } from '../../components/OrderStatusBadge'
 import { Spinner, ButtonSpinner } from '../../components/Spinner'

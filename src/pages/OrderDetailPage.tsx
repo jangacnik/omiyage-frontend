@@ -13,7 +13,7 @@ import {
   useUpdateMyOrderItem,
   useUpdateOrderNickname,
 } from '../api/orders'
-import { useConfirm } from '../components/ConfirmDialog'
+import { useConfirm } from '../components/confirmContext'
 import { Modal } from '../components/Modal'
 import { OrderIdHint } from '../components/OrderIdHint'
 import { OrderItemCard } from '../components/OrderItemCard'

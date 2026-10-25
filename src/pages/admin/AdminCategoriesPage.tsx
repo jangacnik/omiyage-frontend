@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useAdminCategories, useCreateCategory, useDeleteCategory } from '../../api/adminInventory'
 import { Field } from '../../components/Field'
 import { Spinner } from '../../components/Spinner'
-import { useConfirm } from '../../components/ConfirmDialog'
+import { useConfirm } from '../../components/confirmContext'
 import { IconButton } from '../../components/IconButton'
 import { TrashIcon } from '../../components/icons'
 

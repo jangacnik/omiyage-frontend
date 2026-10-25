@@ -5,7 +5,7 @@ import { Spinner } from '../../components/Spinner'
 import { InventoryCard } from '../../components/InventoryCard'
 import { InventoryItemFormDialog } from '../../components/InventoryItemFormDialog'
 import { Modal } from '../../components/Modal'
-import { useConfirm } from '../../components/ConfirmDialog'
+import { useConfirm } from '../../components/confirmContext'
 
 export function AdminInventoryPage() {
   const [page, setPage] = useState(0)

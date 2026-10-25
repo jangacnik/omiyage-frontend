@@ -3,7 +3,7 @@ import { useSearchParams } from 'react-router-dom'
 import { useCategories, useInventory } from '../api/inventory'
 import { useDeleteInventoryItem } from '../api/adminInventory'
 import { useAuthStore } from '../store/authStore'
-import { useConfirm } from '../components/ConfirmDialog'
+import { useConfirm } from '../components/confirmContext'
 import { Pagination } from '../components/Pagination'
 import { Spinner, ButtonSpinner } from '../components/Spinner'
 import { InventoryCard } from '../components/InventoryCard'
@@ -35,14 +35,16 @@ export function InventoryPage() {
     return () => clearTimeout(timeout)
   }, [titleInput])
 
-  // initialTitle only seeds state on mount - if this page stays mounted and something (e.g. the
+  // urlTitle only seeds state on mount - if this page stays mounted and something (e.g. the
   // "See all N results in Inventory" link from a search dropdown) re-enters it with a different
   // ?title=, resync from the URL instead of silently keeping whatever was typed before.
-  useEffect(() => {
+  const [syncedUrlTitle, setSyncedUrlTitle] = useState(urlTitle)
+  if (urlTitle !== syncedUrlTitle) {
+    setSyncedUrlTitle(urlTitle)
     setTitleInput(urlTitle)
     setTitle(urlTitle)
     setPage(0)
-  }, [urlTitle])
+  }
 
   const { data: categories } = useCategories()
   const { data, isLoading, isError, refetch, isRefetching } = useInventory({ title, categoryId: categoryId || undefined, inStockOnly, page })
