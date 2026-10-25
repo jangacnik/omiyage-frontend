@@ -199,7 +199,7 @@ describe('AdminDashboardPage', () => {
     await screen.findByText('Alice')
     await user.click(screen.getByRole('button', { name: 'Create order' }))
 
-    await user.type(screen.getByLabelText('Order nickname'), 'Test order')
+    await user.type(screen.getByLabelText('Order name'), 'Test order')
     await user.click(screen.getByText("Can't find it? Create a custom request"))
     await user.type(screen.getByLabelText('Title'), 'Custom souvenir')
     await user.click(screen.getByText('Add item'))

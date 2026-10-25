@@ -2,6 +2,8 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { orderDisplayName, useMergeMyOrders, useMyOrders } from '../api/orders'
 import { CombineRequestModal } from '../components/CombineRequestModal'
+import { EmptyState } from '../components/EmptyState'
+import { ErrorState } from '../components/ErrorState'
 import { useConfirm } from '../components/confirmContext'
 import { IconButton } from '../components/IconButton'
 import { LinkIcon } from '../components/icons'
@@ -63,7 +65,7 @@ export function OrdersListPage() {
   const [selected, setSelected] = useState<string[]>([])
   const [mergeError, setMergeError] = useState<string | null>(null)
   const [combiningOrderId, setCombiningOrderId] = useState<string | null>(null)
-  const { data, isLoading, isError } = useMyOrders(page)
+  const { data, isLoading, isError, refetch, isRefetching } = useMyOrders(page)
   const mergeOrders = useMergeMyOrders()
   const confirm = useConfirm()
 
@@ -121,8 +123,18 @@ export function OrdersListPage() {
       </div>
 
       {isLoading && <Spinner label="Fetching orders" />}
-      {isError && <p className="error-text">Could not load orders.</p>}
-      {data && data.content.length === 0 && <p className="text-muted">No orders yet.</p>}
+      {isError && <ErrorState message="Could not load your orders." onRetry={() => refetch()} isRetrying={isRefetching} />}
+      {data && data.content.length === 0 && (
+        <EmptyState
+          title="No orders yet"
+          message="Browse the inventory to start your first order."
+          action={
+            <Link to="/inventory" className="btn-primary mt-2">
+              Browse inventory
+            </Link>
+          }
+        />
+      )}
       {mergeError && <p className="error-text mb-2">{mergeError}</p>}
 
       {selected.length >= 2 && (

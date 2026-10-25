@@ -5,16 +5,18 @@ import { formatGrams, formatMoney } from '../lib/currency'
 import { Modal } from '../components/Modal'
 import { ShipmentStatusBadge } from '../components/ShipmentStatusBadge'
 import { Spinner } from '../components/Spinner'
+import { EmptyState } from '../components/EmptyState'
+import { ErrorState } from '../components/ErrorState'
 import { MyShipmentPage } from './MyShipmentPage'
 import type { MemberShipmentDto } from '../types/api'
 
 export function MyShipmentsListPage() {
-  const { data: shipments, isLoading, isError } = useMyShipments()
+  const { data: shipments, isLoading, isError, refetch, isRefetching } = useMyShipments()
   const [openShipmentId, setOpenShipmentId] = useState<string | null>(null)
   const queryClient = useQueryClient()
 
   if (isLoading) return <Spinner fullPage label="Fetching shipments" />
-  if (isError) return <p className="error-text">Could not load your shipments.</p>
+  if (isError) return <ErrorState message="Could not load your shipments." onRetry={() => refetch()} isRetrying={isRefetching} />
 
   function openShipment(shipment: MemberShipmentDto) {
     queryClient.setQueryData(['shipments', 'mine', shipment.id], shipment)
@@ -25,9 +27,7 @@ export function MyShipmentsListPage() {
     <div>
       <h1 className="page-title mb-4">My shipments</h1>
       {shipments && shipments.length === 0 && (
-        <p className="text-muted">
-          No shipments yet — one is created automatically once you submit an order for shipping.
-        </p>
+        <EmptyState title="No shipments yet" message="One is created automatically once you submit an order for shipping." />
       )}
       <ul className="flex flex-col gap-2">
         {shipments?.map((shipment) => (

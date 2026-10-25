@@ -384,7 +384,7 @@ function AdminOrderNicknameEditor({ order }: { order: OrderDto }) {
 
   return (
     <div className="flex flex-wrap items-end gap-2">
-      <Field label="Order nickname" className="w-full sm:w-64">
+      <Field label="Order name" className="w-full sm:w-64">
         <input
           className="field-input"
           value={nickname}

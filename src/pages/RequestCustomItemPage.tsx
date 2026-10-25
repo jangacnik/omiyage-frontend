@@ -60,7 +60,7 @@ export function RequestCustomItemPage() {
       </Field>
 
       {!targetOrderId && (
-        <Field label="Order nickname" hint="Optional - helps tell this order apart from others" className="mb-4">
+        <Field label="Order name" hint="Optional - a name to tell this order apart from your others" className="mb-4">
           <input className="field-input" value={nickname} onChange={(e) => setNickname(e.target.value)} />
         </Field>
       )}

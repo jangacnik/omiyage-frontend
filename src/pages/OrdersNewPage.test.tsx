@@ -76,7 +76,7 @@ describe('OrdersNewPage', () => {
     renderPage(['/orders/new'])
     await user.click(screen.getByText("Can't find it? Create a custom request"))
 
-    await user.type(screen.getByLabelText('Order nickname'), "Grandma's gifts")
+    await user.type(screen.getByLabelText('Order name'), "Grandma's gifts")
     await user.type(screen.getByLabelText('Title'), 'Ghibli museum ticket')
     await user.click(screen.getByText('Add item'))
     await user.click(screen.getByText('Submit request'))
@@ -116,7 +116,7 @@ describe('OrdersNewPage', () => {
     await user.click(screen.getByText('Submit request'))
 
     expect(await screen.findByText('One of the items could not be requested.')).toBeInTheDocument()
-    expect(screen.getByLabelText('Order nickname')).toBeInTheDocument()
+    expect(screen.getByLabelText('Order name')).toBeInTheDocument()
   })
 
   it('adds an inventory item found via search, without opening the custom form', async () => {

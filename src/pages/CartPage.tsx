@@ -70,7 +70,7 @@ export function CartPage() {
                 </p>
                 <p className="text-sm text-muted">{formatMoney(item.priceAmount, item.currency)} each</p>
                 {item.stockQuantity != null && item.quantity > item.stockQuantity && (
-                  <p className="text-xs text-muted">
+                  <p className="text-sm text-muted">
                     Only {item.stockQuantity} in stock - the rest will be requested for you
                   </p>
                 )}
@@ -96,12 +96,15 @@ export function CartPage() {
         ))}
       </div>
 
-      <Field label="Order nickname" hint="Optional - helps tell this order apart from others" className="mt-4">
+      <Field label="Order name" hint="Optional - a name to tell this order apart from your others" className="mt-4">
         <input className="field-input" value={nickname} onChange={(e) => setNickname(e.target.value)} />
       </Field>
 
       <div className="mt-4 flex items-center justify-between border-t border-mist pt-4">
-        <p className="text-lg font-semibold text-ink">Total: {formatMoney(total, totalCurrency)}</p>
+        <div>
+          <p className="text-lg font-semibold text-ink">Total: {formatMoney(total, totalCurrency)}</p>
+          <p className="text-sm text-muted">Shipping is not included in this total.</p>
+        </div>
         <button type="button" className="btn-primary px-6" disabled={createOrder.isPending} onClick={submit}>
           {createOrder.isPending ? (
             <>

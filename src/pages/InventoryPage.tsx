@@ -5,11 +5,11 @@ import { useDeleteInventoryItem } from '../api/adminInventory'
 import { useAuthStore } from '../store/authStore'
 import { useConfirm } from '../components/confirmContext'
 import { Pagination } from '../components/Pagination'
-import { Spinner, ButtonSpinner } from '../components/Spinner'
+import { Spinner } from '../components/Spinner'
 import { InventoryCard } from '../components/InventoryCard'
 import { InventoryItemFormDialog } from '../components/InventoryItemFormDialog'
-import { IconButton } from '../components/IconButton'
-import { RefreshIcon } from '../components/icons'
+import { EmptyState } from '../components/EmptyState'
+import { ErrorState } from '../components/ErrorState'
 import { Field } from '../components/Field'
 import { Modal } from '../components/Modal'
 import { errorMessage } from '../lib/apiClient'
@@ -122,32 +122,21 @@ export function InventoryPage() {
       </div>
 
       {isLoading && <Spinner label="Fetching inventory" />}
-      {isError && (
-        <div className="card flex flex-col items-center gap-1 py-8 text-center">
-          <p className="error-text">Could not load inventory.</p>
-          <IconButton
-            className="mt-2"
-            label={isRefetching ? 'Retrying…' : 'Retry'}
-            onClick={() => refetch()}
-            disabled={isRefetching}
-            icon={isRefetching ? <ButtonSpinner /> : <RefreshIcon size={14} />}
-          />
-        </div>
-      )}
+      {isError && <ErrorState message="Could not load inventory." onRetry={() => refetch()} isRetrying={isRefetching} />}
       {data && data.content.length === 0 && (
-        <div className="card flex flex-col items-center gap-2 py-12 text-center">
-          {hasFilters ? (
-            <>
-              <p className="font-medium text-ink">No items match</p>
-              <p className="text-sm text-muted">Try a different search term or category.</p>
+        hasFilters ? (
+          <EmptyState
+            title="No items match"
+            message="Try a different search term or category."
+            action={
               <button type="button" className="btn-secondary mt-2" onClick={clearFilters}>
                 Clear filters
               </button>
-            </>
-          ) : (
-            <p className="font-medium text-ink">No inventory yet</p>
-          )}
-        </div>
+            }
+          />
+        ) : (
+          <EmptyState title="No inventory yet" />
+        )
       )}
 
       <div className="min-h-0 flex-1 overflow-y-auto pr-1">

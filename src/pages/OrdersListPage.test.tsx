@@ -1,5 +1,6 @@
 import { http, HttpResponse } from 'msw'
 import { screen } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { describe, expect, it } from 'vitest'
 import { server } from '../test/server'
 import { renderWithProviders } from '../test/renderWithProviders'
@@ -43,7 +44,8 @@ describe('OrdersListPage', () => {
 
     renderWithProviders(<OrdersListPage />)
 
-    expect(await screen.findByText('No orders yet.')).toBeInTheDocument()
+    expect(await screen.findByText('No orders yet')).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Browse inventory' })).toHaveAttribute('href', '/inventory')
   })
 
   it('shows the nickname instead of the id when set, with the id still visible', async () => {
@@ -55,5 +57,21 @@ describe('OrdersListPage', () => {
 
     expect(await screen.findByText(/Grandma's Gifts/)).toBeInTheDocument()
     expect(screen.getByText('(order-12)')).toBeInTheDocument()
+  })
+
+  it('shows an error state and retries with a text button', async () => {
+    const user = userEvent.setup()
+    let calls = 0
+    server.use(
+      http.get(`${BASE}/api/orders/mine`, () => {
+        calls += 1
+        return calls === 1 ? HttpResponse.json({ error: 'boom' }, { status: 500 }) : HttpResponse.json(page([order()]))
+      }),
+    )
+
+    renderWithProviders(<OrdersListPage />)
+    await user.click(await screen.findByRole('button', { name: 'Try again' }))
+
+    expect(await screen.findByText(/Order order-12/)).toBeInTheDocument()
   })
 })

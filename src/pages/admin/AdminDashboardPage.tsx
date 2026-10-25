@@ -34,8 +34,8 @@ function CreateOrderForUser({ userId, onDone }: { userId: string; onDone: () => 
 
   return (
     <div className="card flex flex-col gap-3 border-t border-mist">
-      <Field label="Order nickname" hint="Optional">
-        <input className="field-input" value={nickname} onChange={(e) => setNickname(e.target.value)} aria-label="Order nickname" />
+      <Field label="Order name" hint="Optional">
+        <input className="field-input" value={nickname} onChange={(e) => setNickname(e.target.value)} aria-label="Order name" />
       </Field>
       <OrderItemBuilder
         items={items}

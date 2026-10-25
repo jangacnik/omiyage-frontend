@@ -145,7 +145,7 @@ describe('AdminOrderDetailPage', () => {
     await screen.findByText('Ghibli museum ticket')
 
     await user.click(screen.getByRole('button', { name: 'Rename' }))
-    await user.type(screen.getByLabelText('Order nickname'), "Grandma's Gifts")
+    await user.type(screen.getByLabelText('Order name'), "Grandma's Gifts")
     await user.click(screen.getByRole('button', { name: 'Save' }))
 
     await waitFor(() => expect(capturedBody).toEqual({ nickname: "Grandma's Gifts" }))

@@ -1,3 +1,4 @@
+import { ErrorState } from '../components/ErrorState'
 import { useEffect, useState } from 'react'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
@@ -173,7 +174,7 @@ const profileSchema = z.object({
 type ProfileForm = z.infer<typeof profileSchema>
 
 export function ProfilePage() {
-  const { data: profile, isLoading } = useMyProfile()
+  const { data: profile, isLoading, isError, refetch, isRefetching } = useMyProfile()
   const updateProfile = useUpdateProfile()
   const {
     register,
@@ -213,6 +214,7 @@ export function ProfilePage() {
   }
 
   if (isLoading) return <Spinner fullPage label="Fetching profile" />
+  if (isError) return <ErrorState message="Could not load your profile." onRetry={() => refetch()} isRetrying={isRefetching} />
 
   return (
     <div className="mx-auto max-w-3xl">

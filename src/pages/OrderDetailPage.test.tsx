@@ -125,7 +125,7 @@ describe('OrderDetailPage', () => {
     )
 
     await user.click(await screen.findByRole('button', { name: 'Rename' }))
-    await user.type(screen.getByLabelText('Order nickname'), "Grandma's Gifts")
+    await user.type(screen.getByLabelText('Order name'), "Grandma's Gifts")
     await user.click(screen.getByRole('button', { name: 'Save' }))
 
     await waitFor(() => expect(capturedBody).toEqual({ nickname: "Grandma's Gifts" }))
@@ -150,7 +150,7 @@ describe('OrderDetailPage', () => {
     )
 
     await user.click(await screen.findByRole('button', { name: 'Rename' }))
-    await user.clear(screen.getByLabelText('Order nickname'))
+    await user.clear(screen.getByLabelText('Order name'))
     await user.click(screen.getByRole('button', { name: 'Save' }))
 
     await waitFor(() => expect(capturedBody).toEqual({ nickname: null }))
@@ -168,11 +168,11 @@ describe('OrderDetailPage', () => {
     )
 
     await user.click(await screen.findByRole('button', { name: 'Rename' }))
-    await user.type(screen.getByLabelText('Order nickname'), ' extra text')
+    await user.type(screen.getByLabelText('Order name'), ' extra text')
     await user.click(screen.getByRole('button', { name: 'Cancel' }))
 
     expect(screen.getByText(/Grandma's Gifts/)).toBeInTheDocument()
-    expect(screen.queryByLabelText('Order nickname')).not.toBeInTheDocument()
+    expect(screen.queryByLabelText('Order name')).not.toBeInTheDocument()
   })
 
   it('cancels the order after confirming', async () => {

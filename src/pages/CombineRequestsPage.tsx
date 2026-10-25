@@ -1,3 +1,5 @@
+import { EmptyState } from '../components/EmptyState'
+import { ErrorState } from '../components/ErrorState'
 import {
   useAcceptCombineRequest,
   useCancelCombineRequest,
@@ -85,7 +87,8 @@ export function CombineRequestsPage() {
       <section className="flex flex-col gap-2">
         <h2 className="font-medium text-ink">Incoming</h2>
         {incoming.isLoading && <Spinner label="Fetching requests" />}
-        {incoming.data && incoming.data.length === 0 && <p className="text-muted">Nothing waiting on you.</p>}
+        {incoming.isError && <ErrorState message="Could not load incoming requests." onRetry={() => incoming.refetch()} isRetrying={incoming.isRefetching} />}
+        {incoming.data && incoming.data.length === 0 && <EmptyState title="Nothing waiting on you" />}
         <ul className="flex flex-col gap-2">
           {incoming.data?.map((request) => <IncomingRow key={request.id} request={request} />)}
         </ul>
@@ -94,7 +97,10 @@ export function CombineRequestsPage() {
       <section className="flex flex-col gap-2">
         <h2 className="font-medium text-ink">Outgoing</h2>
         {outgoing.isLoading && <Spinner label="Fetching requests" />}
-        {outgoing.data && outgoing.data.length === 0 && <p className="text-muted">You haven't sent any requests.</p>}
+        {outgoing.isError && <ErrorState message="Could not load outgoing requests." onRetry={() => outgoing.refetch()} isRetrying={outgoing.isRefetching} />}
+        {outgoing.data && outgoing.data.length === 0 && (
+          <EmptyState title="No requests sent" message="Ask to combine from a shipment's page." />
+        )}
         <ul className="flex flex-col gap-2">
           {outgoing.data?.map((request) => <OutgoingRow key={request.id} request={request} />)}
         </ul>

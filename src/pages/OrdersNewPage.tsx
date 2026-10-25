@@ -26,8 +26,8 @@ export function OrdersNewPage() {
     <div className="mx-auto max-w-3xl">
       <h1 className="page-title mb-4">New request</h1>
 
-      <Field label="Order nickname" hint="Optional - helps tell this order apart from others" className="mb-4">
-        <input className="field-input" value={nickname} onChange={(e) => setNickname(e.target.value)} aria-label="Order nickname" />
+      <Field label="Order name" hint="Optional - a name to tell this order apart from your others" className="mb-4">
+        <input className="field-input" value={nickname} onChange={(e) => setNickname(e.target.value)} aria-label="Order name" />
       </Field>
 
       <OrderItemBuilder

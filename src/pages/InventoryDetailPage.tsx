@@ -2,14 +2,14 @@ import { useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { useInventoryItem } from '../api/inventory'
 import { DialogCloseButton } from '../components/DialogCloseButton'
-import { IconButton } from '../components/IconButton'
+import { ErrorState } from '../components/ErrorState'
 import { PreorderBadge } from '../components/PreorderBadge'
 import { QuantityStepper } from '../components/QuantityStepper'
-import { Spinner, ButtonSpinner } from '../components/Spinner'
+import { Spinner } from '../components/Spinner'
 import { StatusPill } from '../components/StatusPill'
 import { ThumbnailImage } from '../components/ThumbnailImage'
 import { formatMoney } from '../lib/currency'
-import { CheckIcon, RefreshIcon } from '../components/icons'
+import { CheckIcon } from '../components/icons'
 import { ApiError } from '../lib/apiClient'
 import { cartItemFromInventoryItem, useAddToCartFeedback, useCartStore } from '../store/cartStore'
 
@@ -78,18 +78,9 @@ export function InventoryDetailPage({ id: idProp, onClose }: { id?: string; onCl
   if (!item) {
     if (isError && !(error instanceof ApiError && error.status === 404)) {
       return (
-        <div className="card relative flex flex-col items-center gap-2 py-12 text-center">
+        <ErrorState message="Could not load this item." onRetry={() => refetch()} isRetrying={isRefetching}>
           {onClose && <DialogCloseButton onClose={onClose} />}
-          <p className="font-medium text-ink">Could not load this item</p>
-          <p className="text-sm text-muted">Something went wrong reaching the server.</p>
-          <IconButton
-            className="mt-2"
-            label={isRefetching ? 'Retrying…' : 'Retry'}
-            onClick={() => refetch()}
-            disabled={isRefetching}
-            icon={isRefetching ? <ButtonSpinner /> : <RefreshIcon size={14} />}
-          />
-        </div>
+        </ErrorState>
       )
     }
     return (
@@ -127,6 +118,9 @@ export function InventoryDetailPage({ id: idProp, onClose }: { id?: string; onCl
         <h1 id="inventory-detail-title" className="page-title">{item.title}</h1>
         {item.isPreorder && <PreorderBadge expectedReleaseDate={item.expectedReleaseDate} />}
         {item.description && <p className="text-ink/70">{item.description}</p>}
+        {item.stockQuantity === 0 && (
+          <p className="text-sm text-muted">Out of stock. You can still request it and it will be bought for you.</p>
+        )}
         <p className="text-2xl font-semibold text-forest">{formatMoney(item.priceAmount, item.currency)}</p>
         <dl className="grid grid-cols-2 gap-y-1 text-sm text-ink/70">
           <dt className="font-medium text-muted">Condition</dt>
