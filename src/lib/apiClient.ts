@@ -1,4 +1,5 @@
 import { useAuthStore } from '../store/authStore'
+import { queryClient } from './queryClient'
 
 export const BASE_URL =
   import.meta.env.VITE_API_BASE_URL ?? (import.meta.env.MODE === 'test' ? 'http://localhost:8081' : '')
@@ -33,6 +34,11 @@ async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
 
   const isJson = response.headers.get('content-type')?.includes('application/json')
   const body = isJson ? await response.json() : undefined
+
+  if (response.status === 401 && token && token === useAuthStore.getState().token) {
+    useAuthStore.getState().expireSession()
+    queryClient.clear()
+  }
 
   if (!response.ok) {
     throw new ApiError(response.status, body?.error ?? response.statusText)

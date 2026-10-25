@@ -6,8 +6,10 @@ const TOKEN_KEY = 'omiyage.token'
 interface AuthState {
   token: string | null
   claims: JwtClaims | null
+  sessionExpired: boolean
   login: (token: string) => void
   logout: () => void
+  expireSession: () => void
 }
 
 function loadInitialState(): Pick<AuthState, 'token' | 'claims'> {
@@ -28,12 +30,17 @@ function loadInitialState(): Pick<AuthState, 'token' | 'claims'> {
 
 export const useAuthStore = create<AuthState>((set) => ({
   ...loadInitialState(),
+  sessionExpired: false,
   login: (token: string) => {
     localStorage.setItem(TOKEN_KEY, token)
-    set({ token, claims: decodeJwt(token) })
+    set({ token, claims: decodeJwt(token), sessionExpired: false })
   },
   logout: () => {
     localStorage.removeItem(TOKEN_KEY)
-    set({ token: null, claims: null })
+    set({ token: null, claims: null, sessionExpired: false })
+  },
+  expireSession: () => {
+    localStorage.removeItem(TOKEN_KEY)
+    set({ token: null, claims: null, sessionExpired: true })
   },
 }))

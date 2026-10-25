@@ -9,7 +9,8 @@ export interface JwtClaims {
 
 export function decodeJwt(token: string): JwtClaims {
   const payload = token.split('.')[1]
-  const json = atob(payload.replace(/-/g, '+').replace(/_/g, '/'))
+  const binary = atob(payload.replace(/-/g, '+').replace(/_/g, '/'))
+  const json = new TextDecoder().decode(Uint8Array.from(binary, (char) => char.charCodeAt(0)))
   return JSON.parse(json) as JwtClaims
 }
 

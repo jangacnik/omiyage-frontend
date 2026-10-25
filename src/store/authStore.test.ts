@@ -8,7 +8,7 @@ const pastExp = Math.floor(Date.now() / 1000) - 3600
 describe('authStore', () => {
   beforeEach(() => {
     localStorage.clear()
-    useAuthStore.setState({ token: null, claims: null })
+    useAuthStore.setState({ token: null, claims: null, sessionExpired: false })
   })
 
   it('login stores the token and decodes claims', () => {

@@ -17,6 +17,7 @@ type LoginForm = z.infer<typeof loginSchema>
 
 export function LoginPage() {
   const token = useAuthStore((s) => s.token)
+  const sessionExpired = useAuthStore((s) => s.sessionExpired)
   const login = useLogin()
   const {
     register,
@@ -73,6 +74,7 @@ export function LoginPage() {
             {errors.password && <p className="error-text">{errors.password.message}</p>}
           </div>
 
+          {sessionExpired && <p role="alert" className="error-text">Session expired, please sign in again.</p>}
           {errorMessage && <p className="error-text">{errorMessage}</p>}
 
           <button type="submit" className="btn-primary w-full" disabled={login.isPending}>

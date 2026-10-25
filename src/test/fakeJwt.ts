@@ -1,7 +1,7 @@
 import type { Role } from '../types/api'
 
 function base64url(json: unknown): string {
-  return btoa(JSON.stringify(json)).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '')
+  return btoa(String.fromCharCode(...new TextEncoder().encode(JSON.stringify(json)))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '')
 }
 
 export function makeFakeToken(claims: { sub: string; nickname: string; role: Role; exp: number }): string {
