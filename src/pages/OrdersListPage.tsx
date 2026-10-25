@@ -50,7 +50,7 @@ function ShipmentGroup({ orders }: { orders: OrderDto[] }) {
         <OrderStatusBadge status={active.status} />
       </div>
       {showShipment && active.shipmentId && (
-        <Modal onClose={() => setShowShipment(false)}>
+        <Modal onClose={() => setShowShipment(false)} label="Shipment">
           <MyShipmentPage id={active.shipmentId} onClose={() => setShowShipment(false)} />
         </Modal>
       )}

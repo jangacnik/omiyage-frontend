@@ -144,7 +144,7 @@ export function InventoryPage() {
       {deleteItem.isError && <p className="error-text mt-2">{errorMessage(deleteItem.error, 'Could not delete that item.')}</p>}
 
       {editingItem && (
-        <Modal onClose={() => setEditingId(null)}>
+        <Modal onClose={() => setEditingId(null)} labelledBy="inventory-item-dialog-title">
           <InventoryItemFormDialog item={editingItem} onDone={() => setEditingId(null)} />
         </Modal>
       )}

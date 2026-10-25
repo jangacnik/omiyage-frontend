@@ -115,7 +115,7 @@ export function InventoryCard({
       )}
 
       {showDetail && (
-        <Modal onClose={() => setShowDetail(false)}>
+        <Modal onClose={() => setShowDetail(false)} labelledBy="inventory-detail-title">
           <InventoryDetailPage id={item.id} onClose={() => setShowDetail(false)} />
         </Modal>
       )}

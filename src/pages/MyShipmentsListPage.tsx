@@ -49,7 +49,7 @@ export function MyShipmentsListPage() {
         ))}
       </ul>
       {openShipmentId && (
-        <Modal onClose={() => setOpenShipmentId(null)}>
+        <Modal onClose={() => setOpenShipmentId(null)} label="Shipment">
           <MyShipmentPage id={openShipmentId} onClose={() => setOpenShipmentId(null)} />
         </Modal>
       )}

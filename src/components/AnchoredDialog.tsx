@@ -1,5 +1,5 @@
 import { useLayoutEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react'
-import { createPortal } from 'react-dom'
+import { Modal } from './Modal'
 
 const VIEWPORT_MARGIN = 12
 const GAP = 8
@@ -86,20 +86,15 @@ export function AnchoredDialog({
     return () => observer.disconnect()
   }, [anchor])
 
-  return createPortal(
-    <div className="animate-fade fixed inset-0 z-50 bg-ink/50 backdrop-blur-sm" role="presentation" onClick={onClose}>
+  return (
+    <Modal onClose={onClose} role={role} labelledBy={labelledBy}>
       <div
         ref={panelRef}
-        role={role}
-        aria-modal="true"
-        aria-labelledby={labelledBy}
-        className={`card animate-pop w-full max-w-sm overflow-y-auto ${anchor ? '' : 'fixed inset-4 m-auto h-fit max-h-[calc(100vh-2rem)]'} ${className}`}
+        className={`card w-full max-w-sm overflow-y-auto ${anchor ? '' : 'fixed inset-4 m-auto h-fit max-h-[calc(100vh-2rem)]'} ${className}`}
         style={style}
-        onClick={(e) => e.stopPropagation()}
       >
         {children}
       </div>
-    </div>,
-    document.body,
+    </Modal>
   )
 }

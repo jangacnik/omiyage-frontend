@@ -144,9 +144,6 @@ export function InventoryItemFormDialog({ item, onDone }: { item?: InventoryItem
   return (
     <form
       onSubmit={handleSubmit(onSubmit)}
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="inventory-item-dialog-title"
       className="card max-h-[90vh] w-full max-w-3xl overflow-y-auto"
     >
       <h2 id="inventory-item-dialog-title" className="page-title mb-3 text-lg">

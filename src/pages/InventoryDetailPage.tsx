@@ -120,9 +120,6 @@ export function InventoryDetailPage({ id: idProp, onClose }: { id?: string; onCl
   return (
     <div
       className="card relative flex max-h-[90vh] w-full max-w-3xl flex-col gap-4 overflow-y-auto md:flex-row"
-      role={onClose ? 'dialog' : undefined}
-      aria-modal={onClose ? true : undefined}
-      aria-labelledby={onClose ? 'inventory-detail-title' : undefined}
     >
       {onClose && <DialogCloseButton onClose={onClose} />}
       {item.images.length > 0 && <ImageCarousel images={item.images} alt={item.title} />}

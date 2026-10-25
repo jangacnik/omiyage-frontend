@@ -53,13 +53,13 @@ export function AdminInventoryPage() {
       {data && <Pagination page={data.page} totalPages={data.totalPages} onPageChange={setPage} />}
 
       {creating && (
-        <Modal onClose={() => setCreating(false)}>
+        <Modal onClose={() => setCreating(false)} labelledBy="inventory-item-dialog-title">
           <InventoryItemFormDialog onDone={() => setCreating(false)} />
         </Modal>
       )}
 
       {editingItem && (
-        <Modal onClose={() => setEditingId(null)}>
+        <Modal onClose={() => setEditingId(null)} labelledBy="inventory-item-dialog-title">
           <InventoryItemFormDialog item={editingItem} onDone={() => setEditingId(null)} />
         </Modal>
       )}

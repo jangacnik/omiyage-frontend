@@ -1,20 +1,52 @@
+import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import type { ReactNode } from 'react'
 
-/** Centered backdrop + panel, portaled to document.body. Every page's content sits inside
- *  Layout's `<main>`, which runs a settle-once CSS animation - Chrome keeps a completed
- *  animation's `transform` computed as an identity matrix rather than literally `none`, which
- *  makes `<main>` a containing block for any `position: fixed` descendant. A backdrop nested
- *  inside it would then cover only `<main>`'s own box (missing the nav bar and side gutters)
- *  instead of the full viewport. Rendering outside that DOM subtree via a portal sidesteps the
- *  problem regardless of what any ancestor's styling does, now or later. */
-export function Modal({ onClose, className = '', children }: { onClose: () => void; className?: string; children: ReactNode }) {
+/** Native modal <dialog> portaled to document.body: Escape, focus trap, inert background and
+ *  focus return come from the browser. Children are the panel(s); clicking the backdrop closes. */
+export function Modal({
+  onClose,
+  labelledBy,
+  label,
+  role = 'dialog',
+  children,
+}: {
+  onClose: () => void
+  labelledBy?: string
+  label?: string
+  role?: 'dialog' | 'alertdialog'
+  children: ReactNode
+}) {
+  const dialogRef = useRef<HTMLDialogElement>(null)
+  const [trigger] = useState(() => document.activeElement)
+
+  useEffect(() => {
+    const dialog = dialogRef.current
+    if (!dialog) return
+    const previousOverflow = document.body.style.overflow
+    dialog.showModal()
+    document.body.style.overflow = 'hidden'
+    return () => {
+      document.body.style.overflow = previousOverflow
+      if (trigger instanceof HTMLElement && trigger.isConnected) trigger.focus()
+    }
+  }, [trigger])
+
   return createPortal(
-    <div className="fixed inset-0 z-40 flex items-center justify-center bg-ink/40 p-4" onClick={onClose}>
-      <div onClick={(e) => e.stopPropagation()} className={className}>
-        {children}
-      </div>
-    </div>,
+    <dialog
+      ref={dialogRef}
+      role={role}
+      aria-labelledby={labelledBy}
+      aria-label={label}
+      onClose={onClose}
+      onClick={(e) => {
+        e.stopPropagation()
+        if (e.target === e.currentTarget) onClose()
+      }}
+      className="m-0 hidden h-full max-h-none w-full max-w-none items-center justify-center bg-transparent p-4 text-ink backdrop:bg-ink/40 open:flex"
+    >
+      {children}
+    </dialog>,
     document.body,
   )
 }

@@ -41,7 +41,6 @@ function ConfirmPanel({ options, onClose }: { options: ConfirmOptions; onClose: 
           type="button"
           className={options.danger ? 'btn-danger-solid' : 'btn-primary'}
           onClick={() => onClose(true)}
-          autoFocus
         >
           {options.danger && <TrashIcon size={14} />}
           {options.confirmLabel ?? 'Confirm'}

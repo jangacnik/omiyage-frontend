@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Modal } from './Modal'
 
 const STORAGE_KEY = 'omiyage.onboarding.dismissed'
 
@@ -28,14 +29,8 @@ export function OnboardingModal() {
   }
 
   return (
-    <div className="animate-fade fixed inset-0 z-50 flex items-center justify-center bg-ink/50 p-4 backdrop-blur-sm" role="presentation" onClick={close}>
-      <div
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="onboarding-title"
-        className="card animate-pop w-full max-w-md"
-        onClick={(e) => e.stopPropagation()}
-      >
+    <Modal onClose={close} labelledBy="onboarding-title">
+      <div className="card w-full max-w-md">
         <h2 id="onboarding-title" className="page-title mb-3 text-lg">
           Welcome to Omiyage
         </h2>
@@ -61,6 +56,6 @@ export function OnboardingModal() {
           Got it
         </button>
       </div>
-    </div>
+    </Modal>
   )
 }

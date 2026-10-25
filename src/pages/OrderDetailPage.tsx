@@ -172,12 +172,9 @@ function EditableItem({ orderId, item, locked }: { orderId: string; item: OrderI
         <p className="error-text mt-1">{errorMessage(removeItem.error, 'Could not remove this item.')}</p>
       )}
       {editing && (
-        <Modal onClose={() => setEditing(false)}>
+        <Modal onClose={() => setEditing(false)} labelledBy={`edit-order-item-${item.id}-title`}>
           <form
             onSubmit={save}
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby={`edit-order-item-${item.id}-title`}
             className="card flex max-h-[90vh] w-full max-w-lg flex-col gap-2 overflow-y-auto"
           >
             <h2 id={`edit-order-item-${item.id}-title`} className="page-title mb-1 text-lg">
