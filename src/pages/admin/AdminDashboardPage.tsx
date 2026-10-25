@@ -64,7 +64,7 @@ function CreateOrderForUser({ userId, onDone }: { userId: string; onDone: () => 
 function PendingSummary({ amounts }: { amounts: PendingAmountDto[] }) {
   if (amounts.length === 0) {
     return (
-      <span className="rounded-full bg-mist/60 px-2.5 py-0.5 text-sm font-medium text-ink/45">All settled</span>
+      <span className="rounded-full bg-mist/60 px-2.5 py-0.5 text-sm font-medium text-muted">All settled</span>
     )
   }
   return (
@@ -108,7 +108,7 @@ function OrderItemRow({ orderId, item }: { orderId: string; item: OrderItemDto }
         <ThumbnailImage imageKey={item.imageKey} className="h-10 w-10 shrink-0 rounded-lg" />
         <span className="truncate text-sm text-ink/80">{item.title}</span>
         <OrderItemStatusBadge status={item.status} />
-        {price != null && <span className="text-sm text-ink/60">{formatMoney(price, 'EUR')}</span>}
+        {price != null && <span className="text-sm text-muted">{formatMoney(price, 'EUR')}</span>}
       </div>
       <PaidToggleButton orderId={orderId} item={item} />
     </li>
@@ -144,7 +144,7 @@ function DeliveredOrdersAccordion({ userId, count }: { userId: string; count: nu
     <div className="border-t border-mist pt-1">
       <button
         type="button"
-        className="flex items-center gap-2 py-1 text-sm text-ink/60 hover:text-ink"
+        className="flex items-center gap-2 py-1 text-sm text-muted hover:text-ink"
         onClick={() => setOpen((v) => !v)}
         aria-expanded={open}
       >
@@ -179,7 +179,7 @@ function UserDashboardCard({ entry }: { entry: UserDashboardEntryDto }) {
         >
           <Avatar imageKey={entry.user.avatarKey} nickname={entry.user.nickname} />
           <span className="font-medium text-ink">{entry.user.nickname}</span>
-          <span className="text-xs text-ink/50">{entry.orders.length} order(s)</span>
+          <span className="text-xs text-muted">{entry.orders.length} order(s)</span>
         </button>
         <div className="flex items-center gap-3">
           <PendingSummary amounts={entry.pendingAmounts} />
@@ -188,7 +188,7 @@ function UserDashboardCard({ entry }: { entry: UserDashboardEntryDto }) {
             onClick={() => setCreatingOrder((v) => !v)}
             icon={creatingOrder ? <CloseIcon size={14} /> : <PlusIcon size={14} />}
           />
-          <span className="text-ink/40" aria-hidden="true">
+          <span className="text-muted" aria-hidden="true">
             {expanded ? '▲' : '▼'}
           </span>
         </div>
@@ -226,7 +226,7 @@ export function AdminDashboardPage() {
     <div>
       <h1 className="page-title mb-4">Admin: Dashboard</h1>
 
-      {entries.length === 0 && <p className="text-ink/50">No users have placed orders yet.</p>}
+      {entries.length === 0 && <p className="text-muted">No users have placed orders yet.</p>}
 
       <ul className="flex flex-col gap-3">
         {entries.map((entry) => (

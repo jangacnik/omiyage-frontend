@@ -18,7 +18,7 @@ export function Avatar({
   if (!imageKey) {
     return (
       <span
-        className={`flex shrink-0 items-center justify-center rounded-full bg-mist font-medium text-ink/60 ${sizeClass}`}
+        className={`flex shrink-0 items-center justify-center rounded-full bg-mist font-medium text-muted ${sizeClass}`}
         aria-hidden="true"
       >
         {nickname.charAt(0).toUpperCase()}

@@ -48,7 +48,7 @@ function CopyTrackingNumber({ trackingNumber }: { trackingNumber: string }) {
 }
 
 function AmountList({ amounts }: { amounts: PendingAmountDto[] }) {
-  if (amounts.length === 0) return <span className="text-ink/50">—</span>
+  if (amounts.length === 0) return <span className="text-muted">—</span>
   return <>{amounts.map((a) => formatMoney(a.amount, a.currency)).join(' + ')}</>
 }
 
@@ -67,7 +67,7 @@ function MemberOrderRow({ order }: { order: OrderDto }) {
           <OrderIdHint id={order.id} nickname={order.nickname} />
         </span>
         <OrderStatusBadge status={order.status} />
-        {order.orderWeightGrams != null && <span className="text-xs text-ink/50">{formatGrams(order.orderWeightGrams)}</span>}
+        {order.orderWeightGrams != null && <span className="text-xs text-muted">{formatGrams(order.orderWeightGrams)}</span>}
       </div>
       <ul className="flex flex-wrap gap-2">
         {order.items.map((item) => (
@@ -83,7 +83,7 @@ function MemberOrderRow({ order }: { order: OrderDto }) {
 function MemberSection({ member, isMe }: { member: ShipmentMemberDto; isMe: boolean }) {
   return (
     <div className="flex flex-col gap-2 border-t border-mist pt-3 first:border-t-0 first:pt-0">
-      <p className="text-sm font-medium text-ink/60">{isMe ? 'You' : member.nickname ?? `Member ${member.userId.slice(0, 8)}`}</p>
+      <p className="text-sm font-medium text-muted">{isMe ? 'You' : member.nickname ?? `Member ${member.userId.slice(0, 8)}`}</p>
       <p className="text-sm font-medium text-ink" style={{ fontVariantNumeric: 'tabular-nums' }}>
         <AmountList amounts={member.itemTotals} />
         {member.shippingShareEur != null && (

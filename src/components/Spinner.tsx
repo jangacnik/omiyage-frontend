@@ -7,7 +7,7 @@ const GIFTS = ['🎁', '🎀', '📦']
 
 export function Spinner({ label = 'Loading', fullPage = false }: SpinnerProps) {
   const content = (
-    <div className="flex flex-col items-center gap-3 py-10 text-ink/50" role="status">
+    <div className="flex flex-col items-center gap-3 py-10 text-muted" role="status">
       <span className="flex gap-1 text-4xl">
         {GIFTS.map((gift, i) => (
           <span

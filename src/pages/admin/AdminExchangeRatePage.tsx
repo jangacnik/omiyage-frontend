@@ -38,7 +38,7 @@ function RateForm({
 
   return (
     <div>
-      <p className="mb-4 text-sm text-ink/60">{hint}</p>
+      <p className="mb-4 text-sm text-muted">{hint}</p>
       <form onSubmit={submit} className="flex flex-col gap-2 sm:flex-row">
         <label className="flex flex-1 flex-col gap-1">
           <span className="field-label">{label}</span>

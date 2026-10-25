@@ -65,7 +65,7 @@ function ShipmentOrderRow({
         <OrderIdHint id={order.id} nickname={order.nickname} />
         <OrderStatusBadge status={order.status} />
         {order.orderWeightGrams != null && (
-          <span className="text-xs text-ink/50">{formatGrams(order.orderWeightGrams)}</span>
+          <span className="text-xs text-muted">{formatGrams(order.orderWeightGrams)}</span>
         )}
         {order.shippingCostShareJpy != null && (
           <span className="text-xs font-medium text-ink">{formatMoney(order.shippingCostShareJpy, 'JPY')} shipping</span>
@@ -208,7 +208,7 @@ function ShipmentCard({
 
       <div className="flex flex-wrap gap-3">
         <label className="flex flex-col gap-1">
-          <span className="text-xs text-ink/50">Destination</span>
+          <span className="text-xs text-muted">Destination</span>
           <select
             value={shipment.destination ?? ''}
             onChange={(e) =>
@@ -229,7 +229,7 @@ function ShipmentCard({
         </label>
 
         <label className="flex flex-col gap-1">
-          <span className="text-xs text-ink/50">Shipping method</span>
+          <span className="text-xs text-muted">Shipping method</span>
           <select
             value={shipment.shippingMethod ?? ''}
             onChange={(e) =>
@@ -250,7 +250,7 @@ function ShipmentCard({
         </label>
 
         <label className="flex flex-col gap-1">
-          <span className="text-xs text-ink/50">Tracking number</span>
+          <span className="text-xs text-muted">Tracking number</span>
           <input
             defaultValue={shipment.trackingNumber ?? ''}
             onBlur={(e) => {
@@ -264,7 +264,7 @@ function ShipmentCard({
         </label>
 
         <label className="flex flex-col gap-1">
-          <span className="text-xs text-ink/50">Title</span>
+          <span className="text-xs text-muted">Title</span>
           <input
             defaultValue={shipment.title ?? ''}
             onBlur={(e) => {
@@ -288,7 +288,7 @@ function ShipmentCard({
               {shipment.shippingCostEur != null && <> ({formatMoney(shipment.shippingCostEur, 'EUR')})</>}
             </strong>
           ) : (
-            <span className="text-ink/50">
+            <span className="text-muted">
               {shipment.destination && shipment.shippingMethod
                 ? 'too heavy for this method'
                 : 'set destination + method'}
@@ -357,7 +357,7 @@ function DeliveredShipmentsSection() {
     <div className="mt-6 border-t border-mist pt-3">
       <button
         type="button"
-        className="flex items-center gap-2 text-sm text-ink/60 hover:text-ink"
+        className="flex items-center gap-2 text-sm text-muted hover:text-ink"
         onClick={() => setOpen((v) => !v)}
         aria-expanded={open}
       >
@@ -367,7 +367,7 @@ function DeliveredShipmentsSection() {
       {open && (
         <div className="mt-3">
           {isLoading && <Spinner label="Fetching delivered shipments" />}
-          {delivered?.length === 0 && <p className="text-ink/50">No delivered shipments yet.</p>}
+          {delivered?.length === 0 && <p className="text-muted">No delivered shipments yet.</p>}
           <ul className="flex flex-col gap-3">
             {delivered?.map((shipment) => (
               <ShipmentCard key={shipment.id} shipment={shipment} expanded />
@@ -427,7 +427,7 @@ function ShipmentsListView() {
       <h1 className="page-title mb-4">Admin: Shipments</h1>
 
       {shipments && shipments.length === 0 && (
-        <p className="text-ink/50">
+        <p className="text-muted">
           No active shipments — select orders on the <Link to="/admin/orders" className="text-forest hover:underline">Orders</Link> page
           and combine them into one.
         </p>

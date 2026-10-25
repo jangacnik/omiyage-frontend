@@ -92,7 +92,7 @@ export function ImageDropInput({ label = 'Photo', initialImageKey, disabled, onU
 
   return (
     <div className="flex flex-col gap-1">
-      <span className="field-label">{label} <span className="font-normal text-ink/45">(optional)</span></span>
+      <span className="field-label">{label} <span className="font-normal text-muted">(optional)</span></span>
       <div
         className={`flex flex-col items-start gap-2 rounded-lg border border-dashed px-3 py-3 focus-within:ring-2 focus-within:ring-forest ${
           dragActive ? 'border-forest bg-forest/5' : 'border-mist bg-surface'
@@ -144,10 +144,10 @@ export function ImageDropInput({ label = 'Photo', initialImageKey, disabled, onU
             >
               {previewUrl ? 'Replace file' : 'Choose file'}
             </button>
-            <span className="text-xs text-ink/50">or drag an image here, or click and paste (Ctrl+V)</span>
+            <span className="text-xs text-muted">or drag an image here, or click and paste (Ctrl+V)</span>
           </div>
           {uploading && (
-            <p className="flex items-center gap-2 text-sm text-ink/60">
+            <p className="flex items-center gap-2 text-sm text-muted">
               <ButtonSpinner /> Uploading...
             </p>
           )}

@@ -25,7 +25,7 @@ export function MyShipmentsListPage() {
     <div>
       <h1 className="page-title mb-4">My shipments</h1>
       {shipments && shipments.length === 0 && (
-        <p className="text-ink/50">
+        <p className="text-muted">
           No shipments yet — one is created automatically once you submit an order for shipping.
         </p>
       )}
@@ -38,7 +38,7 @@ export function MyShipmentsListPage() {
               className="card flex w-full flex-col gap-1 text-left sm:flex-row sm:items-center sm:justify-between"
             >
               <span className="font-medium text-ink">{shipment.title ?? `Shipment ${shipment.id.slice(0, 8)}`}</span>
-              <span className="flex items-center gap-3 text-sm text-ink/60">
+              <span className="flex items-center gap-3 text-sm text-muted">
                 <ShipmentStatusBadge status={shipment.status} />
                 {shipment.members.length > 1 && <span>{shipment.members.length} members</span>}
                 <span>{formatGrams(shipment.totalWeightGrams)}</span>

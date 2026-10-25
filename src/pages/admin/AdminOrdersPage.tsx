@@ -138,7 +138,7 @@ export function AdminOrdersPage() {
       {isLoading && <Spinner fullPage label="Fetching orders" />}
       {data && data.content.length === 0 && (
         <div className="card flex flex-col items-center gap-1 py-8 text-center">
-          <p className="text-ink/50">No orders found.</p>
+          <p className="text-muted">No orders found.</p>
           {status && (
             <button
               type="button"
@@ -189,12 +189,12 @@ export function AdminOrdersPage() {
                     />
                   )}
                   {order.profit != null && (
-                    <span className="text-xs font-medium text-ink/60">{formatMoney(order.profit, 'EUR')} profit</span>
+                    <span className="text-xs font-medium text-muted">{formatMoney(order.profit, 'EUR')} profit</span>
                   )}
                 </Link>
               </label>
               <span className="flex items-center gap-3">
-                <span className="text-sm text-ink/60">{order.items.length} item(s)</span>
+                <span className="text-sm text-muted">{order.items.length} item(s)</span>
                 <IconButton
                   variant="danger"
                   label="Delete"

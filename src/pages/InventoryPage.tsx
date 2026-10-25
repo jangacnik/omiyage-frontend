@@ -62,7 +62,7 @@ export function InventoryPage() {
       <div className="mb-5 flex flex-wrap items-baseline gap-x-3 gap-y-1">
         <h1 className="page-title">Inventory</h1>
         {data && (
-          <span className="text-sm text-ink/50">
+          <span className="text-sm text-muted">
             {data.totalElements} {data.totalElements === 1 ? 'item' : 'items'}
           </span>
         )}
@@ -122,7 +122,7 @@ export function InventoryPage() {
       {data && data.content.length === 0 && (
         <div className="card flex flex-col items-center gap-1 py-12 text-center">
           <p className="font-medium text-ink">Nothing here yet</p>
-          <p className="text-sm text-ink/55">Try a different search term or category.</p>
+          <p className="text-sm text-muted">Try a different search term or category.</p>
         </div>
       )}
 

@@ -55,7 +55,7 @@ function AccountMenu({ nickname, onLogout, onNavigate }: { nickname: string; onL
 
   return (
     <details ref={detailsRef} className="relative">
-      <summary className="flex min-h-11 cursor-pointer list-none items-center gap-2 text-sm font-medium text-paper/65 hover:text-paper">
+      <summary className="flex min-h-11 cursor-pointer list-none items-center gap-2 text-sm font-medium text-paper/80 hover:text-paper">
         <Avatar imageKey={profile?.avatarKey} nickname={nickname} size="sm" />
         <span>{nickname}</span>
         <span aria-hidden="true" className="text-[0.6rem]">▾</span>

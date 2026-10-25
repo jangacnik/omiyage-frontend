@@ -320,7 +320,7 @@ function BulkEditBar({
       {/* Same tinted-box treatment as the single-item edit dialog: this pair is the one most
           likely to get mixed up under time pressure, now with N items' blast radius at once. */}
       <div className="flex flex-col gap-3 rounded-lg bg-mist/60 p-3">
-        <p className="text-xs font-medium text-ink/50">Money - what we paid vs. what the customer pays</p>
+        <p className="text-xs font-medium text-muted">Money - what we paid vs. what the customer pays</p>
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <Field label="Bought for" hint="In JPY - blank keeps each item's own">
             <input
@@ -494,7 +494,7 @@ export function AdminOrderEditor({ order }: { order: OrderDto }) {
       {markOrderPaid.isError && <p className="error-text">Could not update paid status for this order.</p>}
 
       {/* profit = soldPrice[EUR] - toEur(actualPrice[JPY]), always EUR - see OrderDtos.profit() */}
-      {order.profit != null && <p className="text-sm text-ink/60">Order profit: {formatMoney(order.profit, 'EUR')}</p>}
+      {order.profit != null && <p className="text-sm text-muted">Order profit: {formatMoney(order.profit, 'EUR')}</p>}
 
       {selectedItemIds.length > 0 && (
         <BulkEditBar

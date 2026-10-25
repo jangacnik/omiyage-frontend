@@ -43,7 +43,7 @@ export function LoginPage() {
         <div className="animate-rise mb-6 flex flex-col items-center gap-2 text-center">
           <BrandMark size={44} />
           <h1 className="page-title">Omiyage</h1>
-          <p className="text-sm text-ink/60">Sign in to browse and request souvenirs.</p>
+          <p className="text-sm text-muted">Sign in to browse and request souvenirs.</p>
         </div>
 
         <form

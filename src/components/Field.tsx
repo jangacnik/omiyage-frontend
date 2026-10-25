@@ -20,7 +20,7 @@ export function Field({
     <label className={`flex flex-col gap-1 ${className ?? ''}`}>
       <span className="field-label">{label}</span>
       {children}
-      {hint && <span className="text-xs text-ink/50">{hint}</span>}
+      {hint && <span className="text-xs text-muted">{hint}</span>}
     </label>
   )
 }

@@ -42,7 +42,7 @@ export function ImageGallery({ images, onChange }: { images: string[]; onChange:
           setAddKey((k) => k + 1)
         }}
       />
-      <p className="text-xs text-ink/50">{images.length}/{MAX_ITEM_IMAGES} photos added.</p>
+      <p className="text-xs text-muted">{images.length}/{MAX_ITEM_IMAGES} photos added.</p>
     </div>
   )
 }

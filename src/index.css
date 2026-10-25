@@ -4,6 +4,7 @@
   --color-paper: #e8f1f2;
   --color-surface: #f9fcfc;
   --color-ink: #001a23;
+  --color-muted: #3d5560;
   --color-forest: #31493c;
   --color-forest-deep: #20322a;
   --color-sage: #7a9e7e;
@@ -76,7 +77,7 @@ body::before {
   }
 
   .field-input {
-    @apply w-full rounded-lg border-0 bg-surface px-3 py-2 text-sm text-ink shadow-sm ring-1 ring-inset ring-mist transition placeholder:text-ink/45 focus:outline-none focus:ring-2 focus:ring-forest;
+    @apply w-full rounded-lg border-0 bg-surface px-3 py-2 text-sm text-ink shadow-sm ring-1 ring-inset ring-mist transition placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-forest;
   }
   .field-label {
     @apply block text-sm font-medium text-ink/70;
@@ -101,7 +102,7 @@ body::before {
 
   /* The top bar sits on ink, so nav links are tinted paper rather than ink. */
   .nav-link {
-    @apply relative inline-flex min-h-11 items-center rounded-md md:min-h-0 px-3 py-1.5 text-sm font-medium text-paper/65 transition-colors duration-150 hover:text-paper;
+    @apply relative inline-flex min-h-11 items-center rounded-md md:min-h-0 px-3 py-1.5 text-sm font-medium text-paper/80 transition-colors duration-150 hover:text-paper;
   }
   .nav-link::after {
     content: "";

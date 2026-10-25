@@ -11,7 +11,7 @@ export function AdminCombineRequestsPage() {
   return (
     <div>
       <h1 className="page-title mb-4">Admin: Combine requests</h1>
-      {data && data.length === 0 && <p className="text-ink/50">No pending combine requests.</p>}
+      {data && data.length === 0 && <p className="text-muted">No pending combine requests.</p>}
       <ul className="flex flex-col gap-2">
         {data?.map((request) => (
           <li key={request.id} className="card flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">

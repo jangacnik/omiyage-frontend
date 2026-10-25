@@ -130,7 +130,7 @@ export function AdminOrderItemEditDialog({
             next to each other in the same layout as maxPrice/quantity above - one is our internal
             cost (never customer-visible), the other is what the customer is actually charged. */}
         <div className="flex flex-col gap-3 rounded-lg bg-mist/60 p-3">
-          <p className="text-xs font-medium text-ink/50">Money - what we paid vs. what the customer pays</p>
+          <p className="text-xs font-medium text-muted">Money - what we paid vs. what the customer pays</p>
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <Field label="Bought for" hint="In JPY - internal only, never shown to the customer">
               <input

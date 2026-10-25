@@ -42,9 +42,9 @@ function ItemDetails({ item, descriptionClassName = 'mt-0.5', titleId }: { item:
         {item.isPreorder && <PreorderBadge expectedReleaseDate={item.expectedReleaseDate} />}
       </div>
 
-      {item.description && <p className={`${descriptionClassName} text-sm text-ink/60`}>{item.description}</p>}
+      {item.description && <p className={`${descriptionClassName} text-sm text-muted`}>{item.description}</p>}
 
-      <p className="mt-1 text-sm text-ink/60">
+      <p className="mt-1 text-sm text-muted">
         {item.condition && `${CONDITION_LABELS[item.condition]} · `}
         qty {item.quantity}
         {item.weight != null && ` · ${item.weight} g`}
@@ -52,14 +52,14 @@ function ItemDetails({ item, descriptionClassName = 'mt-0.5', titleId }: { item:
 
       <p className="mt-1 flex flex-wrap items-baseline gap-x-3 gap-y-0.5 text-sm">
         {item.maxPrice != null && (
-          <span className="text-ink/60">Max you set: {priceLabel(item.maxPrice, item.currency, '', item.quantity)}</span>
+          <span className="text-muted">Max you set: {priceLabel(item.maxPrice, item.currency, '', item.quantity)}</span>
         )}
         {item.soldPrice != null ? (
           <span className="font-medium text-forest">
             You pay: {priceLabel(item.soldPrice, item.soldPriceCurrency ?? item.currency, '', item.quantity)}
           </span>
         ) : (
-          <span className="text-ink/40">Price not set yet</span>
+          <span className="text-muted">Price not set yet</span>
         )}
       </p>
 

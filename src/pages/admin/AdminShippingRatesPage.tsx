@@ -256,7 +256,7 @@ export function AdminShippingRatesPage() {
 
       {isLoading && <Spinner label="Fetching shipping rates" />}
 
-      {!isLoading && groups.length === 0 && <p className="text-ink/50">No shipping rates configured yet.</p>}
+      {!isLoading && groups.length === 0 && <p className="text-muted">No shipping rates configured yet.</p>}
 
       <div className="flex flex-col gap-3">
         {groups.map((group) => (

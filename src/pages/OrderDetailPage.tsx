@@ -43,9 +43,9 @@ function OrderTotal({ order }: { order: OrderDto }) {
       <div>
         {/* "Items total" (not "Order total") - distinct from a shipment's grand total, which adds
             this order's shipping cost share on top (see MyShipmentPage's total). */}
-        <p className="text-sm text-ink/60">Items total</p>
+        <p className="text-sm text-muted">Items total</p>
         {unpricedCount > 0 && (
-          <p className="text-xs text-ink/45">
+          <p className="text-xs text-muted">
             Estimated - {unpricedCount} item{unpricedCount === 1 ? '' : 's'} not priced yet, using the max you set
           </p>
         )}
@@ -275,7 +275,7 @@ function SplitItemsPanel({ order }: { order: OrderDto }) {
         {splitOrder.isPending ? <ButtonSpinner /> : 'Split selected into new order'}
       </button>
       {selected.length === order.items.length && (
-        <p className="text-xs text-ink/50">Leave at least one item behind - selecting everything would just move the whole order.</p>
+        <p className="text-xs text-muted">Leave at least one item behind - selecting everything would just move the whole order.</p>
       )}
       {splitOrder.isError && (
         <p className="error-text">{errorMessage(splitOrder.error, 'Could not split these items.')}</p>
@@ -338,7 +338,7 @@ export function OrderDetailPage() {
       {order.notes && <p className="text-ink/70">{order.notes}</p>}
 
       {!order.open ? (
-        <p className="text-sm text-ink/50">
+        <p className="text-sm text-muted">
           This order is {order.status === 'CANCELLED' ? 'cancelled' : 'no longer open'} and can't be edited.
         </p>
       ) : (
@@ -367,7 +367,7 @@ export function OrderDetailPage() {
         </div>
       )}
       {hasPreorderItem && order.open && (
-        <p className="text-sm text-ink/50">
+        <p className="text-sm text-muted">
           This order has a preorder item that hasn't released yet, so it can't be submitted for shipping until it does.
           {order.items.length > 1
             ? ' Split the preorder item into its own order below to ship the rest now.'
@@ -380,7 +380,7 @@ export function OrderDetailPage() {
         </p>
       )}
       {hasLockedItem && order.open && (
-        <p className="text-sm text-ink/50">This order has items already bought or shipped, so it can no longer be cancelled as a whole.</p>
+        <p className="text-sm text-muted">This order has items already bought or shipped, so it can no longer be cancelled as a whole.</p>
       )}
       {cancelOrder.isError && (
         <p className="error-text">

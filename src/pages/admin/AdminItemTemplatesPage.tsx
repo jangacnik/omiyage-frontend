@@ -177,7 +177,7 @@ function TemplateRow({ template }: { template: ItemTemplateDto }) {
     <li className="card flex items-center justify-between gap-2 py-2">
       <div className="flex flex-col">
         <span className="font-medium text-ink">{template.name}</span>
-        <span className="text-sm text-ink/60">
+        <span className="text-sm text-muted">
           {[
             template.title,
             template.priceAmount != null ? formatMoney(template.priceAmount, 'EUR') : null,
@@ -226,7 +226,7 @@ export function AdminItemTemplatesPage() {
       </form>
 
       {isLoading && <Spinner label="Fetching item templates" />}
-      {!isLoading && templates?.length === 0 && <p className="text-ink/50">No item templates yet.</p>}
+      {!isLoading && templates?.length === 0 && <p className="text-muted">No item templates yet.</p>}
 
       <ul className="flex flex-col gap-2">
         {templates?.map((t) => (

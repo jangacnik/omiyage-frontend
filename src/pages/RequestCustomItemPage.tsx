@@ -43,7 +43,7 @@ export function RequestCustomItemPage() {
   return (
     <div className="mx-auto max-w-2xl">
       <h1 className="page-title mb-1">Request &quot;{item.title}&quot;</h1>
-      <p className="mb-4 text-sm text-ink/60">
+      <p className="mb-4 text-sm text-muted">
         Set your own condition, max price, or quantity for this item - unlike Add to cart, which always charges the listed price.
       </p>
 

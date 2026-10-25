@@ -40,7 +40,7 @@ function NicknameEditor({ profile }: { profile: UserProfileDto }) {
 
   if (!editing) {
     return (
-      <p className="mb-4 flex items-center gap-2 text-ink/60">
+      <p className="mb-4 flex items-center gap-2 text-muted">
         <span>Nickname: {profile.nickname}</span>
         <IconButton label="Rename" onClick={() => setEditing(true)} icon={<EditIcon size={14} />} />
       </p>

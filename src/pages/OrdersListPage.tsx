@@ -25,7 +25,7 @@ function ShipmentGroup({ orders }: { orders: OrderDto[] }) {
         <button
           type="button"
           onClick={() => setShowShipment(true)}
-          className="text-sm font-medium text-ink/60 hover:text-forest hover:underline"
+          className="text-sm font-medium text-muted hover:text-forest hover:underline"
         >
           Shipment {active.shipmentId?.slice(0, 8)}
         </button>
@@ -122,7 +122,7 @@ export function OrdersListPage() {
 
       {isLoading && <Spinner label="Fetching orders" />}
       {isError && <p className="error-text">Could not load orders.</p>}
-      {data && data.content.length === 0 && <p className="text-ink/50">No orders yet.</p>}
+      {data && data.content.length === 0 && <p className="text-muted">No orders yet.</p>}
       {mergeError && <p className="error-text mb-2">{mergeError}</p>}
 
       {selected.length >= 2 && (
@@ -133,7 +133,7 @@ export function OrdersListPage() {
               {mergeOrders.isPending ? <ButtonSpinner /> : 'Merge selected'}
             </button>
           </div>
-          <p className="text-xs text-ink/50">Combines these orders of yours into one. To join a shipment with another member instead, use the combine icon on a single order.</p>
+          <p className="text-xs text-muted">Combines these orders of yours into one. To join a shipment with another member instead, use the combine icon on a single order.</p>
         </div>
       )}
 
@@ -154,7 +154,7 @@ export function OrdersListPage() {
                 />
                 {/* Visible, not just a title tooltip - same reasoning as the preorder/locked-item
                     disabled-reasons on OrderDetailPage: a tooltip never appears on touch devices. */}
-                {!group[0].open && <span className="text-xs text-ink/40">not open</span>}
+                {!group[0].open && <span className="text-xs text-muted">not open</span>}
                 <Link to={`/orders/${group[0].id}`} className="font-medium text-ink hover:text-forest">
                   Order {orderDisplayName(group[0])}
                   <OrderIdHint id={group[0].id} nickname={group[0].nickname} /> — {group[0].items.length} item(s)

@@ -68,9 +68,9 @@ export function CartPage() {
                   {item.title}
                   {item.isPreorder && <PreorderBadge expectedReleaseDate={item.expectedReleaseDate ?? null} />}
                 </p>
-                <p className="text-sm text-ink/60">{formatMoney(item.priceAmount, item.currency)} each</p>
+                <p className="text-sm text-muted">{formatMoney(item.priceAmount, item.currency)} each</p>
                 {item.stockQuantity != null && item.quantity > item.stockQuantity && (
-                  <p className="text-xs text-ink/45">
+                  <p className="text-xs text-muted">
                     Only {item.stockQuantity} in stock - the rest will be requested for you
                   </p>
                 )}

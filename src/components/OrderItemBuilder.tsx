@@ -270,7 +270,7 @@ export function InventorySearch({
           aria-label="Search inventory"
         />
         {isFetching && (
-          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-ink/40">
+          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-muted">
             <ButtonSpinner />
           </span>
         )}
@@ -314,7 +314,7 @@ export function InventorySearch({
         </>
       )}
       {showNoMatch && (
-        <p className="text-sm text-ink/60">
+        <p className="text-sm text-muted">
           No matching item.{' '}
           <button type="button" className="text-forest underline" onClick={onCreateCustom}>
             Create a custom request instead
@@ -362,7 +362,7 @@ export function OrderItemBuilder({
                 <ThumbnailImage imageKey={item.imageKey} className="h-10 w-10 shrink-0 rounded-lg" />
                 <span className="flex flex-col">
                   <span className="text-sm text-ink/80">{item.displayTitle}</span>
-                  <span className="text-xs text-ink/50">
+                  <span className="text-xs text-muted">
                     {item.input.condition && `${CONDITION_LABELS[item.input.condition]} · `}
                     {item.input.maxPrice != null ? `max ${formatMoney(item.input.maxPrice, 'EUR')}` : 'no max price set'}
                   </span>

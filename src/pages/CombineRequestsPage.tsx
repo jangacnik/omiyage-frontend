@@ -85,7 +85,7 @@ export function CombineRequestsPage() {
       <section className="flex flex-col gap-2">
         <h2 className="font-medium text-ink">Incoming</h2>
         {incoming.isLoading && <Spinner label="Fetching requests" />}
-        {incoming.data && incoming.data.length === 0 && <p className="text-ink/50">Nothing waiting on you.</p>}
+        {incoming.data && incoming.data.length === 0 && <p className="text-muted">Nothing waiting on you.</p>}
         <ul className="flex flex-col gap-2">
           {incoming.data?.map((request) => <IncomingRow key={request.id} request={request} />)}
         </ul>
@@ -94,7 +94,7 @@ export function CombineRequestsPage() {
       <section className="flex flex-col gap-2">
         <h2 className="font-medium text-ink">Outgoing</h2>
         {outgoing.isLoading && <Spinner label="Fetching requests" />}
-        {outgoing.data && outgoing.data.length === 0 && <p className="text-ink/50">You haven't sent any requests.</p>}
+        {outgoing.data && outgoing.data.length === 0 && <p className="text-muted">You haven't sent any requests.</p>}
         <ul className="flex flex-col gap-2">
           {outgoing.data?.map((request) => <OutgoingRow key={request.id} request={request} />)}
         </ul>

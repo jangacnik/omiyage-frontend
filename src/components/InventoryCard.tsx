@@ -61,7 +61,7 @@ export function InventoryCard({
           <div className="mb-1 flex h-6 items-center">
             {item.isPreorder && <PreorderBadge expectedReleaseDate={item.expectedReleaseDate} />}
           </div>
-          <p className="truncate text-sm text-ink/60">
+          <p className="truncate text-sm text-muted">
             {formatMoney(item.priceAmount, item.currency)}
             {/* profitEur is pre-converted server-side: priceAmount[EUR] - boughtPrice[JPY] can't
                 be subtracted directly, they're different currencies. */}

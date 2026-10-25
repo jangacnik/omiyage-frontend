@@ -20,7 +20,7 @@ export function AdminSettingsPage() {
             key={tab.to}
             to={tab.to}
             className={({ isActive }) =>
-              `px-3 py-2 text-sm font-medium ${isActive ? 'border-b-2 border-forest text-forest' : 'text-ink/60 hover:text-ink'}`
+              `px-3 py-2 text-sm font-medium ${isActive ? 'border-b-2 border-forest text-forest' : 'text-muted hover:text-ink'}`
             }
           >
             {tab.label}

@@ -24,13 +24,13 @@ export function CombineRequestModal({ orderId, onClose }: { orderId: string; onC
       <h2 id="combine-request-title" className="font-medium text-ink">
         Combine with another member's shipment
       </h2>
-      <p className="text-sm text-ink/60">
+      <p className="text-sm text-muted">
         Pick a shipment to ask to join. Its owner gets a request to accept before anything is combined.
       </p>
 
       {isLoading && <Spinner label="Fetching shipments" />}
       {shipments && shipments.length === 0 && (
-        <p className="text-sm text-ink/50">No other shipments are open to combine with right now.</p>
+        <p className="text-sm text-muted">No other shipments are open to combine with right now.</p>
       )}
 
       <ul className="flex max-h-64 flex-col gap-1 overflow-y-auto">
@@ -44,7 +44,7 @@ export function CombineRequestModal({ orderId, onClose }: { orderId: string; onC
               }`}
             >
               <span className="font-medium text-ink">{shipment.title ?? `Shipment ${shipment.id.slice(0, 8)}`}</span>
-              <span className="text-ink/60">
+              <span className="text-muted">
                 {shipment.ownerNickname ?? 'Unknown member'} · {shipment.itemCount} item(s) · {formatGrams(shipment.totalWeightGrams)}
               </span>
             </button>

@@ -18,7 +18,7 @@ export function QuantityStepper({
         onClick={() => onChange(Math.max(min, quantity - 1))}
         disabled={quantity <= min}
         aria-label="Decrease quantity"
-        className="flex h-full w-11 items-center justify-center text-ink/60 transition-colors hover:bg-mist disabled:cursor-not-allowed disabled:opacity-30"
+        className="flex h-full w-11 items-center justify-center text-muted transition-colors hover:bg-mist disabled:cursor-not-allowed disabled:opacity-30"
       >
         −
       </button>
@@ -29,7 +29,7 @@ export function QuantityStepper({
         type="button"
         onClick={() => onChange(quantity + 1)}
         aria-label="Increase quantity"
-        className="flex h-full w-11 items-center justify-center text-ink/60 transition-colors hover:bg-mist"
+        className="flex h-full w-11 items-center justify-center text-muted transition-colors hover:bg-mist"
       >
         +
       </button>
