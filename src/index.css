@@ -14,8 +14,8 @@
   --color-danger-soft: #fbeaea;
   --color-danger-deep: #a31f1f;
 
-  --font-display: "Zen Old Mincho", serif;
-  --font-body: "Zen Kaku Gothic New", sans-serif;
+  --font-display: ui-serif, "Hiragino Mincho ProN", "Yu Mincho", serif;
+  --font-body: system-ui, -apple-system, "Hiragino Sans", "Yu Gothic", sans-serif;
 }
 
 html,
@@ -23,27 +23,6 @@ body {
   @apply bg-paper text-ink;
   font-family: var(--font-body);
   -webkit-font-smoothing: antialiased;
-}
-
-/* Paper grain — keeps the flat palette from reading as a sterile template fill. */
-body::before {
-  content: "";
-  position: fixed;
-  inset: 0;
-  z-index: 0;
-  pointer-events: none;
-  opacity: 0.4;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)' opacity='0.35'/%3E%3C/svg%3E");
-}
-
-/* Lifts the app above the paper-grain texture below. Scoped to #root specifically (not `body >
-   *`) - Modal portals its backdrop as a second direct child of body, and a blanket child selector
-   would win over Tailwind's `fixed`/`z-*` utilities on it (unlayered CSS beats @layer utilities
-   regardless of specificity), pinning the backdrop to `position: relative` in normal document
-   flow instead of covering the viewport. */
-#root {
-  position: relative;
-  z-index: 1;
 }
 
 ::selection {
