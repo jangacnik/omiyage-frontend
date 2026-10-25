@@ -79,7 +79,7 @@ body {
 
   /* The top bar sits on ink, so nav links are tinted paper rather than ink. */
   .nav-link {
-    @apply inline-flex min-h-11 items-center rounded-md px-3 md:min-h-0 py-1.5 text-sm font-medium text-paper/80 hover:text-paper;
+    @apply inline-flex min-h-11 items-center rounded-md px-3 lg:min-h-0 py-1.5 text-sm font-medium text-paper/80 hover:text-paper;
   }
   .nav-link:hover,
   .nav-link-active {

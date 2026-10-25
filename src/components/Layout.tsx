@@ -31,6 +31,19 @@ function CartNavLink({ count, onClick }: { count: number; onClick?: () => void }
   )
 }
 
+const NAV_ITEMS = [
+  { to: '/inventory', label: 'Inventory', admin: false },
+  { to: '/orders', label: 'My orders', admin: false },
+  { to: '/shipments', label: 'Shipments', admin: false },
+  { to: '/combine-requests', label: 'Combine requests', admin: false },
+  { to: '/admin/inventory', label: 'Inventory', admin: true },
+  { to: '/admin/orders', label: 'Orders', admin: true },
+  { to: '/admin/shipments', label: 'Shipments', admin: true },
+  { to: '/admin/settings', label: 'Settings', admin: true },
+  { to: '/admin/dashboard', label: 'Dashboard', admin: true },
+  { to: '/admin/combine-requests', label: 'Combine requests', admin: true },
+]
+
 function TopNavLink({ to, children, onClick }: { to: string; children: React.ReactNode; onClick?: () => void }) {
   return (
     <NavLink to={to} onClick={onClick} className={({ isActive }) => `nav-link ${isActive ? 'nav-link-active' : ''}`}>
@@ -82,6 +95,7 @@ export function Layout() {
   const claims = useAuthStore((s) => s.claims)
   const logout = useAuthStore((s) => s.logout)
   const isAdmin = claims?.role === 'ADMIN'
+  const navItems = NAV_ITEMS.filter((item) => item.admin === isAdmin)
   const cartCount = useCartStore((s) => cartItemCount(s.items))
   const [menuOpen, setMenuOpen] = useState(false)
   const closeMenu = () => setMenuOpen(false)
@@ -90,6 +104,9 @@ export function Layout() {
 
   return (
     <div className="flex min-h-screen flex-col bg-paper">
+      <a href="#main" className="sr-only focus:not-sr-only focus:absolute focus:left-2 focus:top-2 focus:z-50 focus:rounded-lg focus:bg-surface focus:px-3 focus:py-2 focus:text-ink">
+        Skip to content
+      </a>
       {!isAdmin && <OnboardingModal />}
       <nav className="sticky top-0 z-20 bg-ink text-paper">
         <div className="mx-auto flex max-w-6xl items-center gap-2 px-4 py-3 sm:px-6">
@@ -102,37 +119,25 @@ export function Layout() {
             <BrandMark /> Omiyage
           </Link>
 
-          <div className="hidden items-center gap-1 md:flex">
-            {!isAdmin && (
-              <>
-                <TopNavLink to="/inventory">Inventory</TopNavLink>
-                <TopNavLink to="/orders">My orders</TopNavLink>
-                <TopNavLink to="/shipments">Shipments</TopNavLink>
-              </>
-            )}
-            {isAdmin && (
-              <>
-                <span className="mx-1 h-4 w-px bg-paper/20" aria-hidden="true" />
-                <TopNavLink to="/admin/inventory">Inventory</TopNavLink>
-                <TopNavLink to="/admin/orders">Orders</TopNavLink>
-                <TopNavLink to="/admin/shipments">Shipments</TopNavLink>
-                <TopNavLink to="/admin/settings">Settings</TopNavLink>
-                <TopNavLink to="/admin/dashboard">Dashboard</TopNavLink>
-                <TopNavLink to="/admin/combine-requests">Combine requests</TopNavLink>
-              </>
-            )}
+          <div className="hidden items-center gap-1 lg:flex">
+            {isAdmin && <span className="mx-1 h-4 w-px bg-paper/20" aria-hidden="true" />}
+            {navItems.map((item) => (
+              <TopNavLink key={item.to} to={item.to}>
+                {item.label}
+              </TopNavLink>
+            ))}
           </div>
 
           <div className="ml-auto flex items-center gap-1">
             {!isAdmin && <CartNavLink count={cartCount} />}
 
-            <span className="hidden items-center md:flex">
+            <span className="hidden items-center lg:flex">
               {claims && <AccountMenu nickname={claims.nickname} onLogout={logout} />}
             </span>
 
             <button
               type="button"
-              className="flex h-11 w-11 items-center justify-center rounded-lg text-paper hover:bg-paper/10 md:hidden"
+              className="flex h-11 w-11 items-center justify-center rounded-lg text-paper hover:bg-paper/10 lg:hidden"
               aria-label={menuOpen ? 'Close menu' : 'Open menu'}
               aria-expanded={menuOpen}
               onClick={() => setMenuOpen((open) => !open)}
@@ -149,49 +154,33 @@ export function Layout() {
         </div>
 
         {menuOpen && (
-          <div className="flex flex-col items-start gap-1 border-t border-paper/15 px-4 pb-4 pt-3 md:hidden">
-            {!isAdmin && (
-              <>
-                <TopNavLink to="/inventory" onClick={closeMenu}>
-                  Inventory
-                </TopNavLink>
-                <TopNavLink to="/orders" onClick={closeMenu}>
-                  My orders
-                </TopNavLink>
-                <TopNavLink to="/shipments" onClick={closeMenu}>
-                  Shipments
-                </TopNavLink>
-              </>
-            )}
-            {isAdmin && (
-              <>
-                <TopNavLink to="/admin/inventory" onClick={closeMenu}>
-                  Inventory
-                </TopNavLink>
-                <TopNavLink to="/admin/orders" onClick={closeMenu}>
-                  Orders
-                </TopNavLink>
-                <TopNavLink to="/admin/shipments" onClick={closeMenu}>
-                  Shipments
-                </TopNavLink>
-                <TopNavLink to="/admin/settings" onClick={closeMenu}>
-                  Settings
-                </TopNavLink>
-                <TopNavLink to="/admin/dashboard" onClick={closeMenu}>
-                  Dashboard
-                </TopNavLink>
-                <TopNavLink to="/admin/combine-requests" onClick={closeMenu}>
-                  Combine requests
-                </TopNavLink>
-              </>
-            )}
-            <div className="mt-3 flex w-full items-center border-t border-paper/15 pt-3">
-              {claims && <AccountMenu nickname={claims.nickname} onLogout={logout} onNavigate={closeMenu} />}
+          <div className="flex flex-col items-start gap-1 border-t border-paper/15 px-4 pb-4 pt-3 lg:hidden">
+            {navItems.map((item) => (
+              <TopNavLink key={item.to} to={item.to} onClick={closeMenu}>
+                {item.label}
+              </TopNavLink>
+            ))}
+            <div className="mt-3 flex w-full flex-col items-start gap-1 border-t border-paper/15 pt-3">
+              <TopNavLink to="/profile" onClick={closeMenu}>
+                Profile
+              </TopNavLink>
+              <button
+                type="button"
+                className="nav-link"
+                onClick={() => {
+                  closeMenu()
+                  logout()
+                }}
+              >
+                Log out
+              </button>
             </div>
           </div>
         )}
       </nav>
       <main
+        id="main"
+        tabIndex={-1}
         className={`flex flex-1 flex-col px-4 py-6 sm:px-6 sm:py-8 ${isFullWidth ? 'w-full' : 'mx-auto max-w-6xl'}`}
       >
         <Outlet />

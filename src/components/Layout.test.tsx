@@ -74,3 +74,29 @@ describe('Layout account menu', () => {
     expect(details.open).toBe(false)
   })
 })
+
+describe('Layout navigation', () => {
+  beforeEach(() => {
+    localStorage.clear()
+    localStorage.setItem('omiyage.onboarding.dismissed', '1')
+  })
+
+  it('links customers to combine requests and lets them skip to content', () => {
+    useAuthStore.getState().login(makeFakeToken({ sub: 'u1', nickname: 'bob', role: 'USER', exp: futureExp }))
+    renderLayout()
+
+    expect(screen.getByRole('link', { name: 'Combine requests' })).toHaveAttribute('href', '/combine-requests')
+    expect(screen.getByRole('link', { name: 'Skip to content' })).toHaveAttribute('href', '#main')
+  })
+
+  it('shows Profile and Log out inline in the mobile menu', async () => {
+    const user = userEvent.setup()
+    useAuthStore.getState().login(makeFakeToken({ sub: 'u1', nickname: 'bob', role: 'USER', exp: futureExp }))
+    renderLayout()
+
+    await user.click(screen.getByRole('button', { name: 'Open menu' }))
+
+    expect(screen.getAllByRole('link', { name: 'Profile' })).toHaveLength(2)
+    expect(screen.getAllByRole('button', { name: 'Log out' })).toHaveLength(2)
+  })
+})
