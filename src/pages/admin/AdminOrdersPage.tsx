@@ -28,9 +28,11 @@ export function AdminOrdersPage() {
   const [status, setStatus] = useState<OrderStatus | ''>('')
   const [page, setPage] = useState(0)
   const [sort, setSort] = useState<`${AdminOrderSortBy}:${SortDirection}`>('UPDATED_AT:DESC')
+  const [showDelivered, setShowDelivered] = useState(false)
   const [selected, setSelected] = useState<string[]>([])
   const [sortBy, direction] = sort.split(':') as [AdminOrderSortBy, SortDirection]
-  const { data, isLoading } = useAdminOrders(status, page, sortBy, direction)
+  const hideDelivered = !showDelivered && status === ''
+  const { data, isLoading } = useAdminOrders(status, page, sortBy, direction, hideDelivered)
   const createShipment = useCreateShipment()
   const mergeOrders = useAdminMergeOrders()
   const deleteOrder = useAdminDeleteOrder()
@@ -133,6 +135,18 @@ export function AdminOrdersPage() {
             </option>
           ))}
         </select>
+
+        <label className="flex items-center gap-2 text-sm">
+          <input
+            type="checkbox"
+            checked={showDelivered}
+            onChange={(e) => {
+              setShowDelivered(e.target.checked)
+              setPage(0)
+            }}
+          />
+          Show delivered
+        </label>
       </div>
 
       {isLoading && <Spinner fullPage label="Fetching orders" />}

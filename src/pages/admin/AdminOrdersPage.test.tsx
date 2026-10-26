@@ -64,6 +64,25 @@ describe('AdminOrdersPage', () => {
     expect(screen.getByRole('link', { name: /Order order-12/ })).toHaveAttribute('href', '/admin/orders/order-12345678')
   })
 
+  it('hides delivered orders by default and includes them when toggled', async () => {
+    const user = userEvent.setup()
+    const excluded: (string | null)[] = []
+    server.use(
+      http.get(`${BASE}/api/admin/orders`, ({ request }) => {
+        excluded.push(new URL(request.url).searchParams.get('excludeStatus'))
+        return HttpResponse.json(page([order()]))
+      }),
+    )
+
+    renderWithProviders(<AdminOrdersPage />)
+    await screen.findByText(/Order order-12/)
+    expect(excluded[0]).toBe('DELIVERED')
+
+    await user.click(screen.getByLabelText('Show delivered'))
+
+    await waitFor(() => expect(excluded.at(-1)).toBeNull())
+  })
+
   it('shows an empty state when there are no orders', async () => {
     server.use(http.get(`${BASE}/api/admin/orders`, () => HttpResponse.json(page([]))))
 

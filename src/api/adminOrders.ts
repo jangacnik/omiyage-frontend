@@ -21,12 +21,13 @@ export function useAdminOrders(
   page: number,
   sortBy: AdminOrderSortBy = 'UPDATED_AT',
   direction: SortDirection = 'DESC',
+  hideDelivered = false,
 ) {
   return useQuery({
-    queryKey: ['admin', 'orders', status, page, sortBy, direction],
+    queryKey: ['admin', 'orders', status, page, sortBy, direction, hideDelivered],
     queryFn: () =>
       api.get<Page<OrderDto>>(
-        `/api/admin/orders?page=${page}&size=20&sortBy=${sortBy}&direction=${direction}${status ? `&status=${status}` : ''}`,
+        `/api/admin/orders?page=${page}&size=20&sortBy=${sortBy}&direction=${direction}${status ? `&status=${status}` : ''}${hideDelivered ? '&excludeStatus=DELIVERED' : ''}`,
       ),
     placeholderData: (previous) => previous,
   })
