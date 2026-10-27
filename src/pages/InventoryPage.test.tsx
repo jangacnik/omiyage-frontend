@@ -127,6 +127,27 @@ describe('InventoryPage', () => {
     await waitFor(() => expect(capturedParam).toBeNull())
   })
 
+  it('reads page and size from the URL and resets the page when the size changes', async () => {
+    const user = userEvent.setup()
+    let captured = { page: '', size: '' }
+    server.use(
+      http.get(`${BASE}/api/inventory`, ({ request }) => {
+        const params = new URL(request.url).searchParams
+        captured = { page: params.get('page') ?? '', size: params.get('size') ?? '' }
+        return HttpResponse.json(page([item()]))
+      }),
+      http.get(`${BASE}/api/categories`, () => HttpResponse.json([])),
+    )
+
+    renderWithProviders(<InventoryPage />, ['/?page=2&size=40'])
+    await screen.findByText('Kit Kat matcha')
+    expect(captured).toEqual({ page: '2', size: '40' })
+
+    await user.selectOptions(screen.getByLabelText('Per page'), '80')
+
+    await waitFor(() => expect(captured).toEqual({ page: '0', size: '80' }))
+  })
+
   it('shows a request-only badge for a zero-quantity item', async () => {
     server.use(
       http.get(`${BASE}/api/inventory`, () => HttpResponse.json(page([item({ stockQuantity: 0 })]))),

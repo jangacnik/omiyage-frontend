@@ -14,26 +14,49 @@ import { Field } from '../components/Field'
 import { Modal } from '../components/Modal'
 import { errorMessage } from '../lib/apiClient'
 
+const PAGE_SIZES = [20, 40, 80]
+
 export function InventoryPage() {
   const isAdmin = useAuthStore((s) => s.claims?.role === 'ADMIN')
-  const [searchParams] = useSearchParams()
+  const [searchParams, setSearchParams] = useSearchParams()
   const urlTitle = searchParams.get('title') ?? ''
   const [titleInput, setTitleInput] = useState(urlTitle)
   const [title, setTitle] = useState(urlTitle)
   const [categoryId, setCategoryId] = useState('')
   const [inStockOnly, setInStockOnly] = useState(false)
-  const [page, setPage] = useState(0)
+  const page = Math.max(0, Number(searchParams.get('page')) || 0)
+  const size = PAGE_SIZES.includes(Number(searchParams.get('size'))) ? Number(searchParams.get('size')) : PAGE_SIZES[0]
   const [editingId, setEditingId] = useState<string | null>(null)
   const deleteItem = useDeleteInventoryItem()
   const confirm = useConfirm()
 
+  function updateParams(changes: Record<string, string | null>) {
+    setSearchParams((prev) => {
+      const next = new URLSearchParams(prev)
+      for (const [key, value] of Object.entries(changes)) {
+        if (value === null) next.delete(key)
+        else next.set(key, value)
+      }
+      return next
+    })
+  }
+
+  function setPage(newPage: number) {
+    updateParams({ page: newPage === 0 ? null : String(newPage) })
+  }
+
+  function setSize(newSize: number) {
+    updateParams({ size: newSize === PAGE_SIZES[0] ? null : String(newSize), page: null })
+  }
+
   useEffect(() => {
+    if (titleInput === title) return
     const timeout = setTimeout(() => {
       setTitle(titleInput)
       setPage(0)
     }, 300)
     return () => clearTimeout(timeout)
-  }, [titleInput])
+  }, [titleInput]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // urlTitle only seeds state on mount - if this page stays mounted and something (e.g. the
   // "See all N results in Inventory" link from a search dropdown) re-enters it with a different
@@ -43,11 +66,10 @@ export function InventoryPage() {
     setSyncedUrlTitle(urlTitle)
     setTitleInput(urlTitle)
     setTitle(urlTitle)
-    setPage(0)
   }
 
   const { data: categories } = useCategories()
-  const { data, isLoading, isError, refetch, isRefetching } = useInventory({ title, categoryId: categoryId || undefined, inStockOnly, page })
+  const { data, isLoading, isError, refetch, isRefetching } = useInventory({ title, categoryId: categoryId || undefined, inStockOnly, page, size })
   const editingItem = data?.content.find((item) => item.id === editingId)
 
   const hasFilters = title !== '' || categoryId !== '' || inStockOnly
@@ -104,6 +126,15 @@ export function InventoryPage() {
             {categories?.map((c) => (
               <option key={c.id} value={c.id}>
                 {c.name}
+              </option>
+            ))}
+          </select>
+        </Field>
+        <Field label="Per page" className="sm:max-w-xs">
+          <select value={size} onChange={(e) => setSize(Number(e.target.value))} className="field-input">
+            {PAGE_SIZES.map((option) => (
+              <option key={option} value={option}>
+                {option}
               </option>
             ))}
           </select>
