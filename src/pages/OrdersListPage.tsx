@@ -8,6 +8,7 @@ import { useConfirm } from '../components/confirmContext'
 import { IconButton } from '../components/IconButton'
 import { LinkIcon } from '../components/icons'
 import { Modal } from '../components/Modal'
+import { OrderIcon } from '../components/OrderIcon'
 import { OrderIdHint } from '../components/OrderIdHint'
 import { OrderStatusBadge } from '../components/OrderStatusBadge'
 import { Pagination } from '../components/Pagination'
@@ -46,9 +47,12 @@ function ShipmentGroup({ orders }: { orders: OrderDto[] }) {
         ))}
       </div>
       <div className="flex items-center justify-between">
-        <Link to={`/orders/${active.id}`} className="font-medium text-ink hover:text-forest">
-          {active.items.length} item(s)
-        </Link>
+        <div className="flex items-center gap-2">
+          <OrderIcon iconUrl={active.iconUrl} />
+          <Link to={`/orders/${active.id}`} className="font-medium text-ink hover:text-forest">
+            {active.items.length} item(s)
+          </Link>
+        </div>
         <OrderStatusBadge status={active.status} />
       </div>
       {showShipment && active.shipmentId && (
@@ -167,6 +171,7 @@ export function OrdersListPage() {
                 {/* Visible, not just a title tooltip - same reasoning as the preorder/locked-item
                     disabled-reasons on OrderDetailPage: a tooltip never appears on touch devices. */}
                 {!group[0].open && <span className="text-xs text-muted">not open</span>}
+                <OrderIcon iconUrl={group[0].iconUrl} />
                 <Link to={`/orders/${group[0].id}`} className="font-medium text-ink hover:text-forest">
                   Order {orderDisplayName(group[0])}
                   <OrderIdHint id={group[0].id} nickname={group[0].nickname} /> — {group[0].items.length} item(s)

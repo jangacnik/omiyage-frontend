@@ -110,6 +110,8 @@ export interface OrderDto {
   createdAt: string
   updatedAt: string
   items: OrderItemDto[]
+  // Relative image URL of the first item, null when it has no image.
+  iconUrl?: string | null
   // Only set when this order is read as part of a shipment (GET /api/admin/shipments) - absent
   // (not just null) on every other endpoint that returns an order, so kept optional here rather
   // than forcing every other OrderDto fixture/call site to spell out "not applicable".

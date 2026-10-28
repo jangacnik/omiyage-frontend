@@ -39,6 +39,21 @@ describe('OrdersListPage', () => {
     expect(screen.getByText('Requested')).toBeInTheDocument()
   })
 
+  it("shows the first item's image as the order icon, or a placeholder without one", async () => {
+    server.use(
+      http.get(`${BASE}/api/orders/mine`, () =>
+        HttpResponse.json(page([order({ id: 'with-icon-1', iconUrl: '/api/images/abc' }), order({ id: 'no-icon-22' })])),
+      ),
+    )
+
+    const { container } = renderWithProviders(<OrdersListPage />)
+
+    await screen.findByText(/Order with-ico/)
+    expect(container.querySelectorAll('img')).toHaveLength(1)
+    expect(container.querySelector('img')).toHaveAttribute('src', `${BASE}/api/images/abc`)
+    expect(screen.getAllByTestId('order-icon')).toHaveLength(2)
+  })
+
   it('shows an empty state when there are no orders', async () => {
     server.use(http.get(`${BASE}/api/orders/mine`, () => HttpResponse.json(page([]))))
 
