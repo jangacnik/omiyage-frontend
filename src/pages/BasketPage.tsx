@@ -1,17 +1,20 @@
+import { useState } from 'react'
 import { useQueries } from '@tanstack/react-query'
 import { Link, useNavigate } from 'react-router-dom'
-import { useBasket, useConfirmBasket, useRemoveBasketLine, useUpdateBasketLine } from '../api/basket'
+import { useAddBasketToOrder, useBasket, useConfirmBasket, useRemoveBasketLine, useUpdateBasketLine } from '../api/basket'
 import { useInventoryItem } from '../api/inventory'
+import { orderDisplayName, useMyOrders } from '../api/orders'
 import { ErrorState } from '../components/ErrorState'
+import { Field } from '../components/Field'
 import { IconButton } from '../components/IconButton'
 import { QuantityStepper } from '../components/QuantityStepper'
 import { ButtonSpinner, Spinner } from '../components/Spinner'
 import { ThumbnailImage } from '../components/ThumbnailImage'
 import { TrashIcon } from '../components/icons'
-import { api, errorMessage } from '../lib/apiClient'
+import { ApiError, api, errorMessage } from '../lib/apiClient'
 import { formatMoney } from '../lib/currency'
 import { BASKET_RETENTION_DAYS } from '../lib/features'
-import type { BasketLineDto, Currency, InventoryItem } from '../types/api'
+import type { BasketLineDto, Currency, InventoryItem, OrderDto } from '../types/api'
 
 function BasketLineRow({ line }: { line: BasketLineDto }) {
   const { data: item } = useInventoryItem(line.inventoryItemId ?? undefined)
@@ -87,18 +90,43 @@ function useBasketTotals(lines: BasketLineDto[]): [Currency, number][] {
   return [...totals.entries()]
 }
 
+const NEW_ORDER = ''
+
 function BasketSummary({ lines }: { lines: BasketLineDto[] }) {
   const navigate = useNavigate()
   const confirm = useConfirmBasket()
+  const addToOrder = useAddBasketToOrder()
   const totals = useBasketTotals(lines)
   const itemCount = lines.reduce((sum, line) => sum + line.quantity, 0)
+  // Only the first page of the member's own orders - same accepted limitation as RequestCustomItemPage.
+  const { data: myOrders } = useMyOrders(0)
+  const openOrders = (myOrders?.content ?? []).filter((order) => order.open)
+  const [targetOrderId, setTargetOrderId] = useState(NEW_ORDER)
+  // The selected order may have closed since the list was fetched; fall back to a new order.
+  const target = openOrders.some((order) => order.id === targetOrderId) ? targetOrderId : NEW_ORDER
+  const mutation = target ? addToOrder : confirm
+  const closedMeanwhile = addToOrder.error instanceof ApiError && addToOrder.error.status === 409
 
   function submit() {
-    confirm.mutate(undefined, { onSuccess: (order) => navigate(`/orders/${order.id}`) })
+    const onSuccess = (order: OrderDto) => navigate(`/orders/${order.id}`)
+    if (target) addToOrder.mutate(target, { onSuccess })
+    else confirm.mutate(undefined, { onSuccess })
   }
 
   return (
     <div className="mt-4 border-t border-mist pt-4">
+      {openOrders.length > 0 && (
+        <Field label="Add to" className="mb-4">
+          <select value={target} onChange={(e) => setTargetOrderId(e.target.value)} className="field-input">
+            <option value={NEW_ORDER}>New order</option>
+            {openOrders.map((order) => (
+              <option key={order.id} value={order.id}>
+                Order {orderDisplayName(order)} ({order.items.length} item{order.items.length === 1 ? '' : 's'})
+              </option>
+            ))}
+          </select>
+        </Field>
+      )}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <p className="text-lg font-semibold text-ink">
@@ -108,18 +136,24 @@ function BasketSummary({ lines }: { lines: BasketLineDto[] }) {
           <p className="text-sm text-muted">Custom requests are counted at their max price. Shipping is not included.</p>
           <p className="text-sm text-muted">Unconfirmed baskets are kept for {BASKET_RETENTION_DAYS} days.</p>
         </div>
-        <button type="button" className="btn-primary px-6" disabled={confirm.isPending} onClick={submit}>
-          {confirm.isPending ? (
+        <button type="button" className="btn-primary px-6" disabled={mutation.isPending} onClick={submit}>
+          {mutation.isPending ? (
             <>
-              <ButtonSpinner /> Confirming
+              <ButtonSpinner /> {target ? 'Adding' : 'Confirming'}
             </>
+          ) : target ? (
+            'Add to order'
           ) : (
             'Confirm order'
           )}
         </button>
       </div>
-      {confirm.isError && (
-        <p className="error-text mt-2">{errorMessage(confirm.error, 'Could not confirm the order. Your basket is unchanged.')}</p>
+      {mutation.isError && (
+        <p className="error-text mt-2">
+          {closedMeanwhile
+            ? 'That order was closed in the meantime. Pick another order or start a new one - your basket is unchanged.'
+            : errorMessage(mutation.error, 'Could not submit the basket. Your basket is unchanged.')}
+        </p>
       )}
     </div>
   )
