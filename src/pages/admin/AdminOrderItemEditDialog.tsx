@@ -3,7 +3,8 @@ import { useAdminUpdateOrderItemContent, useUpdateOrderItem } from '../../api/ad
 import { Field } from '../../components/Field'
 import { ImageDropInput } from '../../components/ImageDropInput'
 import { QuantityStepper } from '../../components/QuantityStepper'
-import { ORDER_ITEM_STATUSES } from '../../lib/orderItemLabels'
+import { ORDER_ITEM_STATUS_OPTIONS } from '../../lib/orderItemLabels'
+import { StatusSelect } from '../../components/StatusSelect'
 import { ButtonSpinner } from '../../components/Spinner'
 import { IconButton } from '../../components/IconButton'
 import { CheckIcon, CloseIcon } from '../../components/icons'
@@ -112,18 +113,12 @@ export function AdminOrderItemEditDialog({
         <ImageDropInput label="Photo" initialImageKey={item.imageKey ?? undefined} onUploaded={setImageKey} />
 
         <Field label="Status">
-          <select
+          <StatusSelect
             value={status}
-            onChange={(e) => setStatus(e.target.value as OrderItemStatus)}
-            aria-label="Status"
-            className="field-input"
-          >
-            {ORDER_ITEM_STATUSES.map((s) => (
-              <option key={s} value={s}>
-                {s}
-              </option>
-            ))}
-          </select>
+            options={ORDER_ITEM_STATUS_OPTIONS}
+            onChange={(next) => next && setStatus(next)}
+            ariaLabel="Status"
+          />
         </Field>
 
         {/* Distinct tinted box: this pair is easy to mix up under time pressure since they sit right

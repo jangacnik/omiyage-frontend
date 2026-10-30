@@ -13,15 +13,18 @@ const TONES: Record<StatusTone, { pill: string; dot: string }> = {
   stopped: { pill: 'bg-danger-soft text-danger', dot: 'bg-danger' },
 }
 
+export function StatusDot({ tone }: { tone: StatusTone }) {
+  return <span className={`h-1.5 w-1.5 shrink-0 rounded-full ${TONES[tone].dot}`} aria-hidden="true" />
+}
+
 export function StatusPill({ tone, label, size = 'md' }: { tone: StatusTone; label: string; size?: 'sm' | 'md' }) {
-  const { pill, dot } = TONES[tone]
   return (
     <span
       className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 font-medium ${
         size === 'sm' ? 'text-xs' : 'text-sm'
-      } ${pill}`}
+      } ${TONES[tone].pill}`}
     >
-      <span className={`h-1.5 w-1.5 shrink-0 rounded-full ${dot}`} aria-hidden="true" />
+      <StatusDot tone={tone} />
       {label}
     </span>
   )

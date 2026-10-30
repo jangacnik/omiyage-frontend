@@ -18,7 +18,8 @@ import { Field } from '../../components/Field'
 import { OrderItemCard } from '../../components/OrderItemCard'
 import { AddItemPanel } from '../../components/OrderItemBuilder'
 import { preservedItemFields } from '../../lib/orderItemDrafts'
-import { ORDER_ITEM_STATUSES, ORDER_ITEM_STATUS_LABELS } from '../../lib/orderItemLabels'
+import { ORDER_ITEM_STATUS_OPTIONS } from '../../lib/orderItemLabels'
+import { StatusSelect } from '../../components/StatusSelect'
 import { ButtonSpinner } from '../../components/Spinner'
 import { IconButton } from '../../components/IconButton'
 import { CheckIcon, CloseIcon, EditIcon, MoveIcon, TrashIcon } from '../../components/icons'
@@ -112,19 +113,14 @@ function QuickStatusSelect({ orderId, item }: { orderId: string; item: OrderItem
 
   return (
     <div className="flex flex-col items-end gap-1">
-      <select
+      <StatusSelect
         value={item.status}
-        onChange={(e) => updateItem.mutate({ orderId, itemId: item.id, ...preservedItemFields(item), status: e.target.value as OrderItemStatus })}
-        aria-label={`Quick status for ${item.title}`}
-        className="field-input w-32 py-1 text-xs"
+        options={ORDER_ITEM_STATUS_OPTIONS}
+        onChange={(status) => status && updateItem.mutate({ orderId, itemId: item.id, ...preservedItemFields(item), status })}
+        ariaLabel={`Quick status for ${item.title}`}
+        className="w-40"
         disabled={updateItem.isPending}
-      >
-        {ORDER_ITEM_STATUSES.map((s) => (
-          <option key={s} value={s}>
-            {ORDER_ITEM_STATUS_LABELS[s]}
-          </option>
-        ))}
-      </select>
+      />
       {/* The select snaps back to item.status (server cache) on failure, which reads as "did
           nothing" with no other signal - every other mutation on this row shows its own error. */}
       {updateItem.isError && <p className="error-text text-xs">{errorMessage(updateItem.error, 'Could not update status.')}</p>}
@@ -305,19 +301,13 @@ function BulkEditBar({
         </button>
       </div>
       <Field label="Set status" hint="Leave unset to only change price" className="sm:max-w-xs">
-        <select
+        <StatusSelect
           value={status}
-          onChange={(e) => setStatus(e.target.value as OrderItemStatus | '')}
-          className="field-input"
-          aria-label="Bulk status"
-        >
-          <option value="">Don't change</option>
-          {ORDER_ITEM_STATUSES.map((s) => (
-            <option key={s} value={s}>
-              {ORDER_ITEM_STATUS_LABELS[s]}
-            </option>
-          ))}
-        </select>
+          options={ORDER_ITEM_STATUS_OPTIONS}
+          onChange={setStatus}
+          emptyLabel="Don't change"
+          ariaLabel="Bulk status"
+        />
       </Field>
       {/* Same tinted-box treatment as the single-item edit dialog: this pair is the one most
           likely to get mixed up under time pressure, now with N items' blast radius at once. */}
