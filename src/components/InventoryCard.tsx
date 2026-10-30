@@ -5,7 +5,8 @@ import { StatusPill } from './StatusPill'
 import { ThumbnailImage } from './ThumbnailImage'
 import { formatGrams, formatMoney } from '../lib/currency'
 import { CartIcon, CheckIcon, EditIcon, TrashIcon } from './icons'
-import { cartItemFromInventoryItem, useAddToCartFeedback, useCartStore } from '../store/cartStore'
+import { useAddInventoryItem } from '../api/basket'
+import { useAddToCartFeedback } from '../store/cartStore'
 import { Modal } from './Modal'
 import { InventoryDetailPage } from '../pages/InventoryDetailPage'
 import { IconButton } from './IconButton'
@@ -25,7 +26,7 @@ export function InventoryCard({
   onEdit?: () => void
   onDelete?: () => void
 }) {
-  const addToCart = useCartStore((s) => s.addItem)
+  const addItem = useAddInventoryItem()
   const { justAdded, announce } = useAddToCartFeedback()
   const [quantity, setQuantity] = useState(1)
   const [showDetail, setShowDetail] = useState(false)
@@ -40,9 +41,10 @@ export function InventoryCard({
   }
 
   function handleAddToCart() {
-    addToCart(cartItemFromInventoryItem(item), quantity)
-    announce()
-    setQuantity(1)
+    addItem(item, quantity, () => {
+      announce()
+      setQuantity(1)
+    })
   }
 
   return (

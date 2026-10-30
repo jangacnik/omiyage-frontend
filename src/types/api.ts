@@ -246,6 +246,17 @@ export interface UserDashboardEntryDto {
   pendingAmounts: PendingAmountDto[]
 }
 
+export interface BasketLineDto {
+  id: string
+  inventoryItemId: string | null
+  customTitle: string | null
+  customDescription: string | null
+  currency: Currency
+  maxPrice: number | null
+  quantity: number
+  createdAt: string
+}
+
 export interface UserProfileDto {
   id: string
   nickname: string

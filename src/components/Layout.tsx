@@ -5,15 +5,18 @@ import { useAuthStore } from '../store/authStore'
 import { cartItemCount, useCartStore } from '../store/cartStore'
 import { Avatar } from './Avatar'
 import { BrandMark } from './BrandMark'
+import { useBasket } from '../api/basket'
+import { BASKET_ENABLED } from '../lib/features'
 import { CartIcon } from './icons'
 import { OnboardingModal } from './OnboardingModal'
 
 function CartNavLink({ count, onClick }: { count: number; onClick?: () => void }) {
+  const name = BASKET_ENABLED ? 'Basket' : 'Cart'
   return (
     <NavLink
-      to="/cart"
+      to={BASKET_ENABLED ? '/basket' : '/cart'}
       onClick={onClick}
-      aria-label={count > 0 ? `Cart, ${count} item${count === 1 ? '' : 's'}` : 'Cart'}
+      aria-label={count > 0 ? `${name}, ${count} item${count === 1 ? '' : 's'}` : name}
       className={({ isActive }) =>
         `relative flex h-11 w-11 shrink-0 items-center justify-center rounded-lg text-paper/80 hover:bg-paper/10 hover:text-paper ${isActive ? 'bg-paper/10 text-paper' : ''}`
       }
@@ -96,7 +99,9 @@ export function Layout() {
   const logout = useAuthStore((s) => s.logout)
   const isAdmin = claims?.role === 'ADMIN'
   const navItems = NAV_ITEMS.filter((item) => item.admin === isAdmin)
-  const cartCount = useCartStore((s) => cartItemCount(s.items))
+  const localCartCount = useCartStore((s) => cartItemCount(s.items))
+  const { data: basketLines } = useBasket(BASKET_ENABLED)
+  const cartCount = BASKET_ENABLED ? (basketLines ?? []).reduce((sum, line) => sum + line.quantity, 0) : localCartCount
   const [menuOpen, setMenuOpen] = useState(false)
   const closeMenu = () => setMenuOpen(false)
   const location = useLocation()

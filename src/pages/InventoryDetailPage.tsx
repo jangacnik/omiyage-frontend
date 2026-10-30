@@ -11,7 +11,8 @@ import { ThumbnailImage } from '../components/ThumbnailImage'
 import { formatMoney } from '../lib/currency'
 import { CheckIcon } from '../components/icons'
 import { ApiError } from '../lib/apiClient'
-import { cartItemFromInventoryItem, useAddToCartFeedback, useCartStore } from '../store/cartStore'
+import { useAddInventoryItem } from '../api/basket'
+import { useAddToCartFeedback } from '../store/cartStore'
 
 function ImageCarousel({ images, alt }: { images: string[]; alt: string }) {
   const [index, setIndex] = useState(0)
@@ -68,7 +69,7 @@ export function InventoryDetailPage({ id: idProp, onClose }: { id?: string; onCl
   const params = useParams<{ id: string }>()
   const id = idProp ?? params.id
   const { data: item, isLoading, isError, error, refetch, isRefetching } = useInventoryItem(id)
-  const addToCart = useCartStore((s) => s.addItem)
+  const addItem = useAddInventoryItem()
   const { justAdded, announce } = useAddToCartFeedback()
   const [quantity, setQuantity] = useState(1)
 
@@ -103,9 +104,10 @@ export function InventoryDetailPage({ id: idProp, onClose }: { id?: string; onCl
 
   function handleAddToCart() {
     if (!item) return
-    addToCart(cartItemFromInventoryItem(item), quantity)
-    announce()
-    setQuantity(1)
+    addItem(item, quantity, () => {
+      announce()
+      setQuantity(1)
+    })
   }
 
   return (

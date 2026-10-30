@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
+import { useAddBasketLine } from '../api/basket'
 import { useInventoryItem } from '../api/inventory'
+import { BASKET_ENABLED } from '../lib/features'
 import { orderDisplayName, useAddMyOrderItem, useCreateOrder, useMyOrders } from '../api/orders'
 import { CustomItemForm } from '../components/OrderItemBuilder'
 import type { DraftItem } from '../lib/orderItemDrafts'
@@ -27,6 +29,7 @@ export function RequestCustomItemPage() {
   const [nickname, setNickname] = useState('')
   const createOrder = useCreateOrder()
   const addItem = useAddMyOrderItem()
+  const addBasketLine = useAddBasketLine()
 
   if (isLoading) return <Spinner fullPage label="Fetching item" />
   if (!item) return <p className="error-text">Item not found.</p>
@@ -35,6 +38,19 @@ export function RequestCustomItemPage() {
   // edits once it resolves, so a failed submission keeps what they typed instead of reverting to
   // the listing's defaults. The error itself still renders below via isError regardless.
   async function submit(draft: DraftItem) {
+    if (BASKET_ENABLED) {
+      // The basket keeps title, description, currency, max price and quantity only - condition,
+      // link and image from the form are not carried over yet.
+      await addBasketLine.mutateAsync({
+        customTitle: draft.input.title,
+        customDescription: draft.input.description,
+        currency: draft.input.currency,
+        maxPrice: draft.input.maxPrice,
+        quantity: draft.input.quantity,
+      })
+      navigate('/basket')
+      return
+    }
     const order = targetOrderId
       ? await addItem.mutateAsync({ orderId: targetOrderId, ...draft.input })
       : await createOrder.mutateAsync({ items: [draft.input], nickname: nickname.trim() || undefined })
@@ -48,18 +64,20 @@ export function RequestCustomItemPage() {
         Set your own condition, max price, or quantity for this item - unlike Add to cart, which always charges the listed price.
       </p>
 
-      <Field label="Add to" hint={openOrders.length === 0 ? "You don't have any open orders yet, so this starts a new one" : undefined} className="mb-4">
-        <select value={targetOrderId} onChange={(e) => setTargetOrderId(e.target.value)} className="field-input">
-          <option value={NEW_ORDER}>New order</option>
-          {openOrders.map((order) => (
-            <option key={order.id} value={order.id}>
-              Order {orderDisplayName(order)} ({order.items.length} item{order.items.length === 1 ? '' : 's'})
-            </option>
-          ))}
-        </select>
-      </Field>
+      {!BASKET_ENABLED && (
+        <Field label="Add to" hint={openOrders.length === 0 ? "You don't have any open orders yet, so this starts a new one" : undefined} className="mb-4">
+          <select value={targetOrderId} onChange={(e) => setTargetOrderId(e.target.value)} className="field-input">
+            <option value={NEW_ORDER}>New order</option>
+            {openOrders.map((order) => (
+              <option key={order.id} value={order.id}>
+                Order {orderDisplayName(order)} ({order.items.length} item{order.items.length === 1 ? '' : 's'})
+              </option>
+            ))}
+          </select>
+        </Field>
+      )}
 
-      {!targetOrderId && (
+      {!BASKET_ENABLED && !targetOrderId && (
         <Field label="Order name" hint="Optional - a name to tell this order apart from your others" className="mb-4">
           <input className="field-input" value={nickname} onChange={(e) => setNickname(e.target.value)} />
         </Field>
@@ -67,7 +85,7 @@ export function RequestCustomItemPage() {
 
       <CustomItemForm
         onAdd={submit}
-        submitLabel={targetOrderId ? 'Add to order' : 'Submit request'}
+        submitLabel={BASKET_ENABLED ? 'Add to basket' : targetOrderId ? 'Add to order' : 'Submit request'}
         defaultValues={{
           title: item.title,
           description: item.description ?? undefined,
@@ -77,8 +95,10 @@ export function RequestCustomItemPage() {
           imageKey: item.images[0],
         }}
       />
-      {(createOrder.isError || addItem.isError) && (
-        <p className="error-text mt-2">{errorMessage(createOrder.error ?? addItem.error, 'Could not submit this request.')}</p>
+      {(createOrder.isError || addItem.isError || addBasketLine.isError) && (
+        <p className="error-text mt-2">
+          {errorMessage(createOrder.error ?? addItem.error ?? addBasketLine.error, 'Could not submit this request.')}
+        </p>
       )}
     </div>
   )

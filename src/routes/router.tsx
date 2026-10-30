@@ -24,6 +24,7 @@ export const router = createBrowserRouter([
               { path: '/inventory/:id', ...page(() => import('../pages/InventoryDetailPage'), 'InventoryDetailPage', 'Item') },
               { path: '/inventory/:id/request', ...page(() => import('../pages/RequestCustomItemPage'), 'RequestCustomItemPage', 'Request item') },
               { path: '/cart', ...page(() => import('../pages/CartPage'), 'CartPage', 'Cart') },
+              { path: '/basket', ...page(() => import('../pages/BasketPage'), 'BasketPage', 'Basket') },
               { path: '/orders/new', ...page(() => import('../pages/OrdersNewPage'), 'OrdersNewPage', 'New order') },
               { path: '/orders', ...page(() => import('../pages/OrdersListPage'), 'OrdersListPage', 'My orders') },
               { path: '/orders/:id', ...page(() => import('../pages/OrderDetailPage'), 'OrderDetailPage', 'Order') },
