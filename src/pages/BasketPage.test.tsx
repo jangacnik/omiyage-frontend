@@ -100,13 +100,13 @@ describe('BasketPage', () => {
     const user = userEvent.setup()
     server.use(
       http.get(`${BASE}/api/basket`, () => HttpResponse.json([line()])),
-      http.post(`${BASE}/api/basket/confirm`, () => HttpResponse.json({ message: 'basket is empty' }, { status: 409 })),
+      http.post(`${BASE}/api/basket/confirm`, () => HttpResponse.json({ error: 'basket is empty' }, { status: 409 })),
     )
 
     renderWithProviders(<BasketPage />)
     await user.click(await screen.findByRole('button', { name: 'Confirm order' }))
 
-    expect(await screen.findByText(/basket is empty|Could not confirm/)).toBeInTheDocument()
+    expect(await screen.findByText('basket is empty')).toBeInTheDocument()
     expect(screen.getByText('Rare figure')).toBeInTheDocument()
   })
 
