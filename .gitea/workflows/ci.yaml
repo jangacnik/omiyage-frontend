@@ -14,7 +14,7 @@ jobs:
           fetch-depth: 0
       - name: Test
         run: |
-          docker run --rm --user "$(id -u):$(id -g)" -e HOME=/tmp -v "$PWD":/w -w /w node:22.12-alpine sh -c "npm ci && npm run lint && npm run test:coverage && npm run build"
+          docker run --rm --user "$(id -u):$(id -g)" -e HOME=/tmp -v "$PWD":/w -w /w node:lts-alpine sh -c "npm ci && npm run lint && npm run test:coverage && npm run build"
       - name: Upload coverage report
         if: always()
         uses: actions/upload-artifact@v3
@@ -27,7 +27,7 @@ jobs:
         run: |
           git fetch -q origin master
           git diff origin/master...HEAD > pr.diff
-          docker run --rm -v "$PWD":/w -w /w python:3.13-alpine sh -c "pip install -q diff-cover && diff-cover coverage/cobertura-coverage.xml --diff-file pr.diff --fail-under=80"
+          docker run --rm -v "$PWD":/w -w /w python:alpine sh -c "pip install -q diff-cover && diff-cover coverage/cobertura-coverage.xml --diff-file pr.diff --fail-under=80"
   build:
     needs: test
     if: github.ref == 'refs/heads/master'
