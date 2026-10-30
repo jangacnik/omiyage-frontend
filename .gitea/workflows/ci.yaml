@@ -26,6 +26,10 @@ jobs:
           docker build --build-arg VITE_API_BASE_URL=https://omiyage-api.gacnikhome.duckdns.org -f Dockerfile -t "$IMAGE:$TAG" -t "$IMAGE:latest" .
           docker push "$IMAGE:$TAG"
           docker push "$IMAGE:latest"
+      - name: Keep only the 5 newest local images
+        run: |
+          docker images "$IMAGE" --format '{{.ID}}' | awk '!seen[$0]++' | tail -n +6 | xargs -r docker rmi -f || true
+          docker image prune -f
       - name: Bump image tag in homelab-gitops
         run: |
           TAG=$(echo "$GITHUB_SHA" | cut -c1-7)
