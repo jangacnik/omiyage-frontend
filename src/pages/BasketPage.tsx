@@ -1,15 +1,17 @@
-import { Link } from 'react-router-dom'
-import { useBasket, useRemoveBasketLine, useUpdateBasketLine } from '../api/basket'
+import { useQueries } from '@tanstack/react-query'
+import { Link, useNavigate } from 'react-router-dom'
+import { useBasket, useConfirmBasket, useRemoveBasketLine, useUpdateBasketLine } from '../api/basket'
 import { useInventoryItem } from '../api/inventory'
 import { ErrorState } from '../components/ErrorState'
 import { IconButton } from '../components/IconButton'
 import { QuantityStepper } from '../components/QuantityStepper'
-import { Spinner } from '../components/Spinner'
+import { ButtonSpinner, Spinner } from '../components/Spinner'
 import { ThumbnailImage } from '../components/ThumbnailImage'
 import { TrashIcon } from '../components/icons'
-import { errorMessage } from '../lib/apiClient'
+import { api, errorMessage } from '../lib/apiClient'
 import { formatMoney } from '../lib/currency'
-import type { BasketLineDto } from '../types/api'
+import { BASKET_RETENTION_DAYS } from '../lib/features'
+import type { BasketLineDto, Currency, InventoryItem } from '../types/api'
 
 function BasketLineRow({ line }: { line: BasketLineDto }) {
   const { data: item } = useInventoryItem(line.inventoryItemId ?? undefined)
@@ -65,6 +67,64 @@ function BasketLineRow({ line }: { line: BasketLineDto }) {
   )
 }
 
+/** Shares the ['inventory-item', id] cache with BasketLineRow, so this adds no extra requests. */
+function useBasketTotals(lines: BasketLineDto[]): [Currency, number][] {
+  const items = useQueries({
+    queries: lines.map((line) => ({
+      queryKey: ['inventory-item', line.inventoryItemId ?? undefined],
+      queryFn: () => api.get<InventoryItem>(`/api/inventory/${line.inventoryItemId}`),
+      enabled: line.inventoryItemId !== null,
+    })),
+  })
+  const totals = new Map<Currency, number>()
+  lines.forEach((line, index) => {
+    const item = items[index].data as InventoryItem | undefined
+    const unitPrice = item?.priceAmount ?? line.maxPrice
+    if (unitPrice == null) return
+    const currency = item?.currency ?? line.currency
+    totals.set(currency, (totals.get(currency) ?? 0) + unitPrice * line.quantity)
+  })
+  return [...totals.entries()]
+}
+
+function BasketSummary({ lines }: { lines: BasketLineDto[] }) {
+  const navigate = useNavigate()
+  const confirm = useConfirmBasket()
+  const totals = useBasketTotals(lines)
+  const itemCount = lines.reduce((sum, line) => sum + line.quantity, 0)
+
+  function submit() {
+    confirm.mutate(undefined, { onSuccess: (order) => navigate(`/orders/${order.id}`) })
+  }
+
+  return (
+    <div className="mt-4 border-t border-mist pt-4">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <p className="text-lg font-semibold text-ink">
+            {itemCount} item{itemCount === 1 ? '' : 's'}
+            {totals.length > 0 && `: ${totals.map(([currency, amount]) => formatMoney(amount, currency)).join(' + ')}`}
+          </p>
+          <p className="text-sm text-muted">Custom requests are counted at their max price. Shipping is not included.</p>
+          <p className="text-sm text-muted">Unconfirmed baskets are kept for {BASKET_RETENTION_DAYS} days.</p>
+        </div>
+        <button type="button" className="btn-primary px-6" disabled={confirm.isPending} onClick={submit}>
+          {confirm.isPending ? (
+            <>
+              <ButtonSpinner /> Confirming
+            </>
+          ) : (
+            'Confirm order'
+          )}
+        </button>
+      </div>
+      {confirm.isError && (
+        <p className="error-text mt-2">{errorMessage(confirm.error, 'Could not confirm the order. Your basket is unchanged.')}</p>
+      )}
+    </div>
+  )
+}
+
 export function BasketPage() {
   const { data: lines, isLoading, isError, refetch, isRefetching } = useBasket()
 
@@ -92,6 +152,7 @@ export function BasketPage() {
           <BasketLineRow key={line.id} line={line} />
         ))}
       </div>
+      <BasketSummary lines={lines} />
     </div>
   )
 }

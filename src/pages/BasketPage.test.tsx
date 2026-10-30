@@ -1,6 +1,7 @@
 import { http, HttpResponse } from 'msw'
 import { screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import { Route, Routes } from 'react-router-dom'
 import { describe, expect, it } from 'vitest'
 import { server } from '../test/server'
 import { renderWithProviders } from '../test/renderWithProviders'
@@ -59,6 +60,54 @@ describe('BasketPage', () => {
     await waitFor(() =>
       expect(body).toEqual({ customTitle: 'Rare figure', customDescription: 'boxed', maxPrice: 1500, quantity: 3 }),
     )
+  })
+
+  it('summarises the basket and shows the retention period', async () => {
+    server.use(http.get(`${BASE}/api/basket`, () => HttpResponse.json([line()])))
+
+    renderWithProviders(<BasketPage />)
+
+    expect(await screen.findByText(/2 items: .*3,000/)).toBeInTheDocument()
+    expect(screen.getByText('Unconfirmed baskets are kept for 7 days.')).toBeInTheDocument()
+  })
+
+  it('confirms once and opens the created order', async () => {
+    const user = userEvent.setup()
+    let confirmCalls = 0
+    server.use(
+      http.get(`${BASE}/api/basket`, () => HttpResponse.json([line()])),
+      http.post(`${BASE}/api/basket/confirm`, async () => {
+        confirmCalls += 1
+        await new Promise((resolve) => setTimeout(resolve, 50))
+        return HttpResponse.json({ id: 'order-9' })
+      }),
+    )
+
+    renderWithProviders(
+      <Routes>
+        <Route path="/" element={<BasketPage />} />
+        <Route path="/orders/:id" element={<p>Order page</p>} />
+      </Routes>,
+    )
+    const button = await screen.findByRole('button', { name: 'Confirm order' })
+    await user.dblClick(button)
+
+    expect(await screen.findByText('Order page')).toBeInTheDocument()
+    expect(confirmCalls).toBe(1)
+  })
+
+  it('keeps the basket and shows the error when confirming fails', async () => {
+    const user = userEvent.setup()
+    server.use(
+      http.get(`${BASE}/api/basket`, () => HttpResponse.json([line()])),
+      http.post(`${BASE}/api/basket/confirm`, () => HttpResponse.json({ message: 'basket is empty' }, { status: 409 })),
+    )
+
+    renderWithProviders(<BasketPage />)
+    await user.click(await screen.findByRole('button', { name: 'Confirm order' }))
+
+    expect(await screen.findByText(/basket is empty|Could not confirm/)).toBeInTheDocument()
+    expect(screen.getByText('Rare figure')).toBeInTheDocument()
   })
 
   it('removes a line', async () => {

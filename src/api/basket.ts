@@ -2,7 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { api } from '../lib/apiClient'
 import { BASKET_ENABLED } from '../lib/features'
 import { cartItemFromInventoryItem, useCartStore } from '../store/cartStore'
-import type { BasketLineDto, Currency, InventoryItem } from '../types/api'
+import type { BasketLineDto, Currency, InventoryItem, OrderDto } from '../types/api'
 
 export interface AddBasketLineInput {
   inventoryItemId?: string
@@ -52,6 +52,17 @@ export function useRemoveBasketLine() {
   return useMutation({
     mutationFn: (id: string) => api.delete<void>(`/api/basket/lines/${id}`),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: BASKET_KEY }),
+  })
+}
+
+export function useConfirmBasket() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: () => api.post<OrderDto>('/api/basket/confirm'),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: BASKET_KEY })
+      queryClient.invalidateQueries({ queryKey: ['orders'] })
+    },
   })
 }
 
