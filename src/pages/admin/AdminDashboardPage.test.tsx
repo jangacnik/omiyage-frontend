@@ -23,6 +23,7 @@ function userProfile(overrides: Partial<UserProfileDto> = {}): UserProfileDto {
     city: null,
     country: null,
     avatarKey: null,
+    discordName: null,
     ...overrides,
   }
 }
