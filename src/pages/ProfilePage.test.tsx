@@ -23,6 +23,7 @@ function profile(overrides: Partial<UserProfileDto> = {}): UserProfileDto {
     city: null,
     country: null,
     avatarKey: null,
+    discordName: null,
     ...overrides,
   }
 }
@@ -57,6 +58,45 @@ describe('ProfilePage', () => {
 
     await waitFor(() => expect(screen.getByText('Saved.')).toBeInTheDocument())
     expect(capturedBody).toMatchObject({ addressLine1: '1 Shibuya', city: 'Tokyo' })
+  })
+
+  it('trims the discord name, and omits it when empty', async () => {
+    const user = userEvent.setup()
+    const bodies: Record<string, unknown>[] = []
+    server.use(
+      http.get(`${BASE}/api/users/me`, () => HttpResponse.json(profile())),
+      http.patch(`${BASE}/api/users/me`, async ({ request }) => {
+        bodies.push((await request.json()) as Record<string, unknown>)
+        return HttpResponse.json(profile())
+      }),
+    )
+
+    renderWithProviders(<ProfilePage />)
+    await screen.findByText('Nickname: bob')
+
+    await user.type(screen.getByLabelText('Discord name'), '  bob#1  ')
+    expect(screen.getByText(/9\/32/)).toBeInTheDocument()
+    await user.click(screen.getByText('Save'))
+    await waitFor(() => expect(bodies).toHaveLength(1))
+    expect(bodies[0].discordName).toBe('bob#1')
+
+    await user.clear(screen.getByLabelText('Discord name'))
+    await user.click(screen.getByText('Save'))
+    await waitFor(() => expect(bodies).toHaveLength(2))
+    expect(bodies[1].discordName).toBeUndefined()
+  })
+
+  it('rejects a discord name longer than 32 characters', async () => {
+    const user = userEvent.setup()
+    server.use(http.get(`${BASE}/api/users/me`, () => HttpResponse.json(profile())))
+
+    renderWithProviders(<ProfilePage />)
+    await screen.findByText('Nickname: bob')
+
+    await user.type(screen.getByLabelText('Discord name'), 'a'.repeat(33))
+    await user.click(screen.getByText('Save'))
+
+    expect(await screen.findByText('At most 32 characters')).toBeInTheDocument()
   })
 
   it('rejects an invalid email', async () => {

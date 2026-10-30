@@ -1,7 +1,7 @@
 import { ErrorState } from '../components/ErrorState'
 import { useEffect, useState } from 'react'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { useForm } from 'react-hook-form'
+import { useForm, useWatch } from 'react-hook-form'
 import { z } from 'zod'
 import { useChangeMyPassword, useMyProfile, useUpdateMyNickname, useUpdateProfile } from '../api/profile'
 import { ApiError } from '../lib/apiClient'
@@ -159,6 +159,8 @@ function ChangePasswordForm() {
   )
 }
 
+const DISCORD_NAME_MAX = 32
+
 const profileSchema = z.object({
   email: z.string().email('Invalid email').optional().or(z.literal('')),
   phone: z.string().optional(),
@@ -169,6 +171,7 @@ const profileSchema = z.object({
   postalCode: z.string().optional(),
   city: z.string().optional(),
   country: z.string().optional(),
+  discordName: z.string().max(DISCORD_NAME_MAX, `At most ${DISCORD_NAME_MAX} characters`).optional(),
 })
 
 type ProfileForm = z.infer<typeof profileSchema>
@@ -180,8 +183,10 @@ export function ProfilePage() {
     register,
     handleSubmit,
     reset,
+    control,
     formState: { errors },
   } = useForm<ProfileForm>({ resolver: zodResolver(profileSchema) })
+  const discordName = useWatch({ control, name: 'discordName' })
 
   useEffect(() => {
     if (profile) {
@@ -195,6 +200,7 @@ export function ProfilePage() {
         postalCode: profile.postalCode ?? '',
         city: profile.city ?? '',
         country: profile.country ?? '',
+        discordName: profile.discordName ?? '',
       })
     }
   }, [profile, reset])
@@ -210,6 +216,7 @@ export function ProfilePage() {
       postalCode: data.postalCode || undefined,
       city: data.city || undefined,
       country: data.country || undefined,
+      discordName: data.discordName?.trim() || undefined,
     })
   }
 
@@ -286,6 +293,15 @@ export function ProfilePage() {
           </label>
           <input id="country" className="field-input" {...register('country')} aria-label="Country" />
         </div>
+
+        <Field
+          label="Discord name"
+          hint={`Used so the bot can mention you; visible to admins only. ${(discordName ?? '').length}/${DISCORD_NAME_MAX}`}
+          error={errors.discordName?.message}
+          className="sm:col-span-2"
+        >
+          <input className="field-input" {...register('discordName')} aria-label="Discord name" />
+        </Field>
 
         <div className="flex flex-col gap-2 sm:col-span-2 sm:flex-row sm:items-center">
           <button type="submit" className="btn-primary self-start" disabled={updateProfile.isPending}>

@@ -259,4 +259,5 @@ export interface UserProfileDto {
   city: string | null
   country: string | null
   avatarKey: string | null
+  discordName: string | null
 }
