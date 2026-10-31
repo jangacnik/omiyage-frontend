@@ -3,6 +3,7 @@ import { AnchoredDialog } from './AnchoredDialog'
 import { useTriggerAnchor } from './useTriggerAnchor'
 import { DialogCloseButton } from './DialogCloseButton'
 import { ItemCardShell } from './ItemCardShell'
+import { LinkifiedText } from './LinkifiedText'
 import { OrderItemStatusBadge } from './OrderItemStatusBadge'
 import { PreorderBadge } from './PreorderBadge'
 import { StatusPill } from './StatusPill'
@@ -42,7 +43,7 @@ function ItemDetails({ item, descriptionClassName = 'mt-0.5', titleId }: { item:
         {item.isPreorder && <PreorderBadge expectedReleaseDate={item.expectedReleaseDate} />}
       </div>
 
-      {item.description && <p className={`${descriptionClassName} text-sm text-muted`}>{item.description}</p>}
+      {item.description && <p className={`${descriptionClassName} text-sm text-muted`}><LinkifiedText text={item.description} /></p>}
 
       <p className="mt-1 text-sm text-muted">
         {item.condition && `${CONDITION_LABELS[item.condition]} · `}
