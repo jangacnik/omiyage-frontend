@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/react'
 import { createMemoryRouter, RouterProvider } from 'react-router-dom'
-import { describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it } from 'vitest'
 import { RouteTitle } from './RouteTitle'
 
 function renderAt(path: string) {
@@ -26,6 +26,10 @@ function renderAt(path: string) {
 }
 
 describe('RouteTitle', () => {
+  afterEach(() => {
+    document.title = ''
+  })
+
   it('sets the document title from the route handle', () => {
     renderAt('/titled')
 

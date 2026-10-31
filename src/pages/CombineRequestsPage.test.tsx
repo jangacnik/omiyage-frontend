@@ -1,5 +1,5 @@
 import { http, HttpResponse } from 'msw'
-import { screen, waitFor } from '@testing-library/react'
+import { screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it } from 'vitest'
 import { server } from '../test/server'
@@ -50,7 +50,8 @@ describe('CombineRequestsPage', () => {
     expect(await screen.findByText('Could not load incoming requests.')).toBeInTheDocument()
     expect(await screen.findByText('Could not load outgoing requests.')).toBeInTheDocument()
 
-    await user.click(screen.getAllByText('Try again')[0])
+    const incomingSection = screen.getByRole('heading', { name: 'Incoming' }).closest('section') as HTMLElement
+    await user.click(within(incomingSection).getByText('Try again'))
 
     expect(await screen.findByText('Nothing waiting on you')).toBeInTheDocument()
   })
@@ -75,7 +76,7 @@ describe('CombineRequestsPage', () => {
     expect(screen.getByText('shipment ship-123')).toBeInTheDocument()
   })
 
-  it('accepts and declines incoming requests via the matching endpoints', async () => {
+  it('accepts an incoming request via the accept endpoint', async () => {
     const user = userEvent.setup()
     const calls: string[] = []
     useLists([request], [])
@@ -84,6 +85,19 @@ describe('CombineRequestsPage', () => {
         calls.push('accept')
         return HttpResponse.json(request)
       }),
+    )
+    renderWithProviders(<CombineRequestsPage />)
+
+    await user.click(await screen.findByLabelText('Accept'))
+
+    await waitFor(() => expect(calls).toEqual(['accept']))
+  })
+
+  it('declines an incoming request via the decline endpoint', async () => {
+    const user = userEvent.setup()
+    const calls: string[] = []
+    useLists([request], [])
+    server.use(
       http.post(`${BASE}/api/orders/combine-requests/req-1/decline`, () => {
         calls.push('decline')
         return HttpResponse.json(request)
@@ -91,10 +105,9 @@ describe('CombineRequestsPage', () => {
     )
     renderWithProviders(<CombineRequestsPage />)
 
-    await user.click(await screen.findByLabelText('Accept'))
-    await waitFor(() => expect(calls).toEqual(['accept']))
-    await user.click(screen.getByLabelText('Decline'))
-    await waitFor(() => expect(calls).toEqual(['accept', 'decline']))
+    await user.click(await screen.findByLabelText('Decline'))
+
+    await waitFor(() => expect(calls).toEqual(['decline']))
   })
 
   it('shows an error when accepting fails', async () => {

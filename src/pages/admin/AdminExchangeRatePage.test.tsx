@@ -1,5 +1,5 @@
 import { http, HttpResponse } from 'msw'
-import { screen, waitFor } from '@testing-library/react'
+import { fireEvent, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it } from 'vitest'
 import { server } from '../../test/server'
@@ -13,6 +13,10 @@ function useRates() {
     http.get(`${BASE}/api/admin/exchange-rate`, () => HttpResponse.json({ jpyPerEur: 160 })),
     http.get(`${BASE}/api/admin/exchange-rate/shipping`, () => HttpResponse.json({ shippingJpyPerEur: 170 })),
   )
+}
+
+function section(label: string) {
+  return within(screen.getByLabelText(label).closest('form') as HTMLElement)
 }
 
 describe('AdminExchangeRatePage', () => {
@@ -39,7 +43,7 @@ describe('AdminExchangeRatePage', () => {
     const input = await screen.findByLabelText('JPY per EUR')
     await user.clear(input)
     await user.type(input, '155.5')
-    await user.click(screen.getAllByText('Save')[0])
+    await user.click(section('JPY per EUR').getByText('Save'))
 
     expect(await screen.findByText('Saved.')).toBeInTheDocument()
     expect(body).toEqual({ jpyPerEur: 155.5 })
@@ -60,7 +64,7 @@ describe('AdminExchangeRatePage', () => {
     const input = await screen.findByLabelText('Shipping JPY per EUR')
     await user.clear(input)
     await user.type(input, '180')
-    await user.click(screen.getAllByText('Save')[1])
+    await user.click(section('Shipping JPY per EUR').getByText('Save'))
 
     await waitFor(() => expect(body).toEqual({ shippingJpyPerEur: 180 }))
   })
@@ -80,10 +84,33 @@ describe('AdminExchangeRatePage', () => {
     const input = await screen.findByLabelText('JPY per EUR')
     await user.clear(input)
     if (value) await user.type(input, value)
-    await user.click(screen.getAllByText('Save')[0])
+    // fireEvent.submit bypasses the browser's native min/required validation so the JS guard is what is tested.
+    fireEvent.submit(input.closest('form') as HTMLFormElement)
 
+    await new Promise((resolve) => setTimeout(resolve, 50))
     expect(called).toBe(false)
     expect(screen.queryByText('Saved.')).not.toBeInTheDocument()
+    expect(input).toHaveValue(value === '' ? null : Number(value))
+  })
+
+  it('submits a valid value through the same bypassed-validation path', async () => {
+    const user = userEvent.setup()
+    let body: unknown = null
+    useRates()
+    server.use(
+      http.put(`${BASE}/api/admin/exchange-rate`, async ({ request }) => {
+        body = await request.json()
+        return HttpResponse.json({ jpyPerEur: 1 })
+      }),
+    )
+    renderWithProviders(<AdminExchangeRatePage />)
+
+    const input = await screen.findByLabelText('JPY per EUR')
+    await user.clear(input)
+    await user.type(input, '1')
+    fireEvent.submit(input.closest('form') as HTMLFormElement)
+
+    await waitFor(() => expect(body).toEqual({ jpyPerEur: 1 }))
   })
 
   it('shows an error when saving fails', async () => {
@@ -93,7 +120,7 @@ describe('AdminExchangeRatePage', () => {
     renderWithProviders(<AdminExchangeRatePage />)
 
     await screen.findByLabelText('JPY per EUR')
-    await user.click(screen.getAllByText('Save')[0])
+    await user.click(section('JPY per EUR').getByText('Save'))
 
     expect(await screen.findByText('Could not save the rate.')).toBeInTheDocument()
   })

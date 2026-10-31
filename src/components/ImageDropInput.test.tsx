@@ -14,13 +14,17 @@ function dropFile(target: Element, file: File) {
 const IMAGES_URL = 'http://localhost:8081/api/images'
 
 describe('ImageDropInput', () => {
+  const originalCreate = URL.createObjectURL
+  const originalRevoke = URL.revokeObjectURL
+
   beforeEach(() => {
     URL.createObjectURL = vi.fn(() => 'blob:preview')
     URL.revokeObjectURL = vi.fn()
   })
 
   afterEach(() => {
-    vi.restoreAllMocks()
+    URL.createObjectURL = originalCreate
+    URL.revokeObjectURL = originalRevoke
   })
 
   it('uploads a file dropped onto the dropzone', async () => {

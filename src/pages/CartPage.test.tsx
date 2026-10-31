@@ -51,7 +51,9 @@ describe('CartPage', () => {
 
     expect(screen.getByText('Kit Kat matcha')).toBeInTheDocument()
     expect(screen.getByText('Pocky')).toBeInTheDocument()
-    expect(screen.getByText(/Total:/)).toHaveTextContent(/25/)
+    expect(screen.getByText('€20.00')).toBeInTheDocument()
+    expect(screen.getByText('€5.00')).toBeInTheDocument()
+    expect(screen.getByText(/^Total:/)).toHaveTextContent(/^Total: €25\.00$/)
   })
 
   it('warns when the quantity exceeds the stock recorded at add time', () => {
@@ -84,7 +86,7 @@ describe('CartPage', () => {
     useCartStore.setState({ items: [kitKat] })
     renderPage()
 
-    await user.click(screen.getByRole('button', { name: /increase|plus|\+/i }))
+    await user.click(screen.getByRole('button', { name: 'Increase quantity' }))
 
     expect(useCartStore.getState().items[0].quantity).toBe(3)
   })
