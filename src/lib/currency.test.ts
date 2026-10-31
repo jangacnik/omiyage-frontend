@@ -44,7 +44,7 @@ describe('formatMoney', () => {
   )
 
   test.prop([cents, fc.constantFrom('EUR' as const, 'JPY' as const)])('sign is preserved', (amountCents, currency) => {
-    const amount = currency === 'EUR' ? amountCents / 100 : Math.trunc(amountCents / 100)
+    const amount = currency === 'EUR' ? amountCents / 100 : Math.trunc(amountCents / 100) || 0
     const formatted = formatMoney(amount, currency)
     expect(formatted.startsWith('-')).toBe(amount < 0)
   })
