@@ -152,3 +152,13 @@ export function ExternalLinkIcon({ size = 14 }: IconProps) {
     </svg>
   )
 }
+
+export function ImageIcon({ size = 14 }: IconProps) {
+  return (
+    <svg {...base(size)}>
+      <rect x="3" y="4" width="18" height="16" rx="2" />
+      <circle cx="9" cy="10" r="1.5" />
+      <path d="M21 16 L15 10 L6 20" />
+    </svg>
+  )
+}

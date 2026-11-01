@@ -2,7 +2,7 @@ import { http, HttpResponse } from 'msw'
 import { screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { Route, Routes } from 'react-router-dom'
-import { describe, expect, it } from 'vitest'
+import { beforeEach, describe, expect, it } from 'vitest'
 import { server } from '../test/server'
 import { renderWithProviders } from '../test/renderWithProviders'
 import { BasketPage } from './BasketPage'
@@ -24,7 +24,15 @@ function line(overrides: Partial<BasketLineDto> = {}): BasketLineDto {
   }
 }
 
+function ordersPage(...orders: { id: string; nickname: string | null; open: boolean }[]) {
+  return HttpResponse.json({ content: orders.map((order) => ({ ...order, items: [] })), totalPages: 1 })
+}
+
 describe('BasketPage', () => {
+  beforeEach(() => {
+    server.use(http.get(`${BASE}/api/orders/mine`, () => ordersPage()))
+  })
+
   it('shows an empty state', async () => {
     server.use(http.get(`${BASE}/api/basket`, () => HttpResponse.json([])))
 
@@ -107,6 +115,55 @@ describe('BasketPage', () => {
     await user.click(await screen.findByRole('button', { name: 'Confirm order' }))
 
     expect(await screen.findByText('basket is empty')).toBeInTheDocument()
+    expect(screen.getByText('Rare figure')).toBeInTheDocument()
+  })
+
+  it('adds the basket to a chosen open order and skips closed ones', async () => {
+    const user = userEvent.setup()
+    let body: unknown = null
+    server.use(
+      http.get(`${BASE}/api/basket`, () => HttpResponse.json([line()])),
+      http.get(`${BASE}/api/orders/mine`, () =>
+        ordersPage(
+          { id: 'order-open', nickname: 'Winter haul', open: true },
+          { id: 'order-sent', nickname: 'Old one', open: false },
+        ),
+      ),
+      http.post(`${BASE}/api/basket/add-to-order`, async ({ request }) => {
+        body = await request.json()
+        return HttpResponse.json({ id: 'order-open' })
+      }),
+    )
+
+    renderWithProviders(
+      <Routes>
+        <Route path="/" element={<BasketPage />} />
+        <Route path="/orders/:id" element={<p>Order page</p>} />
+      </Routes>,
+    )
+    await user.selectOptions(await screen.findByRole('combobox'), 'order-open')
+    expect(screen.queryByText(/Old one/)).not.toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: 'Add to order' }))
+
+    expect(await screen.findByText('Order page')).toBeInTheDocument()
+    expect(body).toEqual({ orderId: 'order-open' })
+  })
+
+  it('explains when the chosen order was closed in the meantime', async () => {
+    const user = userEvent.setup()
+    server.use(
+      http.get(`${BASE}/api/basket`, () => HttpResponse.json([line()])),
+      http.get(`${BASE}/api/orders/mine`, () => ordersPage({ id: 'order-open', nickname: 'Winter haul', open: true })),
+      http.post(`${BASE}/api/basket/add-to-order`, () =>
+        HttpResponse.json({ error: 'order is closed and can no longer be edited' }, { status: 409 }),
+      ),
+    )
+
+    renderWithProviders(<BasketPage />)
+    await user.selectOptions(await screen.findByRole('combobox'), 'order-open')
+    await user.click(screen.getByRole('button', { name: 'Add to order' }))
+
+    expect(await screen.findByText(/closed in the meantime/)).toBeInTheDocument()
     expect(screen.getByText('Rare figure')).toBeInTheDocument()
   })
 

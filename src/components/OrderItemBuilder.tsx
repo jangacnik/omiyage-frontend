@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm, useWatch } from 'react-hook-form'
@@ -54,6 +54,8 @@ export function CustomItemForm({
 }) {
   const [imageKey, setImageKey] = useState<string | undefined>(defaultValues?.imageKey)
   const [uploading, setUploading] = useState(false)
+  // A double tap can fire a second submit before the first one's re-render disables the button.
+  const submitting = useRef(false)
   // Bumped on every successful add to force ImageDropInput to remount - a caller that keeps this
   // form open across multiple adds (AddItemForm, AdminAddItemForm) never unmounts it itself, and
   // ImageDropInput only seeds its preview once from a mount-time prop, so without a fresh key the
@@ -65,7 +67,7 @@ export function CustomItemForm({
     reset,
     control,
     setValue,
-    formState: { errors },
+    formState: { errors, isSubmitting },
   } = useForm<CustomItemForm>({
     resolver: zodResolver(customItemSchema),
     defaultValues: { condition: 'NEW', quantity: '1', ...defaultValues },
@@ -74,6 +76,8 @@ export function CustomItemForm({
   const quantity = Number(useWatch({ control, name: 'quantity' })) || 1
 
   async function onSubmit(data: CustomItemForm) {
+    if (submitting.current) return
+    submitting.current = true
     try {
       await onAdd({
         input: {
@@ -98,6 +102,8 @@ export function CustomItemForm({
       // A caller whose onAdd submits straight to the backend (RequestCustomItemPage) surfaces its
       // own error via its mutation's isError - don't clear what the member typed so they can retry.
       return
+    } finally {
+      submitting.current = false
     }
     reset()
     setImageKey(undefined)
@@ -147,7 +153,7 @@ export function CustomItemForm({
           <input type="date" className="field-input sm:w-48" {...register('expectedReleaseDate')} />
         </Field>
       )}
-      <button type="submit" className="btn-secondary self-start" disabled={uploading}>
+      <button type="submit" className="btn-secondary self-start" disabled={uploading || isSubmitting}>
         {submitLabel}
       </button>
     </form>

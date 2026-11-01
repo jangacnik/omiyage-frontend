@@ -66,6 +66,18 @@ export function useConfirmBasket() {
   })
 }
 
+export function useAddBasketToOrder() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (orderId: string) => api.post<OrderDto>('/api/basket/add-to-order', { orderId }),
+    // Also on failure: a 409 means the order closed meanwhile, so the picker needs fresh data.
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: BASKET_KEY })
+      queryClient.invalidateQueries({ queryKey: ['orders'] })
+    },
+  })
+}
+
 /** The one "Add to cart" action for catalog items: a basket line when the basket is enabled,
  *  the local cart otherwise. `onAdded` runs once the item is actually in either. */
 export function useAddInventoryItem() {
