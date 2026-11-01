@@ -1,5 +1,5 @@
 import { http, HttpResponse } from 'msw'
-import { screen } from '@testing-library/react'
+import { screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it } from 'vitest'
 import { server } from '../test/server'
@@ -88,5 +88,114 @@ describe('OrdersListPage', () => {
     await user.click(await screen.findByRole('button', { name: 'Try again' }))
 
     expect(await screen.findByText(/Order order-12/)).toBeInTheDocument()
+  })
+  describe('merging', () => {
+    const two = [order({ id: 'aaaaaaaa-1' }), order({ id: 'bbbbbbbb-2' })]
+
+    it('offers merge only once two orders are selected and posts the selected ids after confirming', async () => {
+      const user = userEvent.setup()
+      let body: unknown = null
+      server.use(
+        http.get(`${BASE}/api/orders/mine`, () => HttpResponse.json(page(two))),
+        http.post(`${BASE}/api/orders/merge`, async ({ request }) => {
+          body = await request.json()
+          return HttpResponse.json(two[0])
+        }),
+      )
+      renderWithProviders(<OrdersListPage />)
+
+      await user.click(await screen.findByLabelText('Select order aaaaaaaa to merge'))
+      expect(screen.queryByText('Merge selected')).not.toBeInTheDocument()
+      await user.click(screen.getByLabelText('Select order bbbbbbbb to merge'))
+      expect(screen.getByText('2 orders selected')).toBeInTheDocument()
+
+      await user.click(screen.getByText('Merge selected'))
+      await user.click(await screen.findByRole('button', { name: 'Merge' }))
+
+      await waitFor(() => expect(body).toEqual({ orderIds: ['aaaaaaaa-1', 'bbbbbbbb-2'] }))
+      await waitFor(() => expect(screen.queryByText('2 orders selected')).not.toBeInTheDocument())
+    })
+
+    it('does not merge when the confirmation is cancelled', async () => {
+      const user = userEvent.setup()
+      let merged = false
+      server.use(
+        http.get(`${BASE}/api/orders/mine`, () => HttpResponse.json(page(two))),
+        http.post(`${BASE}/api/orders/merge`, () => {
+          merged = true
+          return HttpResponse.json(two[0])
+        }),
+      )
+      renderWithProviders(<OrdersListPage />)
+
+      await user.click(await screen.findByLabelText('Select order aaaaaaaa to merge'))
+      await user.click(screen.getByLabelText('Select order bbbbbbbb to merge'))
+      await user.click(screen.getByText('Merge selected'))
+      await user.click(await screen.findByRole('button', { name: 'Cancel' }))
+
+      expect(merged).toBe(false)
+      expect(screen.getByText('2 orders selected')).toBeInTheDocument()
+    })
+
+    it('shows the server error when merging fails', async () => {
+      const user = userEvent.setup()
+      server.use(
+        http.get(`${BASE}/api/orders/mine`, () => HttpResponse.json(page(two))),
+        http.post(`${BASE}/api/orders/merge`, () => HttpResponse.json({ error: 'Orders are in different states.' }, { status: 409 })),
+      )
+      renderWithProviders(<OrdersListPage />)
+
+      await user.click(await screen.findByLabelText('Select order aaaaaaaa to merge'))
+      await user.click(screen.getByLabelText('Select order bbbbbbbb to merge'))
+      await user.click(screen.getByText('Merge selected'))
+      await user.click(await screen.findByRole('button', { name: 'Merge' }))
+
+      expect(await screen.findByText('Orders are in different states.')).toBeInTheDocument()
+    })
+
+    it('disables selection and hides the combine action for orders that are not open', async () => {
+      server.use(http.get(`${BASE}/api/orders/mine`, () => HttpResponse.json(page([order({ open: false })]))))
+      renderWithProviders(<OrdersListPage />)
+
+      expect(await screen.findByLabelText('Select order order-12 to merge')).toBeDisabled()
+      expect(screen.getByText('not open')).toBeInTheDocument()
+      expect(screen.queryByLabelText(/Ask to join another member/)).not.toBeInTheDocument()
+    })
+  })
+
+  it('groups orders sharing a shipment and switches between them with tabs', async () => {
+    const user = userEvent.setup()
+    server.use(
+      http.get(`${BASE}/api/orders/mine`, () =>
+        HttpResponse.json(
+          page([
+            order({ id: 'aaaaaaaa-1', shipmentId: 'ship-12345678', items: [] }),
+            order({ id: 'bbbbbbbb-2', shipmentId: 'ship-12345678', status: 'PURCHASED' }),
+          ]),
+        ),
+      ),
+    )
+    renderWithProviders(<OrdersListPage />)
+
+    expect(await screen.findByText('Shipment ship-123')).toBeInTheDocument()
+    expect(screen.getByText('Requested')).toBeInTheDocument()
+
+    await user.click(screen.getByRole('button', { name: /Order bbbbbbbb/ }))
+
+    expect(screen.getByRole('link', { name: '0 item(s)' })).toHaveAttribute('href', '/orders/bbbbbbbb-2')
+    expect(screen.queryByText('Requested')).not.toBeInTheDocument()
+  })
+
+  it('opens the combine request modal from an open order', async () => {
+    const user = userEvent.setup()
+    server.use(
+      http.get(`${BASE}/api/orders/mine`, () => HttpResponse.json(page([order()]))),
+      http.get(`${BASE}/api/shipments/browsable`, () => HttpResponse.json([])),
+    )
+    renderWithProviders(<OrdersListPage />)
+
+    await user.click(await screen.findByLabelText(/Ask to join another member/))
+
+    expect(await screen.findByRole('dialog')).toBeInTheDocument()
   })
 })

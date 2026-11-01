@@ -3,6 +3,7 @@ import { Link, useParams } from 'react-router-dom'
 import { useInventoryItem } from '../api/inventory'
 import { DialogCloseButton } from '../components/DialogCloseButton'
 import { ErrorState } from '../components/ErrorState'
+import { LinkifiedText } from '../components/LinkifiedText'
 import { PreorderBadge } from '../components/PreorderBadge'
 import { QuantityStepper } from '../components/QuantityStepper'
 import { Spinner } from '../components/Spinner'
@@ -119,7 +120,7 @@ export function InventoryDetailPage({ id: idProp, onClose }: { id?: string; onCl
       <div className="flex flex-1 flex-col gap-2">
         <h1 id="inventory-detail-title" className="page-title">{item.title}</h1>
         {item.isPreorder && <PreorderBadge expectedReleaseDate={item.expectedReleaseDate} />}
-        {item.description && <p className="text-ink/70">{item.description}</p>}
+        {item.description && <p className="text-ink/70"><LinkifiedText text={item.description} /></p>}
         {item.stockQuantity === 0 && (
           <p className="text-sm text-muted">Out of stock. You can still request it and it will be bought for you.</p>
         )}
