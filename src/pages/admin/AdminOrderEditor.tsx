@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import {
   useAdminAddOrderItem,
+  useAdminAddOrderItemToInventory,
   useAdminMarkItemPaid,
   useAdminMarkOrderPaid,
   useAdminMoveOrderItems,
@@ -22,7 +23,7 @@ import { ORDER_ITEM_STATUS_OPTIONS } from '../../lib/orderItemLabels'
 import { StatusSelect } from '../../components/StatusSelect'
 import { ButtonSpinner } from '../../components/Spinner'
 import { IconButton } from '../../components/IconButton'
-import { CheckIcon, CloseIcon, EditIcon, MoveIcon, TrashIcon } from '../../components/icons'
+import { CheckIcon, CloseIcon, EditIcon, MoveIcon, PlusIcon, TrashIcon } from '../../components/icons'
 import { ApiError, errorMessage } from '../../lib/apiClient'
 import { formatMoney } from '../../lib/currency'
 import { AdminOrderItemEditDialog } from './AdminOrderItemEditDialog'
@@ -144,6 +145,7 @@ function AdminItemRow({
   const [moving, setMoving] = useState(false)
   const removeItem = useAdminRemoveOrderItem()
   const markPaid = useAdminMarkItemPaid()
+  const addToInventory = useAdminAddOrderItemToInventory()
   const confirm = useConfirm()
 
   async function remove() {
@@ -177,6 +179,14 @@ function AdminItemRow({
                 icon={markPaid.isPending ? <ButtonSpinner /> : <CheckIcon size={14} />}
                 className={item.paid ? 'bg-mint text-forest-deep ring-forest/40' : ''}
               />
+              {!item.inventoryItemId && (
+                <IconButton
+                  label={addToInventory.isSuccess ? 'Added to inventory' : 'Add to inventory'}
+                  onClick={() => addToInventory.mutate({ orderId, itemId: item.id })}
+                  disabled={addToInventory.isPending || addToInventory.isSuccess}
+                  icon={addToInventory.isPending ? <ButtonSpinner /> : <PlusIcon size={14} />}
+                />
+              )}
               <IconButton label="Edit" onClick={() => setEditing(true)} icon={<EditIcon size={14} />} />
               <IconButton label="Move to another order" onClick={() => setMoving(true)} icon={<MoveIcon size={14} />} />
               <IconButton
@@ -187,10 +197,11 @@ function AdminItemRow({
                 icon={removeItem.isPending ? <ButtonSpinner /> : <TrashIcon size={14} />}
               />
             </div>
-            {(removeItem.isError || markPaid.isError) && (
+            {(removeItem.isError || markPaid.isError || addToInventory.isError) && (
               <p className="error-text">
                 {removeItem.isError && 'Could not remove this item. '}
-                {markPaid.isError && 'Could not update paid status.'}
+                {markPaid.isError && 'Could not update paid status. '}
+                {addToInventory.isError && errorMessage(addToInventory.error, 'Could not add this item to inventory.')}
               </p>
             )}
           </div>

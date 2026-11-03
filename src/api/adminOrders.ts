@@ -141,6 +141,17 @@ export function useAdminRemoveOrderItem() {
   })
 }
 
+export function useAdminAddOrderItemToInventory() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: ({ orderId, itemId }: { orderId: string; itemId: string }) =>
+      api.post<OrderDto>(`/api/admin/orders/${orderId}/items/${itemId}/add-to-inventory`),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['inventory'] })
+    },
+  })
+}
+
 export function useAdminMarkItemPaid() {
   const queryClient = useQueryClient()
   return useMutation({
