@@ -19,9 +19,23 @@ describe('formatGrams', () => {
     expect(() => formatGrams(grams)).not.toThrow()
   })
 
+  test.prop([fc.double({ min: 0, max: 999.49, noNaN: true })])(
+    'fractional grams below 1000 render as rounded whole grams',
+    (grams) => {
+      expect(formatGrams(grams)).toBe(`${Math.round(grams)} g`)
+    },
+  )
+
   test('pins the 999/1000 boundary', () => {
     expect(formatGrams(999)).toBe('999 g')
     expect(formatGrams(1000)).toBe('1.00 kg')
+  })
+
+  test('rounds fractional grams and promotes to kg when rounding reaches 1000', () => {
+    expect(formatGrams(12.4)).toBe('12 g')
+    expect(formatGrams(999.4)).toBe('999 g')
+    expect(formatGrams(999.5)).toBe('1.00 kg')
+    expect(formatGrams(999.9999)).toBe('1.00 kg')
   })
 })
 
