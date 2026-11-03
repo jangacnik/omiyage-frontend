@@ -170,7 +170,7 @@ export function OrdersListPage() {
                 />
                 {/* Visible, not just a title tooltip - same reasoning as the preorder/locked-item
                     disabled-reasons on OrderDetailPage: a tooltip never appears on touch devices. */}
-                {!group[0].open && <span className="text-xs text-muted">not open</span>}
+                {!group[0].open && <span className="text-xs text-muted">can't merge</span>}
                 <OrderIcon iconUrl={group[0].iconUrl} />
                 <Link to={`/orders/${group[0].id}`} className="font-medium text-ink hover:text-forest">
                   Order {orderDisplayName(group[0])}

@@ -158,7 +158,7 @@ describe('OrdersListPage', () => {
       renderWithProviders(<OrdersListPage />)
 
       expect(await screen.findByLabelText('Select order order-12 to merge')).toBeDisabled()
-      expect(screen.getByText('not open')).toBeInTheDocument()
+      expect(screen.getByText("can't merge")).toBeInTheDocument()
       expect(screen.queryByLabelText(/Ask to join another member/)).not.toBeInTheDocument()
     })
   })

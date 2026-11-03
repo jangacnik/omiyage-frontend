@@ -9,7 +9,6 @@ import {
 } from '../api/combineRequests'
 import { OrderIdHint } from '../components/OrderIdHint'
 import { ButtonSpinner, Spinner } from '../components/Spinner'
-import { IconButton } from '../components/IconButton'
 import { CheckIcon, CloseIcon } from '../components/icons'
 import type { CombineRequestDto, ShipmentSummaryDto } from '../types/api'
 
@@ -37,19 +36,12 @@ function IncomingRow({ request }: { request: CombineRequestDto }) {
         <ShipmentSummary shipment={request.targetShipment} />
       </p>
       <div className="flex gap-2">
-        <IconButton
-          variant="primary"
-          label="Accept"
-          onClick={() => accept.mutate(request.id)}
-          disabled={accept.isPending}
-          icon={accept.isPending ? <ButtonSpinner /> : <CheckIcon size={14} />}
-        />
-        <IconButton
-          label="Decline"
-          onClick={() => decline.mutate(request.id)}
-          disabled={decline.isPending}
-          icon={decline.isPending ? <ButtonSpinner /> : <CloseIcon size={14} />}
-        />
+        <button type="button" className="btn-primary" onClick={() => accept.mutate(request.id)} disabled={accept.isPending}>
+          {accept.isPending ? <ButtonSpinner /> : <CheckIcon size={14} />} Accept
+        </button>
+        <button type="button" className="btn-secondary" onClick={() => decline.mutate(request.id)} disabled={decline.isPending}>
+          {decline.isPending ? <ButtonSpinner /> : <CloseIcon size={14} />} Decline
+        </button>
       </div>
       {(accept.isError || decline.isError) && <p className="error-text">Could not update this request.</p>}
     </li>
@@ -65,12 +57,9 @@ function OutgoingRow({ request }: { request: CombineRequestDto }) {
         Your order <OrderSummary id={request.requesterOrder.id} nickname={request.requesterOrder.nickname} /> asked to join{' '}
         <ShipmentSummary shipment={request.targetShipment} /> — waiting for them to respond.
       </p>
-      <IconButton
-        label="Cancel request"
-        onClick={() => cancel.mutate(request.id)}
-        disabled={cancel.isPending}
-        icon={cancel.isPending ? <ButtonSpinner /> : <CloseIcon size={14} />}
-      />
+      <button type="button" className="btn-secondary shrink-0 self-start sm:self-auto" onClick={() => cancel.mutate(request.id)} disabled={cancel.isPending}>
+        {cancel.isPending ? <ButtonSpinner /> : <CloseIcon size={14} />} Cancel request
+      </button>
       {cancel.isError && <p className="error-text">Could not cancel this request.</p>}
     </li>
   )

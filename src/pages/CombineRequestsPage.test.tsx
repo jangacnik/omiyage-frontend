@@ -88,7 +88,7 @@ describe('CombineRequestsPage', () => {
     )
     renderWithProviders(<CombineRequestsPage />)
 
-    await user.click(await screen.findByLabelText('Accept'))
+    await user.click(await screen.findByRole('button', { name: 'Accept' }))
 
     await waitFor(() => expect(calls).toEqual(['accept']))
   })
@@ -105,7 +105,7 @@ describe('CombineRequestsPage', () => {
     )
     renderWithProviders(<CombineRequestsPage />)
 
-    await user.click(await screen.findByLabelText('Decline'))
+    await user.click(await screen.findByRole('button', { name: 'Decline' }))
 
     await waitFor(() => expect(calls).toEqual(['decline']))
   })
@@ -116,7 +116,7 @@ describe('CombineRequestsPage', () => {
     server.use(http.post(`${BASE}/api/orders/combine-requests/req-1/accept`, () => HttpResponse.json({}, { status: 500 })))
     renderWithProviders(<CombineRequestsPage />)
 
-    await user.click(await screen.findByLabelText('Accept'))
+    await user.click(await screen.findByRole('button', { name: 'Accept' }))
 
     expect(await screen.findByText('Could not update this request.')).toBeInTheDocument()
   })
@@ -134,7 +134,7 @@ describe('CombineRequestsPage', () => {
     renderWithProviders(<CombineRequestsPage />)
 
     expect(await screen.findByText(/waiting for them to respond/)).toBeInTheDocument()
-    await user.click(screen.getByLabelText('Cancel request'))
+    await user.click(screen.getByRole('button', { name: 'Cancel request' }))
 
     await waitFor(() => expect(cancelled).toBe(true))
   })
@@ -145,7 +145,7 @@ describe('CombineRequestsPage', () => {
     server.use(http.delete(`${BASE}/api/orders/combine-requests/req-1`, () => HttpResponse.json({}, { status: 500 })))
     renderWithProviders(<CombineRequestsPage />)
 
-    await user.click(await screen.findByLabelText('Cancel request'))
+    await user.click(await screen.findByRole('button', { name: 'Cancel request' }))
 
     expect(await screen.findByText('Could not cancel this request.')).toBeInTheDocument()
   })

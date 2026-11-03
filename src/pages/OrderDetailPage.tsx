@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import { Link, useNavigate, useParams } from 'react-router-dom'
 import {
   isItemLocked,
   orderDisplayName,
@@ -14,6 +14,7 @@ import {
   useUpdateOrderNickname,
 } from '../api/orders'
 import { useConfirm } from '../components/confirmContext'
+import { ErrorState } from '../components/ErrorState'
 import { Modal } from '../components/Modal'
 import { OrderIdHint } from '../components/OrderIdHint'
 import { OrderItemCard } from '../components/OrderItemCard'
@@ -25,7 +26,7 @@ import { ImageDropInput } from '../components/ImageDropInput'
 import { QuantityStepper } from '../components/QuantityStepper'
 import { IconButton } from '../components/IconButton'
 import { CheckIcon, CloseIcon, EditIcon, TrashIcon } from '../components/icons'
-import { errorMessage } from '../lib/apiClient'
+import { ApiError, errorMessage } from '../lib/apiClient'
 import { formatMoney } from '../lib/currency'
 import type { OrderDto, OrderItemDto } from '../types/api'
 
@@ -286,14 +287,26 @@ function SplitItemsPanel({ order }: { order: OrderDto }) {
 
 export function OrderDetailPage() {
   const { id } = useParams<{ id: string }>()
-  const { data: order, isLoading, isError } = useOrder(id)
+  const { data: order, isLoading, isError, error, refetch, isRefetching } = useOrder(id)
   const cancelOrder = useCancelMyOrder()
   const submitForShipping = useSubmitForShipping()
   const leaveShipment = useLeaveShipment()
   const confirm = useConfirm()
 
   if (isLoading) return <Spinner fullPage label="Fetching order" />
-  if (isError || !order) return <p className="error-text">Order not found.</p>
+  if (isError && !(error instanceof ApiError && error.status === 404)) {
+    return <ErrorState message="Could not load this order." onRetry={() => refetch()} isRetrying={isRefetching} />
+  }
+  if (!order) {
+    return (
+      <div className="card flex flex-col items-center gap-2 py-12 text-center">
+        <p className="error-text">Order not found.</p>
+        <Link to="/orders" className="btn-secondary mt-2">
+          Back to my orders
+        </Link>
+      </div>
+    )
+  }
 
   const hasLockedItem = order.items.some(isItemLocked)
   const hasPreorderItem = order.items.some((item) => item.isPreorder)
@@ -331,6 +344,9 @@ export function OrderDetailPage() {
 
   return (
     <div className="card flex flex-col gap-3">
+      <Link to="/orders" className="self-start text-sm text-muted hover:text-forest">
+        ← My orders
+      </Link>
       <div className="flex flex-wrap items-center gap-3">
         <OrderNicknameEditor order={order} />
         <OrderStatusBadge status={order.status} />

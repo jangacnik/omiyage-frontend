@@ -92,6 +92,43 @@ describe('OrderDetailPage', () => {
     await waitFor(() => expect(capturedBody).toMatchObject({ title: 'Ghibli museum ticket (2x)' }))
   })
 
+  it('offers a way back to the orders list when the order does not exist', async () => {
+    server.use(http.get(`${BASE}/api/orders/order-1`, () => HttpResponse.json({ error: 'Order not found' }, { status: 404 })))
+
+    renderWithProviders(
+      <Routes>
+        <Route path="/orders/:id" element={<OrderDetailPage />} />
+      </Routes>,
+      ['/orders/order-1'],
+    )
+
+    expect(await screen.findByText('Order not found.')).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Back to my orders' })).toHaveAttribute('href', '/orders')
+  })
+
+  it('lets the user retry when loading the order fails for another reason', async () => {
+    const user = userEvent.setup()
+    let calls = 0
+    server.use(
+      http.get(`${BASE}/api/orders/order-1`, () => {
+        calls += 1
+        return calls === 1 ? HttpResponse.json({ error: 'boom' }, { status: 500 }) : HttpResponse.json(order())
+      }),
+    )
+
+    renderWithProviders(
+      <Routes>
+        <Route path="/orders/:id" element={<OrderDetailPage />} />
+      </Routes>,
+      ['/orders/order-1'],
+    )
+
+    await user.click(await screen.findByRole('button', { name: 'Try again' }))
+
+    expect(await screen.findByText('Ghibli museum ticket')).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: '← My orders' })).toHaveAttribute('href', '/orders')
+  })
+
   it('shows the nickname instead of the id when set, with the id still visible', async () => {
     server.use(http.get(`${BASE}/api/orders/order-1`, () => HttpResponse.json({ ...order(), nickname: "Grandma's Gifts" })))
 
