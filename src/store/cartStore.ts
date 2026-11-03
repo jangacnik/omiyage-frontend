@@ -3,6 +3,12 @@ import { create } from 'zustand'
 import type { Currency, InventoryItem } from '../types/api'
 
 const STORAGE_KEY = 'omiyage.cart'
+// Mirrors MAX_ITEM_QUANTITY on the backend (OrderDtos.kt).
+export const MAX_ITEM_QUANTITY = 1000
+
+function clampQuantity(quantity: number): number {
+  return Math.min(MAX_ITEM_QUANTITY, Math.max(1, Math.round(quantity)))
+}
 
 export interface CartItem {
   inventoryItemId: string
@@ -50,9 +56,9 @@ export const useCartStore = create<CartState>((set, get) => ({
     // corrected instead of quietly carrying the amount captured on the very first add.
     const next = existing
       ? items.map((i) =>
-          i.inventoryItemId === item.inventoryItemId ? { ...item, quantity: i.quantity + quantity } : i,
+          i.inventoryItemId === item.inventoryItemId ? { ...item, quantity: clampQuantity(i.quantity + quantity) } : i,
         )
-      : [...items, { ...item, quantity }]
+      : [...items, { ...item, quantity: clampQuantity(quantity) }]
     persist(next)
     set({ items: next })
   },
@@ -62,7 +68,10 @@ export const useCartStore = create<CartState>((set, get) => ({
     set({ items: next })
   },
   setQuantity: (inventoryItemId, quantity) => {
-    const next = get().items.map((i) => (i.inventoryItemId === inventoryItemId ? { ...i, quantity } : i))
+    if (!Number.isFinite(quantity)) return
+    const next = get().items.map((i) =>
+      i.inventoryItemId === inventoryItemId ? { ...i, quantity: clampQuantity(quantity) } : i,
+    )
     persist(next)
     set({ items: next })
   },
