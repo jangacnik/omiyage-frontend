@@ -92,6 +92,27 @@ describe('OrderDetailPage', () => {
     await waitFor(() => expect(capturedBody).toMatchObject({ title: 'Ghibli museum ticket (2x)' }))
   })
 
+  it('groups the item edit dialog like the request form, with a text Save and Cancel', async () => {
+    const user = userEvent.setup()
+    server.use(http.get(`${BASE}/api/orders/order-1`, () => HttpResponse.json(order())))
+
+    renderWithProviders(
+      <Routes>
+        <Route path="/orders/:id" element={<OrderDetailPage />} />
+      </Routes>,
+      ['/orders/order-1'],
+    )
+
+    await user.click(await screen.findByRole('button', { name: 'Edit' }))
+    const legends = [...document.querySelectorAll('dialog legend')].map((legend) => legend.textContent)
+    expect(legends).toEqual(['Basics', 'Pricing', 'Details'])
+    expect(screen.getByRole('button', { name: 'Save' })).toHaveClass('btn-primary')
+
+    await user.click(screen.getByRole('button', { name: 'Cancel' }))
+
+    expect(screen.queryByRole('button', { name: 'Save' })).not.toBeInTheDocument()
+  })
+
   it('shows the nickname instead of the id when set, with the id still visible', async () => {
     server.use(http.get(`${BASE}/api/orders/order-1`, () => HttpResponse.json({ ...order(), nickname: "Grandma's Gifts" })))
 
