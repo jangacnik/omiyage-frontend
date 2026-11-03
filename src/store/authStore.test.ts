@@ -11,6 +11,17 @@ describe('authStore', () => {
     useAuthStore.setState({ token: null, claims: null, sessionExpired: false })
   })
 
+  it.each([
+    ['no exp', { sub: 'u', nickname: 'n', role: 'USER' }],
+    ['a past exp', { sub: 'u', nickname: 'n', role: 'USER', exp: 1 }],
+    ['a non-object payload', 5],
+  ])('login rejects a token with %s and stores nothing', (_name, payload) => {
+    expect(() => useAuthStore.getState().login(makeTokenWithPayload(payload))).toThrow(Error)
+
+    expect(useAuthStore.getState().token).toBeNull()
+    expect(localStorage.getItem('omiyage.token')).toBeNull()
+  })
+
   it('login stores the token and decodes claims', () => {
     const token = makeFakeToken({ sub: 'user-1', nickname: 'bob', role: 'USER', exp: futureExp })
     useAuthStore.getState().login(token)
