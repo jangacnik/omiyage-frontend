@@ -48,18 +48,33 @@ function IncomingRow({ request }: { request: CombineRequestDto }) {
   )
 }
 
+function formatDay(iso: string): string {
+  return new Date(iso).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
+}
+
 function OutgoingRow({ request }: { request: CombineRequestDto }) {
   const cancel = useCancelCombineRequest()
+  const declined = request.status === 'DECLINED'
 
   return (
     <li className="card flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
       <p className="text-sm text-ink/80">
         Your order <OrderSummary id={request.requesterOrder.id} nickname={request.requesterOrder.nickname} /> asked to join{' '}
-        <ShipmentSummary shipment={request.targetShipment} /> — waiting for them to respond.
+        <ShipmentSummary shipment={request.targetShipment} />
+        {declined ? (
+          <>
+            {' '}— <span className="font-medium text-danger">Declined</span>
+            {request.respondedAt && <> on {formatDay(request.respondedAt)}</>}.
+          </>
+        ) : (
+          ' — waiting for them to respond.'
+        )}
       </p>
-      <button type="button" className="btn-secondary shrink-0 self-start sm:self-auto" onClick={() => cancel.mutate(request.id)} disabled={cancel.isPending}>
-        {cancel.isPending ? <ButtonSpinner /> : <CloseIcon size={14} />} Cancel request
-      </button>
+      {!declined && (
+        <button type="button" className="btn-secondary shrink-0 self-start sm:self-auto" onClick={() => cancel.mutate(request.id)} disabled={cancel.isPending}>
+          {cancel.isPending ? <ButtonSpinner /> : <CloseIcon size={14} />} Cancel request
+        </button>
+      )}
       {cancel.isError && <p className="error-text">Could not cancel this request.</p>}
     </li>
   )
