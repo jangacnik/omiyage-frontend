@@ -100,6 +100,25 @@ describe('InventoryDetailPage', () => {
     expect(mainImage().src).toContain('img-b')
   })
 
+  it('adds the chosen quantity, confirms it and resets the stepper', async () => {
+    useCartStore.setState({ items: [] })
+    server.use(http.get(`${BASE}/api/inventory/item-1`, () => HttpResponse.json(item())))
+    renderWithProviders(
+      <Routes>
+        <Route path="/inventory/:id" element={<InventoryDetailPage />} />
+      </Routes>,
+      ['/inventory/item-1'],
+    )
+
+    fireEvent.click(await screen.findByLabelText('Increase quantity'))
+    fireEvent.click(screen.getByRole('button', { name: 'Add to cart' }))
+
+    expect(useCartStore.getState().items).toEqual([expect.objectContaining({ inventoryItemId: 'item-1', quantity: 2 })])
+    expect(screen.getByRole('button', { name: 'Added to cart' })).toBeInTheDocument()
+    expect(screen.getByRole('status')).toHaveTextContent('Kit Kat matcha added to cart')
+    expect(screen.getByRole('group', { name: /Quantity of Kit Kat matcha to add/ })).toHaveTextContent('1')
+  })
+
   it('says the cart is full when the line is already at the maximum', async () => {
     useCartStore.setState({ items: [] })
     useCartStore.getState().addItem({ inventoryItemId: 'item-1', title: 'Kit Kat matcha', priceAmount: 1200, currency: 'JPY' }, MAX_ITEM_QUANTITY)
