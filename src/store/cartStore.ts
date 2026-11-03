@@ -34,10 +34,23 @@ interface CartState {
   clear: () => void
 }
 
+function isCartItem(value: unknown): value is CartItem {
+  if (typeof value !== 'object' || value === null) return false
+  const { inventoryItemId, title, priceAmount, currency, quantity } = value as Record<string, unknown>
+  return (
+    typeof inventoryItemId === 'string' &&
+    typeof title === 'string' &&
+    Number.isFinite(priceAmount) &&
+    (currency === 'EUR' || currency === 'JPY') &&
+    Number.isInteger(quantity) &&
+    (quantity as number) >= 1
+  )
+}
+
 function loadInitialItems(): CartItem[] {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY)
-    return raw ? (JSON.parse(raw) as CartItem[]) : []
+    const stored: unknown = JSON.parse(localStorage.getItem(STORAGE_KEY) ?? '[]')
+    return Array.isArray(stored) ? stored.filter(isCartItem) : []
   } catch {
     return []
   }
