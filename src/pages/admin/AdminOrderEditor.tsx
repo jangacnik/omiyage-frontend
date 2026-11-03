@@ -72,8 +72,7 @@ function AdminMoveItemDialog({
       <h2 id="move-item-title" className="page-title text-lg">
         Move &quot;{item.title}&quot;
       </h2>
-      <label className="flex flex-col gap-1">
-        <span className="field-label">Move to</span>
+      <Field label="Move to">
         <select
           value={targetOrderId}
           onChange={(e) => setTargetOrderId(e.target.value)}
@@ -90,7 +89,7 @@ function AdminMoveItemDialog({
             </option>
           ))}
         </select>
-      </label>
+      </Field>
       {moveItems.isError && <p className="error-text">Could not move this item.</p>}
       <div className="flex justify-end gap-2">
         <button type="button" className="btn-secondary px-3 py-1.5 text-sm" onClick={onClose}>
@@ -456,8 +455,7 @@ export function AdminOrderEditor({ order }: { order: OrderDto }) {
       <AdminOrderNicknameEditor order={order} />
 
       <div className="flex flex-wrap items-end gap-4">
-        <label className="flex flex-col gap-1">
-          <span className="field-label">Order status</span>
+        <Field label="Order status">
           <span className="flex items-center gap-2">
             <select
               value={order.status}
@@ -473,7 +471,7 @@ export function AdminOrderEditor({ order }: { order: OrderDto }) {
             </select>
             {updateStatus.isPending && <ButtonSpinner />}
           </span>
-        </label>
+        </Field>
 
         <IconButton
           label={allPaid ? 'Mark order unpaid' : 'Mark order paid'}

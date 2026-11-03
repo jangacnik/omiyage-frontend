@@ -99,6 +99,18 @@ describe('ProfilePage', () => {
     expect(await screen.findByText('At most 32 characters')).toBeInTheDocument()
   })
 
+  it('gives the contact and address fields autofill hints and mobile keyboards', async () => {
+    server.use(http.get(`${BASE}/api/users/me`, () => HttpResponse.json(profile())))
+
+    renderWithProviders(<ProfilePage />)
+    await screen.findByText('Nickname: bob')
+
+    expect(screen.getByLabelText('Email')).toHaveAttribute('type', 'email')
+    expect(screen.getByLabelText('Phone')).toHaveAttribute('type', 'tel')
+    expect(screen.getByLabelText('Postal code')).toHaveAttribute('autocomplete', 'postal-code')
+    expect(screen.getByLabelText('City')).toHaveAttribute('autocomplete', 'address-level2')
+  })
+
   it('rejects an invalid email', async () => {
     const user = userEvent.setup()
     server.use(http.get(`${BASE}/api/users/me`, () => HttpResponse.json(profile())))

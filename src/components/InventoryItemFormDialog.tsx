@@ -190,13 +190,13 @@ export function InventoryItemFormDialog({ item, onDone }: { item?: InventoryItem
           <div className="grid grid-cols-2 gap-2">
             <div className="flex flex-col gap-2">
               <Field label="Price" hint="In EUR">
-                <input className="field-input" {...register('priceAmount')} aria-label="Price in EUR" />
+                <input className="field-input" inputMode="decimal" {...register('priceAmount')} aria-label="Price in EUR" />
               </Field>
               <Field label="Bought price" hint="In JPY, admin only">
-                <input className="field-input" {...register('boughtPrice')} aria-label="Bought price in JPY" />
+                <input className="field-input" inputMode="decimal" {...register('boughtPrice')} aria-label="Bought price in JPY" />
               </Field>
               <Field label="Weight" hint="Grams, admin only">
-                <input className="field-input" {...register('weight')} aria-label="Weight in grams" />
+                <input className="field-input" inputMode="decimal" {...register('weight')} aria-label="Weight in grams" />
               </Field>
             </div>
             <Field label="Stock quantity">
