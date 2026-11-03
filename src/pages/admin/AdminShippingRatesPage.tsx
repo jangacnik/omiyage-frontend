@@ -102,7 +102,7 @@ function RateRow({ rate }: { rate: ShippingRateDto }) {
               value={maxWeightGrams}
               onChange={(e) => setMaxWeightGrams(e.target.value)}
               aria-label={`Max weight grams for rate ${rate.id}`}
-              className="field-input py-1 text-sm"
+              className="field-input"
             />
           </Field>
           <Field label="Cost" hint="JPY" className="w-24">
@@ -111,7 +111,7 @@ function RateRow({ rate }: { rate: ShippingRateDto }) {
               value={costJpy}
               onChange={(e) => setCostJpy(e.target.value)}
               aria-label={`Cost JPY for rate ${rate.id}`}
-              className="field-input py-1 text-sm"
+              className="field-input"
             />
           </Field>
           <Field label="Days" hint="Estimated" className="w-20">
@@ -120,7 +120,7 @@ function RateRow({ rate }: { rate: ShippingRateDto }) {
               value={estimatedDays}
               onChange={(e) => setEstimatedDays(e.target.value)}
               aria-label={`Estimated days for rate ${rate.id}`}
-              className="field-input py-1 text-sm"
+              className="field-input"
             />
           </Field>
           <IconButton

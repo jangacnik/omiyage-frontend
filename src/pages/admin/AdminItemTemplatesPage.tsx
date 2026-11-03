@@ -93,6 +93,7 @@ function TemplateFields({
         <Field label="Price" hint="Optional, EUR" className="sm:flex-1">
           <input
             value={form.priceAmount}
+            inputMode="decimal"
             onChange={(e) => onChange('priceAmount', e.target.value)}
             aria-label={`Price (${idPrefix})`}
             className="field-input"
@@ -101,6 +102,7 @@ function TemplateFields({
         <Field label="Bought price" hint="Optional, JPY" className="sm:flex-1">
           <input
             value={form.boughtPrice}
+            inputMode="decimal"
             onChange={(e) => onChange('boughtPrice', e.target.value)}
             aria-label={`Bought price (${idPrefix})`}
             className="field-input"
@@ -109,6 +111,7 @@ function TemplateFields({
         <Field label="Weight" hint="Optional, grams" className="sm:flex-1">
           <input
             value={form.weight}
+            inputMode="decimal"
             onChange={(e) => onChange('weight', e.target.value)}
             aria-label={`Weight (${idPrefix})`}
             className="field-input"

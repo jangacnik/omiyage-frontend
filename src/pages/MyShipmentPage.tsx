@@ -169,7 +169,7 @@ function ShippingEditor({ shipment, editable }: { shipment: MemberShipmentDto; e
           value={destination}
           onChange={(e) => setDestination(e.target.value as ShipmentDestination)}
           aria-label="Destination"
-          className="field-input py-1 text-sm"
+          className="field-input"
         >
           <option value="" disabled>
             Not set
@@ -186,7 +186,7 @@ function ShippingEditor({ shipment, editable }: { shipment: MemberShipmentDto; e
           value={shippingMethod}
           onChange={(e) => setShippingMethod(e.target.value as ShippingMethod)}
           aria-label="Shipping method"
-          className="field-input py-1 text-sm"
+          className="field-input"
         >
           <option value="" disabled>
             Not set
