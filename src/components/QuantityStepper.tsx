@@ -1,14 +1,18 @@
+import { MAX_ITEM_QUANTITY } from '../store/cartStore'
+
 /** Shared +/- quantity control - the inventory card and item-detail dialog use this to pick how
  *  many of an item to add to the cart in one go, instead of only ever adding one at a time. */
 export function QuantityStepper({
   quantity,
   onChange,
   min = 1,
+  max = MAX_ITEM_QUANTITY,
   label,
 }: {
   quantity: number
   onChange: (quantity: number) => void
   min?: number
+  max?: number
   label: string
 }) {
   return (
@@ -27,9 +31,10 @@ export function QuantityStepper({
       </span>
       <button
         type="button"
-        onClick={() => onChange(quantity + 1)}
+        onClick={() => onChange(Math.min(max, quantity + 1))}
+        disabled={quantity >= max}
         aria-label="Increase quantity"
-        className="flex h-full w-11 items-center justify-center text-muted hover:bg-mist"
+        className="flex h-full w-11 items-center justify-center text-muted hover:bg-mist disabled:cursor-not-allowed disabled:opacity-30"
       >
         +
       </button>

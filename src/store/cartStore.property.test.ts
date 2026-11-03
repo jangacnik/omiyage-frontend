@@ -35,6 +35,7 @@ function applyToModel(model: Map<string, CartItem>, cmd: Command) {
   switch (cmd.type) {
     case 'add': {
       const existing = model.get(cmd.item.inventoryItemId)
+      if (existing && existing.quantity >= MAX_ITEM_QUANTITY) break
       const total = (existing?.quantity ?? 0) + cmd.quantity
       model.set(cmd.item.inventoryItemId, { ...cmd.item, quantity: Math.min(MAX_ITEM_QUANTITY, total) })
       break
@@ -97,7 +98,7 @@ describe('cart store', () => {
   })
 
   test.prop([snapshot, snapshot, quantity, quantity])(
-    'adding the same id twice sums quantities up to the cap and the latest snapshot wins',
+    'adding the same id twice sums quantities up to the cap and the latest snapshot wins unless the line was full',
     (first, second, firstQuantity, secondQuantity) => {
       localStorage.clear()
       useCartStore.setState({ items: [] })
@@ -106,9 +107,11 @@ describe('cart store', () => {
       useCartStore.getState().addItem(first, firstQuantity)
       useCartStore.getState().addItem(latest, secondQuantity)
 
-      expect(useCartStore.getState().items).toEqual([
-        { ...latest, quantity: Math.min(MAX_ITEM_QUANTITY, firstQuantity + secondQuantity) },
-      ])
+      const expected =
+        firstQuantity >= MAX_ITEM_QUANTITY
+          ? { ...first, quantity: MAX_ITEM_QUANTITY }
+          : { ...latest, quantity: Math.min(MAX_ITEM_QUANTITY, firstQuantity + secondQuantity) }
+      expect(useCartStore.getState().items).toEqual([expected])
     },
   )
 

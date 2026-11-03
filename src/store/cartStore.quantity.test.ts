@@ -41,4 +41,16 @@ describe('cart quantity domain', () => {
 
     expect(useCartStore.getState().items[1].quantity).toBe(1)
   })
+
+  it.each([[NaN], [Infinity], [-Infinity]])('addItem(%s) changes nothing and reports it', (requested) => {
+    expect(useCartStore.getState().addItem(line, requested)).toBe(false)
+
+    expect(quantityOfLine()).toBe(3)
+  })
+
+  it('addItem reports false once the line is at the maximum', () => {
+    expect(useCartStore.getState().addItem(line, MAX_ITEM_QUANTITY)).toBe(true)
+
+    expect(useCartStore.getState().addItem(line, 1)).toBe(false)
+  })
 })
