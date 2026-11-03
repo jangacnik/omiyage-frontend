@@ -4,7 +4,7 @@ import { beforeEach, describe, expect, it } from 'vitest'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { MemoryRouter } from 'react-router-dom'
 import { InventoryCard } from './InventoryCard'
-import { useCartStore } from '../store/cartStore'
+import { CART_FULL_MESSAGE, MAX_ITEM_QUANTITY, useCartStore } from '../store/cartStore'
 import type { InventoryItem } from '../types/api'
 
 function item(overrides: Partial<InventoryItem> = {}): InventoryItem {
@@ -80,5 +80,27 @@ describe('InventoryCard', () => {
     await user.click(screen.getByLabelText('Add Kit Kat matcha to cart'))
 
     expect(within(stepper).getByText('1')).toBeInTheDocument()
+  })
+
+  it('says the cart is full instead of "added" when the line is already at the maximum', async () => {
+    const user = userEvent.setup()
+    const atCap = { inventoryItemId: 'item-1', title: 'Kit Kat matcha', priceAmount: 12, currency: 'EUR' as const }
+    useCartStore.getState().addItem(atCap, MAX_ITEM_QUANTITY)
+    renderCard()
+
+    await user.click(screen.getByLabelText('Add Kit Kat matcha to cart'))
+
+    expect(screen.getByRole('status')).toHaveTextContent(CART_FULL_MESSAGE)
+    expect(screen.getByRole('status')).not.toHaveTextContent('added to cart')
+    expect(useCartStore.getState().items[0].quantity).toBe(MAX_ITEM_QUANTITY)
+  })
+
+  it('announces a successful add', async () => {
+    const user = userEvent.setup()
+    renderCard()
+
+    await user.click(screen.getByLabelText('Add Kit Kat matcha to cart'))
+
+    expect(screen.getByRole('status')).toHaveTextContent('Kit Kat matcha added to cart')
   })
 })

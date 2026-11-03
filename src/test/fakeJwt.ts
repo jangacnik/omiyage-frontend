@@ -5,7 +5,9 @@ function base64url(json: unknown): string {
 }
 
 export function makeFakeToken(claims: { sub: string; nickname: string; role: Role; exp: number }): string {
-  const header = base64url({ alg: 'HS256', typ: 'JWT' })
-  const payload = base64url(claims)
-  return `${header}.${payload}.fake-signature`
+  return makeTokenWithPayload(claims)
+}
+
+export function makeTokenWithPayload(payload: unknown): string {
+  return `${base64url({ alg: 'HS256', typ: 'JWT' })}.${base64url(payload)}.fake-signature`
 }

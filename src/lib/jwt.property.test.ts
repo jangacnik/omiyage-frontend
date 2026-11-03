@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, vi } from 'vitest'
 import { test, fc } from '@fast-check/vitest'
 import { decodeJwt, isExpired } from './jwt'
-import { makeFakeToken } from '../test/fakeJwt'
+import { makeFakeToken, makeTokenWithPayload } from '../test/fakeJwt'
 
 const toBase64Url = (text: string, keepPadding: boolean) => {
   const base64 = btoa(String.fromCharCode(...new TextEncoder().encode(text))).replace(/\+/g, '-').replace(/\//g, '_')
@@ -46,6 +46,13 @@ describe('decodeJwt', () => {
   ])('rejects payloads that are not JSON', (text) => {
     expect(() => decodeJwt(tokenWithPayload(toBase64Url(text, false)))).toThrow(Error)
   })
+
+  test.prop([fc.jsonValue().filter((value) => typeof value !== 'object' || value === null || Array.isArray(value))])(
+    'rejects JSON payloads that are not objects',
+    (payload) => {
+      expect(() => decodeJwt(makeTokenWithPayload(payload))).toThrow(Error)
+    },
+  )
 })
 
 describe('isExpired', () => {
@@ -77,4 +84,11 @@ describe('isExpired', () => {
     expect(at(exp * 1000 - 1, exp)).toBe(false)
     expect(at(exp * 1000, exp)).toBe(true)
   })
+
+  test.prop([fc.oneof(fc.string(), fc.boolean(), fc.constant(null), fc.constant(undefined), fc.constant(NaN))])(
+    'a missing or non-numeric exp is always expired',
+    (exp) => {
+      expect(at(0, exp as unknown as number)).toBe(true)
+    },
+  )
 })
