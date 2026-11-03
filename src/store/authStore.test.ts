@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { useAuthStore } from './authStore'
-import { makeFakeToken } from '../test/fakeJwt'
+import { makeFakeToken, makeTokenWithPayload } from '../test/fakeJwt'
 
 const futureExp = Math.floor(Date.now() / 1000) + 3600
 const pastExp = Math.floor(Date.now() / 1000) - 3600
@@ -34,6 +34,16 @@ describe('authStore', () => {
   it('does not restore an expired token from localStorage on module init', async () => {
     const token = makeFakeToken({ sub: 'user-1', nickname: 'bob', role: 'USER', exp: pastExp })
     localStorage.setItem('omiyage.token', token)
+
+    vi.resetModules()
+    const { useAuthStore: freshStore } = await import('./authStore')
+
+    expect(freshStore.getState().token).toBeNull()
+    expect(localStorage.getItem('omiyage.token')).toBeNull()
+  })
+
+  it.each([[{}], [5], [null], [[]]])('does not restore a token with payload %j and removes it', async (payload) => {
+    localStorage.setItem('omiyage.token', makeTokenWithPayload(payload))
 
     vi.resetModules()
     const { useAuthStore: freshStore } = await import('./authStore')
