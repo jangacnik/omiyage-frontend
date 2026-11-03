@@ -72,6 +72,19 @@ function applyToStore(cmd: Command) {
 
 const storedItems = () => JSON.parse(localStorage.getItem(STORAGE_KEY) ?? '[]')
 
+const corruptLine = fc.record(
+  {
+    inventoryItemId: fc.oneof(fc.string(), fc.integer()),
+    title: fc.oneof(fc.string(), fc.constant(null)),
+    priceAmount: fc.oneof(fc.integer(), fc.string()),
+    currency: fc.constantFrom('EUR', 'JPY', 'USD'),
+    quantity: fc.oneof(fc.integer(), fc.double(), fc.constant(null)),
+  },
+  { requiredKeys: [] },
+)
+
+const line: Snapshot = { inventoryItemId: 'a', title: 'Mochi', priceAmount: 100, currency: 'JPY' }
+
 describe('cart store', () => {
   beforeEach(() => {
     localStorage.clear()
@@ -135,5 +148,20 @@ describe('cart store', () => {
     const reloaded = await import('./cartStore')
 
     expect(reloaded.useCartStore.getState().items).toEqual(items)
+  })
+
+  test.prop([fc.oneof(fc.jsonValue(), fc.array(corruptLine))])('corrupt storage always yields well-formed lines', async (stored) => {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(stored))
+
+    vi.resetModules()
+    const reloaded = await import('./cartStore')
+    const items = reloaded.useCartStore.getState().items
+
+    expect(Array.isArray(items)).toBe(true)
+    for (const item of items) {
+      expect(item).toEqual(expect.objectContaining({ inventoryItemId: expect.any(String), title: expect.any(String) }))
+      expect(Number.isInteger(item.quantity) && item.quantity >= 1).toBe(true)
+    }
+    expect(() => reloaded.useCartStore.getState().addItem(line)).not.toThrow()
   })
 })
