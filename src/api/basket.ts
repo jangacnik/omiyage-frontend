@@ -84,12 +84,12 @@ export function useAddInventoryItem() {
   const addToCart = useCartStore((s) => s.addItem)
   const addLine = useAddBasketLine()
 
-  return (item: InventoryItem, quantity: number, onAdded: () => void) => {
+  return (item: InventoryItem, quantity: number, onAdded: () => void, onCartFull: () => void) => {
     if (BASKET_ENABLED) {
       addLine.mutate({ inventoryItemId: item.id, currency: item.currency, quantity }, { onSuccess: onAdded })
       return
     }
-    addToCart(cartItemFromInventoryItem(item), quantity)
-    onAdded()
+    if (addToCart(cartItemFromInventoryItem(item), quantity)) onAdded()
+    else onCartFull()
   }
 }

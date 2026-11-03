@@ -32,8 +32,10 @@ export const useAuthStore = create<AuthState>((set) => ({
   ...loadInitialState(),
   sessionExpired: false,
   login: (token: string) => {
+    const claims = decodeJwt(token)
+    if (isExpired(claims)) throw new Error('JWT is expired or has no exp claim')
     localStorage.setItem(TOKEN_KEY, token)
-    set({ token, claims: decodeJwt(token), sessionExpired: false })
+    set({ token, claims, sessionExpired: false })
   },
   logout: () => {
     localStorage.removeItem(TOKEN_KEY)
