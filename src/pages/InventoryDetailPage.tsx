@@ -13,7 +13,7 @@ import { formatMoney } from '../lib/currency'
 import { CheckIcon } from '../components/icons'
 import { ApiError } from '../lib/apiClient'
 import { useAddInventoryItem } from '../api/basket'
-import { useAddToCartFeedback } from '../store/cartStore'
+import { CART_FULL_MESSAGE, useAddToCartFeedback } from '../store/cartStore'
 
 function ImageCarousel({ images, alt }: { images: string[]; alt: string }) {
   const [index, setIndex] = useState(0)
@@ -71,7 +71,7 @@ export function InventoryDetailPage({ id: idProp, onClose }: { id?: string; onCl
   const id = idProp ?? params.id
   const { data: item, isLoading, isError, error, refetch, isRefetching } = useInventoryItem(id)
   const addItem = useAddInventoryItem()
-  const { justAdded, announce } = useAddToCartFeedback()
+  const { justAdded, cartFull, announce, announceFull } = useAddToCartFeedback()
   const [quantity, setQuantity] = useState(1)
 
   if (isLoading) return <Spinner fullPage label="Fetching item" />
@@ -105,10 +105,15 @@ export function InventoryDetailPage({ id: idProp, onClose }: { id?: string; onCl
 
   function handleAddToCart() {
     if (!item) return
-    addItem(item, quantity, () => {
-      announce()
-      setQuantity(1)
-    })
+    addItem(
+      item,
+      quantity,
+      () => {
+        announce()
+        setQuantity(1)
+      },
+      announceFull,
+    )
   }
 
   return (
@@ -156,9 +161,10 @@ export function InventoryDetailPage({ id: idProp, onClose }: { id?: string; onCl
           <Link to={`/inventory/${item.id}/request`} className="btn-secondary self-start">
             Request with different price or condition
           </Link>
-          <span className="sr-only" role="status" aria-live="polite">
-            {justAdded ? `${item.title} added to cart` : ''}
-          </span>
+          <p className="w-full text-sm text-muted" role="status" aria-live="polite">
+            {justAdded && <span className="sr-only">{item.title} added to cart</span>}
+            {cartFull && CART_FULL_MESSAGE}
+          </p>
         </div>
         <p className="text-xs text-muted">
           Add to cart to buy at the listed price. Use the other option to set your own max price, condition, or request a preorder date.

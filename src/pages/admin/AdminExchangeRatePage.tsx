@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useExchangeRate, useSetExchangeRate, useShippingExchangeRate, useSetShippingExchangeRate } from '../../api/exchangeRate'
 import { ButtonSpinner, Spinner } from '../../components/Spinner'
+import { Field } from '../../components/Field'
 
 function RateForm({
   label,
@@ -41,8 +42,7 @@ function RateForm({
     <div>
       <p className="mb-4 text-sm text-muted">{hint}</p>
       <form onSubmit={submit} className="flex flex-col gap-2 sm:flex-row">
-        <label className="flex flex-1 flex-col gap-1">
-          <span className="field-label">{label}</span>
+        <Field label={label} className="flex-1">
           <input
             type="number"
             step="0.0001"
@@ -52,7 +52,7 @@ function RateForm({
             onChange={(e) => setInput(e.target.value)}
             aria-label={label}
           />
-        </label>
+        </Field>
         <button type="submit" className="btn-primary shrink-0 self-end" disabled={isPending}>
           {isPending ? <ButtonSpinner /> : 'Save'}
         </button>

@@ -21,6 +21,7 @@ import { OrderItemCard } from '../components/OrderItemCard'
 import { AddItemPanel } from '../components/OrderItemBuilder'
 import { OrderStatusBadge } from '../components/OrderStatusBadge'
 import { Spinner, ButtonSpinner } from '../components/Spinner'
+import { FormSection } from '../components/FormSection'
 import { Field } from '../components/Field'
 import { ImageDropInput } from '../components/ImageDropInput'
 import { QuantityStepper } from '../components/QuantityStepper'
@@ -181,51 +182,56 @@ function EditableItem({ orderId, item, locked }: { orderId: string; item: OrderI
             <h2 id={`edit-order-item-${item.id}-title`} className="page-title mb-1 text-lg">
               Edit item
             </h2>
-            <Field label="Title">
-              <input className="field-input" value={title} onChange={(e) => setTitle(e.target.value)} aria-label="Title" />
-            </Field>
-            <Field label="Description" hint="Optional">
-              <textarea
-                className="field-input"
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                aria-label="Description"
-              />
-            </Field>
-            <div className="flex flex-col gap-2 sm:flex-row">
-              <Field label="Max price" hint="In EUR" className="sm:w-32">
+            <FormSection title="Basics">
+              <Field label="Title">
+                <input className="field-input" value={title} onChange={(e) => setTitle(e.target.value)} aria-label="Title" />
+              </Field>
+              <Field label="Link to store page" hint="Optional">
                 <input
-                  type="number"
-                  step="0.01"
+                  type="url"
                   className="field-input"
-                  value={maxPrice}
-                  onChange={(e) => setMaxPrice(e.target.value)}
-                  aria-label="Max price"
+                  value={link}
+                  onChange={(e) => setLink(e.target.value)}
+                  aria-label="Link to store page"
                 />
               </Field>
-              <Field label="Qty" className="sm:w-24">
-                <QuantityStepper quantity={quantity} onChange={setQuantity} label="Quantity" />
+              <ImageDropInput label="Photo" initialImageKey={item.imageKey ?? undefined} onUploaded={setImageKey} />
+            </FormSection>
+            <FormSection title="Pricing">
+              <div className="flex flex-col gap-2 sm:flex-row">
+                <Field label="Max price" hint="In EUR" className="sm:flex-1">
+                  <input
+                    type="number"
+                    step="0.01"
+                    inputMode="decimal"
+                    className="field-input"
+                    value={maxPrice}
+                    onChange={(e) => setMaxPrice(e.target.value)}
+                    aria-label="Max price"
+                  />
+                </Field>
+                <Field label="Qty" className="sm:w-32">
+                  <QuantityStepper quantity={quantity} onChange={setQuantity} label="Quantity" />
+                </Field>
+              </div>
+            </FormSection>
+            <FormSection title="Details">
+              <Field label="Description" hint="Optional">
+                <textarea
+                  className="field-input"
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  aria-label="Description"
+                />
               </Field>
-            </div>
-            <Field label="Link to store page" hint="Optional">
-              <input
-                type="url"
-                className="field-input"
-                value={link}
-                onChange={(e) => setLink(e.target.value)}
-                aria-label="Link to store page"
-              />
-            </Field>
-            <ImageDropInput label="Photo" initialImageKey={item.imageKey ?? undefined} onUploaded={setImageKey} />
+            </FormSection>
             <div className="flex gap-2">
-              <IconButton
-                type="submit"
-                variant="primary"
-                label="Save"
-                disabled={updateItem.isPending}
-                icon={updateItem.isPending ? <ButtonSpinner /> : <CheckIcon size={14} />}
-              />
-              <IconButton label="Cancel" onClick={() => setEditing(false)} icon={<CloseIcon size={14} />} />
+              <button type="submit" className="btn-primary" disabled={updateItem.isPending}>
+                {updateItem.isPending ? <ButtonSpinner /> : 'Save'}
+              </button>
+              <button type="button" className="btn-secondary" onClick={() => setEditing(false)}>
+                Cancel
+              </button>
             </div>
             {updateItem.isError && (
               <p className="error-text">{errorMessage(updateItem.error, 'Could not save changes.')}</p>

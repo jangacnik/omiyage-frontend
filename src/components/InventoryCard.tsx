@@ -6,7 +6,7 @@ import { ThumbnailImage } from './ThumbnailImage'
 import { formatGrams, formatMoney } from '../lib/currency'
 import { CartIcon, CheckIcon, EditIcon, TrashIcon } from './icons'
 import { useAddInventoryItem } from '../api/basket'
-import { useAddToCartFeedback } from '../store/cartStore'
+import { CART_FULL_MESSAGE, useAddToCartFeedback } from '../store/cartStore'
 import { Modal } from './Modal'
 import { InventoryDetailPage } from '../pages/InventoryDetailPage'
 import { IconButton } from './IconButton'
@@ -27,7 +27,7 @@ export function InventoryCard({
   onDelete?: () => void
 }) {
   const addItem = useAddInventoryItem()
-  const { justAdded, announce } = useAddToCartFeedback()
+  const { justAdded, cartFull, announce, announceFull } = useAddToCartFeedback()
   const [quantity, setQuantity] = useState(1)
   const [showDetail, setShowDetail] = useState(false)
   const queryClient = useQueryClient()
@@ -41,10 +41,15 @@ export function InventoryCard({
   }
 
   function handleAddToCart() {
-    addItem(item, quantity, () => {
-      announce()
-      setQuantity(1)
-    })
+    addItem(
+      item,
+      quantity,
+      () => {
+        announce()
+        setQuantity(1)
+      },
+      announceFull,
+    )
   }
 
   return (
@@ -75,9 +80,10 @@ export function InventoryCard({
       {canShop && (
         <div className="px-3 pb-3">
           <QuantityStepper quantity={quantity} onChange={setQuantity} label={`Quantity of ${item.title} to add`} />
-          <span className="sr-only" role="status" aria-live="polite">
-            {justAdded ? `${item.title} added to cart` : ''}
-          </span>
+          <p className="mt-1 text-xs text-muted" role="status" aria-live="polite">
+            {justAdded && <span className="sr-only">{item.title} added to cart</span>}
+            {cartFull && CART_FULL_MESSAGE}
+          </p>
         </div>
       )}
 

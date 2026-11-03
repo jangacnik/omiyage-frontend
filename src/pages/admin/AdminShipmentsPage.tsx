@@ -21,6 +21,7 @@ import { IconButton } from '../../components/IconButton'
 import { CheckIcon, EditIcon, TrashIcon } from '../../components/icons'
 import { AdminOrderEditor } from './AdminOrderEditor'
 import type { OrderDto, ShipmentDestination, ShipmentDto, ShipmentStatus, ShippingMethod } from '../../types/api'
+import { Field } from '../../components/Field'
 
 const SHIPMENT_STATUSES: ShipmentStatus[] = ['PREPARING', 'SHIPPED', 'DELIVERED']
 const DESTINATIONS: ShipmentDestination[] = ['SLOVENIA', 'AUSTRIA']
@@ -180,7 +181,7 @@ function ShipmentCard({
             value={shipment.status}
             onChange={(e) => handleStatusChange(e.target.value as ShipmentStatus)}
             aria-label={`Status for shipment ${shipment.id.slice(0, 8)}`}
-            className="field-input py-1 text-sm"
+            className="field-input"
           >
             {SHIPMENT_STATUSES.map((s) => (
               <option key={s} value={s}>
@@ -207,15 +208,14 @@ function ShipmentCard({
       </div>
 
       <div className="flex flex-wrap gap-3">
-        <label className="flex flex-col gap-1">
-          <span className="text-xs text-muted">Destination</span>
+        <Field label="Destination">
           <select
             value={shipment.destination ?? ''}
             onChange={(e) =>
               updateShipment.mutate({ id: shipment.id, destination: e.target.value as ShipmentDestination })
             }
             aria-label={`Destination for shipment ${shipment.id.slice(0, 8)}`}
-            className="field-input py-1 text-sm"
+            className="field-input"
           >
             <option value="" disabled>
               Not set
@@ -226,17 +226,16 @@ function ShipmentCard({
               </option>
             ))}
           </select>
-        </label>
+        </Field>
 
-        <label className="flex flex-col gap-1">
-          <span className="text-xs text-muted">Shipping method</span>
+        <Field label="Shipping method">
           <select
             value={shipment.shippingMethod ?? ''}
             onChange={(e) =>
               updateShipment.mutate({ id: shipment.id, shippingMethod: e.target.value as ShippingMethod })
             }
             aria-label={`Shipping method for shipment ${shipment.id.slice(0, 8)}`}
-            className="field-input py-1 text-sm"
+            className="field-input"
           >
             <option value="" disabled>
               Not set
@@ -247,10 +246,9 @@ function ShipmentCard({
               </option>
             ))}
           </select>
-        </label>
+        </Field>
 
-        <label className="flex flex-col gap-1">
-          <span className="text-xs text-muted">Tracking number</span>
+        <Field label="Tracking number">
           <input
             defaultValue={shipment.trackingNumber ?? ''}
             onBlur={(e) => {
@@ -259,12 +257,11 @@ function ShipmentCard({
               }
             }}
             placeholder="Not set — can be added any time, including after shipping"
-            className="field-input max-w-xs py-1 text-sm"
+            className="field-input max-w-xs"
           />
-        </label>
+        </Field>
 
-        <label className="flex flex-col gap-1">
-          <span className="text-xs text-muted">Title</span>
+        <Field label="Title">
           <input
             defaultValue={shipment.title ?? ''}
             onBlur={(e) => {
@@ -273,9 +270,9 @@ function ShipmentCard({
               }
             }}
             placeholder="Not set"
-            className="field-input max-w-xs py-1 text-sm"
+            className="field-input max-w-xs"
           />
-        </label>
+        </Field>
       </div>
 
       <div className="flex flex-wrap gap-6 text-sm text-ink/80" style={{ fontVariantNumeric: 'tabular-nums' }}>

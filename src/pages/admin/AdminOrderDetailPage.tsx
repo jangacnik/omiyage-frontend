@@ -8,6 +8,7 @@ import { Spinner, ButtonSpinner } from '../../components/Spinner'
 import { TrashIcon } from '../../components/icons'
 import { formatMoney } from '../../lib/currency'
 import { AdminOrderEditor } from './AdminOrderEditor'
+import { Field } from '../../components/Field'
 
 export function AdminOrderDetailPage() {
   const { id } = useParams<{ id: string }>()
@@ -60,8 +61,7 @@ export function AdminOrderDetailPage() {
       </div>
       {deleteOrder.isError && <p className="error-text">Could not delete this order.</p>}
 
-      <label className="flex flex-col gap-1">
-        <span className="field-label">Shipment</span>
+      <Field label="Shipment">
         <select
           value={order.shipmentId ?? ''}
           onChange={(e) => assignShipment.mutate({ orderId: order.id, shipmentId: e.target.value || null })}
@@ -75,7 +75,7 @@ export function AdminOrderDetailPage() {
             </option>
           ))}
         </select>
-      </label>
+      </Field>
 
       {order.notes && <p className="text-ink/70">{order.notes}</p>}
 
