@@ -5,5 +5,6 @@ export function formatMoney(amount: number, currency: Currency): string {
 }
 
 export function formatGrams(grams: number): string {
-  return grams >= 1000 ? `${(grams / 1000).toFixed(2)} kg` : `${grams} g`
+  const wholeGrams = Math.round(grams)
+  return wholeGrams >= 1000 ? `${(grams / 1000).toFixed(2)} kg` : `${wholeGrams} g`
 }
