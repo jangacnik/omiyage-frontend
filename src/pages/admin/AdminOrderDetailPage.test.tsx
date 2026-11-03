@@ -134,7 +134,7 @@ describe('AdminOrderDetailPage', () => {
       http.get(`${BASE}/api/orders/order-12345678`, () => HttpResponse.json(order())),
       mockShipments(),
       http.post(`${BASE}/api/admin/orders/order-12345678/items/item-1/add-to-inventory`, () =>
-        HttpResponse.json({ message: 'already exists' }, { status: 409 }),
+        HttpResponse.json({ error: 'already exists' }, { status: 409 }),
       ),
     )
 
