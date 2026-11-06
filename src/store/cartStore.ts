@@ -3,6 +3,12 @@ import { create } from 'zustand'
 import type { Currency, InventoryItem } from '../types/api'
 
 const STORAGE_KEY = 'omiyage.cart'
+// Mirrors MAX_ITEM_QUANTITY on the backend (OrderDtos.kt).
+export const MAX_ITEM_QUANTITY = 1000
+
+function clampQuantity(quantity: number): number {
+  return Math.min(MAX_ITEM_QUANTITY, Math.max(1, Math.round(quantity)))
+}
 
 export interface CartItem {
   inventoryItemId: string
@@ -21,7 +27,8 @@ export interface CartItem {
 
 interface CartState {
   items: CartItem[]
-  addItem: (item: Omit<CartItem, 'quantity'>, quantity?: number) => void
+  /** Returns false when nothing changed: a non-finite quantity, or the line is already at the cap. */
+  addItem: (item: Omit<CartItem, 'quantity'>, quantity?: number) => boolean
   removeItem: (inventoryItemId: string) => void
   setQuantity: (inventoryItemId: string, quantity: number) => void
   clear: () => void
@@ -56,18 +63,21 @@ function persist(items: CartItem[]) {
 export const useCartStore = create<CartState>((set, get) => ({
   items: loadInitialItems(),
   addItem: (item, quantity = 1) => {
+    if (!Number.isFinite(quantity)) return false
     const items = get().items
     const existing = items.find((i) => i.inventoryItemId === item.inventoryItemId)
+    if (existing && existing.quantity >= MAX_ITEM_QUANTITY) return false
     // Refresh title/price/image from this call's snapshot even for an existing line - the cart can
     // persist across sessions in localStorage, so a re-add is also how a stale catalog price gets
     // corrected instead of quietly carrying the amount captured on the very first add.
     const next = existing
       ? items.map((i) =>
-          i.inventoryItemId === item.inventoryItemId ? { ...item, quantity: i.quantity + quantity } : i,
+          i.inventoryItemId === item.inventoryItemId ? { ...item, quantity: clampQuantity(i.quantity + quantity) } : i,
         )
-      : [...items, { ...item, quantity }]
+      : [...items, { ...item, quantity: clampQuantity(quantity) }]
     persist(next)
     set({ items: next })
+    return true
   },
   removeItem: (inventoryItemId) => {
     const next = get().items.filter((i) => i.inventoryItemId !== inventoryItemId)
@@ -75,7 +85,10 @@ export const useCartStore = create<CartState>((set, get) => ({
     set({ items: next })
   },
   setQuantity: (inventoryItemId, quantity) => {
-    const next = get().items.map((i) => (i.inventoryItemId === inventoryItemId ? { ...i, quantity } : i))
+    if (!Number.isFinite(quantity)) return
+    const next = get().items.map((i) =>
+      i.inventoryItemId === inventoryItemId ? { ...i, quantity: clampQuantity(quantity) } : i,
+    )
     persist(next)
     set({ items: next })
   },
@@ -107,16 +120,23 @@ export function cartItemFromInventoryItem(item: InventoryItem): Omit<CartItem, '
 /** Transient "added" state for an Add to cart button - self-clearing, no setup beyond calling
  *  `announce()` in the click handler alongside the actual `addItem` call. */
 export function useAddToCartFeedback() {
-  const [justAdded, setJustAdded] = useState(false)
+  const [feedback, setFeedback] = useState<'added' | 'full' | null>(null)
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
 
   useEffect(() => () => clearTimeout(timeoutRef.current), [])
 
-  function announce() {
+  function show(next: 'added' | 'full') {
     clearTimeout(timeoutRef.current)
-    setJustAdded(true)
-    timeoutRef.current = setTimeout(() => setJustAdded(false), 1800)
+    setFeedback(next)
+    timeoutRef.current = setTimeout(() => setFeedback(null), 1800)
   }
 
-  return { justAdded, announce }
+  return {
+    justAdded: feedback === 'added',
+    cartFull: feedback === 'full',
+    announce: () => show('added'),
+    announceFull: () => show('full'),
+  }
 }
+
+export const CART_FULL_MESSAGE = `Already ${MAX_ITEM_QUANTITY} in your cart, the most one order line can hold`

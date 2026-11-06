@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, vi } from 'vitest'
 import { test, fc } from '@fast-check/vitest'
-import { cartItemCount, useCartStore } from './cartStore'
+import { MAX_ITEM_QUANTITY, cartItemCount, useCartStore } from './cartStore'
 import type { CartItem } from './cartStore'
 
 const STORAGE_KEY = 'omiyage.cart'
@@ -35,7 +35,9 @@ function applyToModel(model: Map<string, CartItem>, cmd: Command) {
   switch (cmd.type) {
     case 'add': {
       const existing = model.get(cmd.item.inventoryItemId)
-      model.set(cmd.item.inventoryItemId, { ...cmd.item, quantity: (existing?.quantity ?? 0) + cmd.quantity })
+      if (existing && existing.quantity >= MAX_ITEM_QUANTITY) break
+      const total = (existing?.quantity ?? 0) + cmd.quantity
+      model.set(cmd.item.inventoryItemId, { ...cmd.item, quantity: Math.min(MAX_ITEM_QUANTITY, total) })
       break
     }
     case 'remove':
@@ -109,7 +111,7 @@ describe('cart store', () => {
   })
 
   test.prop([snapshot, snapshot, quantity, quantity])(
-    'adding the same id twice sums quantities and the latest snapshot wins',
+    'adding the same id twice sums quantities up to the cap and the latest snapshot wins unless the line was full',
     (first, second, firstQuantity, secondQuantity) => {
       localStorage.clear()
       useCartStore.setState({ items: [] })
@@ -118,7 +120,11 @@ describe('cart store', () => {
       useCartStore.getState().addItem(first, firstQuantity)
       useCartStore.getState().addItem(latest, secondQuantity)
 
-      expect(useCartStore.getState().items).toEqual([{ ...latest, quantity: firstQuantity + secondQuantity }])
+      const expected =
+        firstQuantity >= MAX_ITEM_QUANTITY
+          ? { ...first, quantity: MAX_ITEM_QUANTITY }
+          : { ...latest, quantity: Math.min(MAX_ITEM_QUANTITY, firstQuantity + secondQuantity) }
+      expect(useCartStore.getState().items).toEqual([expected])
     },
   )
 
@@ -149,6 +155,20 @@ describe('cart store', () => {
 
     expect(reloaded.useCartStore.getState().items).toEqual(items)
   })
+
+  test.prop([snapshot, fc.oneof(fc.double(), fc.integer())])(
+    'setQuantity keeps every quantity an integer in 1..MAX_ITEM_QUANTITY',
+    (item, requested) => {
+      localStorage.clear()
+      useCartStore.setState({ items: [] })
+      useCartStore.getState().addItem(item, 2)
+
+      useCartStore.getState().setQuantity(item.inventoryItemId, requested)
+
+      const stored = useCartStore.getState().items[0].quantity
+      expect(Number.isInteger(stored) && stored >= 1 && stored <= MAX_ITEM_QUANTITY).toBe(true)
+    },
+  )
 
   test.prop([fc.oneof(fc.jsonValue(), fc.array(corruptLine))])('corrupt storage always yields well-formed lines', async (stored) => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(stored))
