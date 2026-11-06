@@ -8,6 +8,7 @@ import { useInventory } from '../api/inventory'
 import type { CreateOrderItemInput, UpdateMyOrderItemInput } from '../api/orders'
 import { CONDITION_LABELS } from '../lib/orderItemLabels'
 import { draftFromInventoryItem, preservedContentFields, useAddItemPanelState, type DraftItem } from '../lib/orderItemDrafts'
+import { FormSection } from './FormSection'
 import { Field } from './Field'
 import { ImageDropInput } from './ImageDropInput'
 import { PreorderBadge } from './PreorderBadge'
@@ -111,49 +112,53 @@ export function CustomItemForm({
   }
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="card flex flex-col gap-2">
-      <Field label="Title" error={errors.title?.message}>
-        <input className="field-input" {...register('title')} />
-      </Field>
-      <Field label="Description" hint="Optional">
-        <textarea className="field-input" {...register('description')} />
-      </Field>
-      <div className="flex flex-col gap-2 sm:flex-row">
+    <form onSubmit={handleSubmit(onSubmit)} className="card flex flex-col gap-3">
+      <FormSection title="Basics">
+        <Field label="Title" error={errors.title?.message}>
+          <input className="field-input" {...register('title')} />
+        </Field>
+        <Field label="Link to store page" hint="Optional">
+          <input type="url" className="field-input" {...register('link')} />
+        </Field>
+        <ImageDropInput
+          key={photoResetKey}
+          label="Photo"
+          initialImageKey={defaultValues?.imageKey}
+          onUploaded={setImageKey}
+          onUploadingChange={setUploading}
+        />
+      </FormSection>
+      <FormSection title="Pricing">
+        <div className="flex flex-col gap-2 sm:flex-row">
+          <Field label="Max price" hint="Optional - in EUR" className="sm:flex-1">
+            <input type="number" step="0.01" inputMode="decimal" className="field-input" {...register('maxPrice')} />
+          </Field>
+          <Field label="Qty" className="sm:w-32">
+            <QuantityStepper quantity={quantity} onChange={(q) => setValue('quantity', String(q))} label="Quantity" />
+          </Field>
+        </div>
+      </FormSection>
+      <FormSection title="Details">
         <Field label="Condition" className="sm:w-40">
           <select {...register('condition')} className="field-input">
             <option value="NEW">New</option>
             <option value="USED">Used</option>
           </select>
         </Field>
-      </div>
-      <div className="flex flex-col gap-2 sm:flex-row">
-        <Field label="Max price" hint="Optional - in EUR">
-          <input type="number" step="0.01" className="field-input" {...register('maxPrice')} />
+        <label className="flex min-h-11 items-center gap-2 text-sm text-ink/80">
+          <input type="checkbox" {...register('isPreorder')} />
+          This is a preorder
+        </label>
+        {isPreorder && (
+          <Field label="Expected release date" error={errors.expectedReleaseDate?.message}>
+            <input type="date" className="field-input sm:w-48" {...register('expectedReleaseDate')} />
+          </Field>
+        )}
+        <Field label="Description" hint="Optional">
+          <textarea className="field-input" {...register('description')} />
         </Field>
-        <Field label="Qty" className="sm:w-32">
-          <QuantityStepper quantity={quantity} onChange={(q) => setValue('quantity', String(q))} label="Quantity" />
-        </Field>
-      </div>
-      <Field label="Link to store page" hint="Optional">
-        <input type="url" className="field-input" {...register('link')} />
-      </Field>
-      <ImageDropInput
-        key={photoResetKey}
-        label="Photo"
-        initialImageKey={defaultValues?.imageKey}
-        onUploaded={setImageKey}
-        onUploadingChange={setUploading}
-      />
-      <label className="flex items-center gap-2 text-sm text-ink/80">
-        <input type="checkbox" {...register('isPreorder')} />
-        This is a preorder
-      </label>
-      {isPreorder && (
-        <Field label="Expected release date" error={errors.expectedReleaseDate?.message}>
-          <input type="date" className="field-input sm:w-48" {...register('expectedReleaseDate')} />
-        </Field>
-      )}
-      <button type="submit" className="btn-secondary self-start" disabled={uploading || isSubmitting}>
+      </FormSection>
+      <button type="submit" className="btn-primary self-start" disabled={uploading || isSubmitting}>
         {submitLabel}
       </button>
     </form>
