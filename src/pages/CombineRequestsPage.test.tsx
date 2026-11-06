@@ -149,4 +149,32 @@ describe('CombineRequestsPage', () => {
 
     expect(await screen.findByText('Could not cancel this request.')).toBeInTheDocument()
   })
+
+  it('shows a declined outgoing request with its date and no cancel button', async () => {
+    useLists([], [{ ...request, status: 'DECLINED', respondedAt: '2026-10-29T12:00:00Z' }])
+
+    renderWithProviders(<CombineRequestsPage />)
+
+    const row = (await screen.findByText('Declined')).closest('li') as HTMLElement
+    expect(row).toHaveTextContent('Declined on 29 Oct 2026.')
+    expect(within(row).queryByRole('button', { name: 'Cancel request' })).not.toBeInTheDocument()
+  })
+
+  it('shows a declined request without a date when respondedAt is missing', async () => {
+    useLists([], [{ ...request, status: 'DECLINED', respondedAt: null }])
+
+    renderWithProviders(<CombineRequestsPage />)
+
+    const row = (await screen.findByText('Declined')).closest('li') as HTMLElement
+    expect(row).toHaveTextContent('October box — Declined.')
+  })
+
+  it('keeps pending requests cancellable next to declined ones (old API sends only PENDING)', async () => {
+    useLists([], [request, { ...request, id: 'req-2', status: 'DECLINED', respondedAt: '2026-10-29T12:00:00Z' }])
+
+    renderWithProviders(<CombineRequestsPage />)
+
+    expect(await screen.findByText(/waiting for them to respond/)).toBeInTheDocument()
+    expect(screen.getAllByRole('button', { name: 'Cancel request' })).toHaveLength(1)
+  })
 })
