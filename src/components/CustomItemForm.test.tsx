@@ -29,4 +29,15 @@ describe('CustomItemForm', () => {
     expect(groups[2]).toContainElement(screen.getByLabelText('Condition'))
     expect(screen.getByRole('button', { name: 'Add item' })).toHaveClass('btn-primary')
   })
+
+  it('submits the quantity picked with the stepper', async () => {
+    const onAdd = vi.fn()
+    render(<CustomItemForm onAdd={onAdd} />)
+    fireEvent.change(screen.getByLabelText('Title'), { target: { value: 'Frieren card' } })
+
+    fireEvent.click(screen.getByLabelText('Increase quantity'))
+    fireEvent.click(screen.getByRole('button', { name: 'Add item' }))
+
+    await waitFor(() => expect(onAdd).toHaveBeenCalledWith(expect.objectContaining({ input: expect.objectContaining({ quantity: 2 }) })))
+  })
 })
