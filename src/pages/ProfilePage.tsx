@@ -229,70 +229,42 @@ export function ProfilePage() {
       {profile && <AvatarEditor profile={profile} />}
       {profile && <NicknameEditor profile={profile} />}
 
-      <form onSubmit={handleSubmit(onSubmit)} className="card grid grid-cols-1 gap-4 sm:grid-cols-2">
-        <div className="flex flex-col gap-1">
-          <label htmlFor="email" className="field-label">
-            Email
-          </label>
-          <input id="email" className="field-input" {...register('email')} aria-label="Email" />
-          {errors.email && <p className="error-text">{errors.email.message}</p>}
-        </div>
+      <form noValidate onSubmit={handleSubmit(onSubmit)} className="card grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <Field label="Email" error={errors.email?.message}>
+          <input className="field-input" type="email" autoComplete="email" {...register('email')} />
+        </Field>
 
-        <div className="flex flex-col gap-1">
-          <label htmlFor="phone" className="field-label">
-            Phone
-          </label>
-          <input id="phone" className="field-input" {...register('phone')} aria-label="Phone" />
-        </div>
+        <Field label="Phone">
+          <input className="field-input" type="tel" autoComplete="tel" {...register('phone')} />
+        </Field>
 
-        <div className="flex flex-col gap-1">
-          <label htmlFor="firstName" className="field-label">
-            First name
-          </label>
-          <input id="firstName" className="field-input" {...register('firstName')} aria-label="First name" />
-        </div>
+        <Field label="First name">
+          <input className="field-input" autoComplete="given-name" {...register('firstName')} />
+        </Field>
 
-        <div className="flex flex-col gap-1">
-          <label htmlFor="lastName" className="field-label">
-            Last name
-          </label>
-          <input id="lastName" className="field-input" {...register('lastName')} aria-label="Last name" />
-        </div>
+        <Field label="Last name">
+          <input className="field-input" autoComplete="family-name" {...register('lastName')} />
+        </Field>
 
-        <div className="flex flex-col gap-1 sm:col-span-2">
-          <label htmlFor="addressLine1" className="field-label">
-            Address line 1
-          </label>
-          <input id="addressLine1" className="field-input" {...register('addressLine1')} aria-label="Address line 1" />
-        </div>
+        <Field label="Address line 1" className="sm:col-span-2">
+          <input className="field-input" autoComplete="address-line1" {...register('addressLine1')} />
+        </Field>
 
-        <div className="flex flex-col gap-1 sm:col-span-2">
-          <label htmlFor="addressLine2" className="field-label">
-            Address line 2
-          </label>
-          <input id="addressLine2" className="field-input" {...register('addressLine2')} aria-label="Address line 2" />
-        </div>
+        <Field label="Address line 2" className="sm:col-span-2">
+          <input className="field-input" autoComplete="address-line2" {...register('addressLine2')} />
+        </Field>
 
-        <div className="flex flex-col gap-1">
-          <label htmlFor="postalCode" className="field-label">
-            Postal code
-          </label>
-          <input id="postalCode" className="field-input" {...register('postalCode')} aria-label="Postal code" />
-        </div>
+        <Field label="Postal code">
+          <input className="field-input" autoComplete="postal-code" {...register('postalCode')} />
+        </Field>
 
-        <div className="flex flex-col gap-1">
-          <label htmlFor="city" className="field-label">
-            City
-          </label>
-          <input id="city" className="field-input" {...register('city')} aria-label="City" />
-        </div>
+        <Field label="City">
+          <input className="field-input" autoComplete="address-level2" {...register('city')} />
+        </Field>
 
-        <div className="flex flex-col gap-1 sm:col-span-2">
-          <label htmlFor="country" className="field-label">
-            Country
-          </label>
-          <input id="country" className="field-input" {...register('country')} aria-label="Country" />
-        </div>
+        <Field label="Country" className="sm:col-span-2">
+          <input className="field-input" autoComplete="country-name" {...register('country')} />
+        </Field>
 
         <Field
           label="Discord name"
