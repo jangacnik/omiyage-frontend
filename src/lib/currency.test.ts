@@ -12,7 +12,7 @@ describe('formatGrams', () => {
   test.prop([fc.integer({ min: 1000, max: 10_000_000 })])('from 1000 g renders kg within 5 g of input', (grams) => {
     const formatted = formatGrams(grams)
     expect(formatted).toMatch(/^\d+\.\d{2} kg$/)
-    expect(Math.abs(parseFloat(formatted) * 1000 - grams)).toBeLessThanOrEqual(5)
+    expect(Math.abs(parseFloat(formatted) * 1000 - grams)).toBeLessThanOrEqual(5 + 1e-6)
   })
 
   test.prop([fc.oneof(fc.double({ noDefaultInfinity: false }), fc.integer())])('never throws', (grams) => {
