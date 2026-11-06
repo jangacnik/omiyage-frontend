@@ -12,6 +12,7 @@ export const router = createBrowserRouter([
   {
     element: <RouteTitle />,
     children: [
+      { path: '/auth/callback', ...page(() => import('../pages/AuthCallbackPage'), 'AuthCallbackPage', 'Signing in') },
       { path: '/login', ...page(() => import('../pages/LoginPage'), 'LoginPage', 'Sign in') },
       {
         element: <RequireAuth />,

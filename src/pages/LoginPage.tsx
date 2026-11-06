@@ -3,6 +3,8 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 import { useLogin } from '../api/auth'
+import { useMeishiSsoConfig } from '../api/meishiSso'
+import { buildAuthorizeUrl } from '../lib/meishiSso'
 import { useAuthStore } from '../store/authStore'
 import { ApiError } from '../lib/apiClient'
 import { Field } from '../components/Field'
@@ -20,6 +22,7 @@ export function LoginPage() {
   const token = useAuthStore((s) => s.token)
   const sessionExpired = useAuthStore((s) => s.sessionExpired)
   const login = useLogin()
+  const sso = useMeishiSsoConfig()
   const {
     register,
     handleSubmit,
@@ -30,6 +33,10 @@ export function LoginPage() {
 
   function onSubmit(data: LoginForm) {
     login.mutate(data)
+  }
+
+  async function continueWithMeishi() {
+    if (sso) window.location.assign(await buildAuthorizeUrl(sso.authorizeUrl, sso.clientId))
   }
 
   const errorMessage = login.isError
@@ -71,6 +78,12 @@ export function LoginPage() {
             )}
           </button>
         </form>
+
+        {sso && (
+          <button type="button" className="btn-secondary mt-4 w-full" onClick={continueWithMeishi}>
+            Continue with Meishi
+          </button>
+        )}
       </div>
     </div>
   )
