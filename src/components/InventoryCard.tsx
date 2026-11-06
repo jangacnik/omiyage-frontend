@@ -61,7 +61,7 @@ export function InventoryCard({
           className="aspect-square w-full"
         />
         <div className="p-3">
-          <p className="truncate font-medium text-ink">{item.title}</p>
+          <p className="line-clamp-2 min-h-12 font-medium text-ink" title={item.title}>{item.title}</p>
           {/* Fixed-height slot, rendered whether or not this item preorders - otherwise cards
               with and without a preorder badge end up different heights. */}
           <div className="mb-1 flex h-6 items-center">

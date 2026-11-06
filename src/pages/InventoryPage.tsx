@@ -139,7 +139,7 @@ export function InventoryPage() {
             ))}
           </select>
         </Field>
-        <label className="flex items-center gap-2 text-sm text-ink/80">
+        <label className="flex min-h-11 items-center gap-2 text-sm text-ink/80">
           <input
             type="checkbox"
             checked={inStockOnly}
