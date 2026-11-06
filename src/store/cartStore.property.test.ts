@@ -180,8 +180,9 @@ describe('cart store', () => {
     expect(Array.isArray(items)).toBe(true)
     for (const item of items) {
       expect(item).toEqual(expect.objectContaining({ inventoryItemId: expect.any(String), title: expect.any(String) }))
-      expect(Number.isInteger(item.quantity) && item.quantity >= 1).toBe(true)
+      expect(Number.isInteger(item.quantity) && item.quantity >= 1 && item.quantity <= MAX_ITEM_QUANTITY).toBe(true)
     }
+    expect(new Set(items.map((item) => item.inventoryItemId)).size).toBe(items.length)
     expect(() => reloaded.useCartStore.getState().addItem(line)).not.toThrow()
   })
 })

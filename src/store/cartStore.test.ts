@@ -45,8 +45,23 @@ describe('cart store initial load', () => {
     ['negative quantity', { ...validLine, quantity: -1 }],
     ['fractional quantity', { ...validLine, quantity: 1.5 }],
     ['null quantity (stored NaN)', { ...validLine, quantity: null }],
+    ['quantity above the backend maximum', { ...validLine, quantity: 1001 }],
   ])('drops a line with %s and keeps the rest', async (_name, bad) => {
     const store = await storeLoadedFrom(JSON.stringify([bad, validLine]))
+
+    expect(store.getState().items).toEqual([validLine])
+  })
+
+  it('keeps a line at the backend maximum', async () => {
+    const store = await storeLoadedFrom(JSON.stringify([{ ...validLine, quantity: 1000 }]))
+
+    expect(store.getState().items).toEqual([{ ...validLine, quantity: 1000 }])
+  })
+
+  it('keeps only the first line for a duplicated item id', async () => {
+    const duplicate = { ...validLine, title: 'Mochi again', quantity: 5 }
+
+    const store = await storeLoadedFrom(JSON.stringify([validLine, duplicate]))
 
     expect(store.getState().items).toEqual([validLine])
   })

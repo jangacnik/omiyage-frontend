@@ -43,14 +43,17 @@ function isCartItem(value: unknown): value is CartItem {
     Number.isFinite(priceAmount) &&
     (currency === 'EUR' || currency === 'JPY') &&
     Number.isInteger(quantity) &&
-    (quantity as number) >= 1
+    (quantity as number) >= 1 &&
+    (quantity as number) <= MAX_ITEM_QUANTITY
   )
 }
 
 function loadInitialItems(): CartItem[] {
   try {
     const stored: unknown = JSON.parse(localStorage.getItem(STORAGE_KEY) ?? '[]')
-    return Array.isArray(stored) ? stored.filter(isCartItem) : []
+    if (!Array.isArray(stored)) return []
+    const seen = new Set<string>()
+    return stored.filter(isCartItem).filter((item) => !seen.has(item.inventoryItemId) && seen.add(item.inventoryItemId))
   } catch {
     return []
   }
