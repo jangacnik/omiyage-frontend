@@ -108,6 +108,53 @@ describe('AdminOrderDetailPage', () => {
     )
   })
 
+  it('lets an admin add a custom item to inventory manually, once', async () => {
+    const user = userEvent.setup()
+    let calls = 0
+    server.use(
+      http.get(`${BASE}/api/orders/order-12345678`, () => HttpResponse.json(order())),
+      mockShipments(),
+      http.post(`${BASE}/api/admin/orders/order-12345678/items/item-1/add-to-inventory`, () => {
+        calls++
+        return HttpResponse.json(order(), { status: 201 })
+      }),
+    )
+
+    renderPage()
+    await screen.findByText('Ghibli museum ticket')
+    await user.click(screen.getByRole('button', { name: 'Add to inventory' }))
+
+    expect(await screen.findByRole('button', { name: 'Added to inventory' })).toBeDisabled()
+    expect(calls).toBe(1)
+  })
+
+  it('shows the server message when adding to inventory fails', async () => {
+    const user = userEvent.setup()
+    server.use(
+      http.get(`${BASE}/api/orders/order-12345678`, () => HttpResponse.json(order())),
+      mockShipments(),
+      http.post(`${BASE}/api/admin/orders/order-12345678/items/item-1/add-to-inventory`, () =>
+        HttpResponse.json({ error: 'already exists' }, { status: 409 }),
+      ),
+    )
+
+    renderPage()
+    await screen.findByText('Ghibli museum ticket')
+    await user.click(screen.getByRole('button', { name: 'Add to inventory' }))
+
+    expect(await screen.findByText(/already exists/)).toBeInTheDocument()
+  })
+
+  it('does not offer add to inventory for an item already linked to inventory', async () => {
+    const linked: OrderDto = { ...order(), items: [{ ...order().items[0], inventoryItemId: 'inv-1' }] }
+    server.use(http.get(`${BASE}/api/orders/order-12345678`, () => HttpResponse.json(linked)), mockShipments())
+
+    renderPage()
+    await screen.findByText('Ghibli museum ticket')
+
+    expect(screen.queryByRole('button', { name: /inventory/i })).not.toBeInTheDocument()
+  })
+
   it('shows only the order-level total profit, not a per-item breakdown', async () => {
     // soldPrice/soldPriceCurrency are always EUR, actualPrice/actualPriceCurrency always JPY -
     // profit itself is always EUR (converted server-side before subtracting).

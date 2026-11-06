@@ -6,6 +6,7 @@ import { describe, expect, it } from 'vitest'
 import { server } from '../test/server'
 import {
   useAdminAddOrderItem,
+  useAdminAddOrderItemToInventory,
   useAdminCombineRequests,
   useAdminCreateOrderForUser,
   useAdminDeleteOrder,
@@ -119,6 +120,7 @@ describe('adminOrders mutations', () => {
     ['useAdminAddOrderItem', useAdminAddOrderItem, { orderId: 'o-1', title: 'Pocky' }, 'POST', '/api/admin/orders/o-1/items', { title: 'Pocky' }],
     ['useAdminUpdateOrderItemContent', useAdminUpdateOrderItemContent, { orderId: 'o-1', itemId: 'i-1', title: 'New' }, 'PATCH', '/api/admin/orders/o-1/items/i-1/details', { title: 'New' }],
     ['useAdminRemoveOrderItem', useAdminRemoveOrderItem, { orderId: 'o-1', itemId: 'i-1' }, 'DELETE', '/api/admin/orders/o-1/items/i-1', undefined],
+    ['useAdminAddOrderItemToInventory', useAdminAddOrderItemToInventory, { orderId: 'o-1', itemId: 'i-1' }, 'POST', '/api/admin/orders/o-1/items/i-1/add-to-inventory', undefined],
     ['useAdminMarkItemPaid', useAdminMarkItemPaid, { orderId: 'o-1', itemId: 'i-1', paid: true }, 'PATCH', '/api/admin/orders/o-1/items/i-1/paid', { paid: true }],
     ['useAdminMarkOrderPaid', useAdminMarkOrderPaid, { orderId: 'o-1', paid: false }, 'PATCH', '/api/admin/orders/o-1/paid', { paid: false }],
     ['useAdminDeleteOrder', useAdminDeleteOrder, 'o-1', 'DELETE', '/api/admin/orders/o-1', undefined],
