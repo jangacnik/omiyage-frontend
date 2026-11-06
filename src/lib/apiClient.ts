@@ -33,7 +33,7 @@ async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
   if (response.status === 204) return undefined as T
 
   const isJson = response.headers.get('content-type')?.includes('application/json')
-  const body = isJson ? await response.json() : undefined
+  const body = isJson ? await response.json().catch(() => undefined) : undefined
 
   if (response.status === 401 && token && token === useAuthStore.getState().token) {
     useAuthStore.getState().expireSession()

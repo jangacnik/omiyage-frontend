@@ -6,6 +6,15 @@ import { useAuthStore } from '../store/authStore'
 const errorStatus = fc.integer({ min: 400, max: 599 })
 const successStatus = fc.integer({ min: 200, max: 299 }).filter((status) => status !== 204 && status !== 205)
 
+const isMalformedJson = (text: string) => {
+  try {
+    JSON.parse(text)
+    return false
+  } catch {
+    return true
+  }
+}
+
 const respondWith = (response: Response) => vi.stubGlobal('fetch', vi.fn().mockResolvedValue(response))
 
 const jsonResponse = (body: unknown, status: number) =>
@@ -40,6 +49,18 @@ describe('apiClient', () => {
       expect(failure).toBeInstanceOf(ApiError)
       expect((failure as ApiError).status).toBe(status)
       expect(typeof (failure as ApiError).message).toBe('string')
+    },
+  )
+
+  test.prop([errorStatus, fc.string().filter(isMalformedJson)])(
+    'a malformed body declared as JSON still becomes an ApiError with the status',
+    async (status, text) => {
+      respondWith(new Response(text, { status, statusText: 'Bad Gateway', headers: { 'content-type': 'application/json' } }))
+
+      const failure = await api.get('/api/x').catch((caught: unknown) => caught)
+
+      expect(failure).toBeInstanceOf(ApiError)
+      expect(failure).toMatchObject({ status, message: 'Bad Gateway' })
     },
   )
 
