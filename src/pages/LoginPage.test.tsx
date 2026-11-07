@@ -58,6 +58,52 @@ describe('LoginPage', () => {
       expect(screen.queryByRole('button', { name: 'Continue with Meishi' })).not.toBeInTheDocument()
     })
 
+    it('is hidden when the login URL is not https', async () => {
+      server.use(
+        http.get(CONFIG, () =>
+          HttpResponse.json({ meishiSso: { enabled: true, authorizeUrl: 'javascript:alert(1)', clientId: 'omiyage' } }),
+        ),
+      )
+      renderWithProviders(<LoginPage />)
+
+      await screen.findByRole('button', { name: 'Sign in' })
+      expect(screen.queryByRole('button', { name: 'Continue with Meishi' })).not.toBeInTheDocument()
+    })
+
+    it('redirects once on a double click and stays disabled', async () => {
+      server.use(
+        http.get(CONFIG, () =>
+          HttpResponse.json({ meishiSso: { enabled: true, authorizeUrl: 'https://meishi.example/oauth/authorize', clientId: 'omiyage' } }),
+        ),
+      )
+      const user = userEvent.setup()
+      renderWithProviders(<LoginPage />)
+      const button = await screen.findByRole('button', { name: 'Continue with Meishi' })
+
+      await user.dblClick(button)
+
+      await waitFor(() => expect(assign).toHaveBeenCalledTimes(1))
+      expect(button).toBeDisabled()
+    })
+
+    it('shows an error and allows another try when the request cannot be prepared', async () => {
+      server.use(
+        http.get(CONFIG, () =>
+          HttpResponse.json({ meishiSso: { enabled: true, authorizeUrl: 'https://meishi.example/oauth/authorize', clientId: 'omiyage' } }),
+        ),
+      )
+      const digest = vi.spyOn(crypto.subtle, 'digest').mockRejectedValueOnce(new Error('no crypto'))
+      const user = userEvent.setup()
+      renderWithProviders(<LoginPage />)
+
+      await user.click(await screen.findByRole('button', { name: 'Continue with Meishi' }))
+
+      expect(await screen.findByRole('alert')).toHaveTextContent('Could not start sign-in with Meishi')
+      expect(assign).not.toHaveBeenCalled()
+      expect(screen.getByRole('button', { name: 'Continue with Meishi' })).toBeEnabled()
+      digest.mockRestore()
+    })
+
     it('sends the browser to the hosted login with state and a PKCE challenge', async () => {
       server.use(
         http.get(CONFIG, () =>

@@ -19,7 +19,7 @@ const MESSAGES = {
 
 function failureMessage(error: unknown): string {
   if (!(error instanceof ApiError)) return MESSAGES.failed
-  if (error.status === 401) return MESSAGES.rejected
+  if (error.status === 400 || error.status === 401) return MESSAGES.rejected
   if (error.status === 403) return MESSAGES.frozen
   if (error.status === 404 || error.status === 503) return MESSAGES.disabled
   if (error.status === 429) return MESSAGES.throttled
@@ -30,7 +30,7 @@ export function AuthCallbackPage() {
   const [params] = useSearchParams()
   const navigate = useNavigate()
   const login = useAuthStore((s) => s.login)
-  const exchange = useMeishiExchange()
+  const { mutate } = useMeishiExchange()
   const started = useRef(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -44,7 +44,7 @@ export function AuthCallbackPage() {
       setError(MESSAGES[check.reason])
       return
     }
-    exchange.mutate(
+    mutate(
       { code: check.code, verifier: check.verifier },
       {
         onSuccess: ({ token }) => {
@@ -58,7 +58,7 @@ export function AuthCallbackPage() {
         onError: (e) => setError(failureMessage(e)),
       },
     )
-  }, [params, navigate, login, exchange])
+  }, [params, navigate, login, mutate])
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-paper px-4">

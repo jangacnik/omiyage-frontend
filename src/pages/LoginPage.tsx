@@ -1,5 +1,6 @@
 import { Navigate } from 'react-router-dom'
 import { zodResolver } from '@hookform/resolvers/zod'
+import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 import { useLogin } from '../api/auth'
@@ -23,6 +24,7 @@ export function LoginPage() {
   const sessionExpired = useAuthStore((s) => s.sessionExpired)
   const login = useLogin()
   const sso = useMeishiSsoConfig()
+  const [ssoStatus, setSsoStatus] = useState<'idle' | 'redirecting' | 'failed'>('idle')
   const {
     register,
     handleSubmit,
@@ -36,7 +38,13 @@ export function LoginPage() {
   }
 
   async function continueWithMeishi() {
-    if (sso) window.location.assign(await buildAuthorizeUrl(sso.authorizeUrl, sso.clientId))
+    if (!sso || ssoStatus === 'redirecting') return
+    setSsoStatus('redirecting')
+    try {
+      window.location.assign(await buildAuthorizeUrl(sso.authorizeUrl, sso.clientId))
+    } catch {
+      setSsoStatus('failed')
+    }
   }
 
   const errorMessage = login.isError
@@ -80,9 +88,19 @@ export function LoginPage() {
         </form>
 
         {sso && (
-          <button type="button" className="btn-secondary mt-4 w-full" onClick={continueWithMeishi}>
-            Continue with Meishi
-          </button>
+          <>
+            {ssoStatus === 'failed' && (
+              <p role="alert" className="error-text mt-4">Could not start sign-in with Meishi. Please try again.</p>
+            )}
+            <button
+              type="button"
+              className="btn-secondary mt-4 w-full"
+              disabled={ssoStatus === 'redirecting'}
+              onClick={continueWithMeishi}
+            >
+              Continue with Meishi
+            </button>
+          </>
         )}
       </div>
     </div>

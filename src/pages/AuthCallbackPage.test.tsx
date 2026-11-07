@@ -72,6 +72,7 @@ describe('AuthCallbackPage', () => {
   })
 
   it.each([
+    [400, 'expired or was already used'],
     [401, 'expired or was already used'],
     [403, 'frozen'],
     [404, 'turned off'],
