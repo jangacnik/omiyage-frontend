@@ -9,7 +9,7 @@ trap 'docker rm -f $name >/dev/null 2>&1 || true; rm -rf "$root"' EXIT
 echo '<!doctype html><title>test</title>' > "$root/index.html"
 chmod -R a+rX "$root"
 
-docker run -d --name $name -p 127.0.0.1::8080 --add-host meishi-api.default.svc.cluster.local:127.0.0.1 \
+docker run -d --name $name -p 127.0.0.1::8080 \
   -v "$PWD/nginx.conf":/etc/nginx/conf.d/default.conf:ro -v "$root":/usr/share/nginx/html:ro $IMAGE >/dev/null
 url=http://$(docker port $name 8080/tcp | head -1)
 
