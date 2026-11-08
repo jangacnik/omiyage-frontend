@@ -51,6 +51,14 @@ describe('authStore', () => {
 
     expect(freshStore.getState().token).toBeNull()
     expect(localStorage.getItem('omiyage.token')).toBeNull()
+    expect(freshStore.getState().sessionExpired).toBe(true)
+  })
+
+  it('starts without an expiry notice when nothing is stored', async () => {
+    vi.resetModules()
+    const { useAuthStore: freshStore } = await import('./authStore')
+
+    expect(freshStore.getState().sessionExpired).toBe(false)
   })
 
   it.each([[{}], [5], [null], [[]]])('does not restore a token with payload %j and removes it', async (payload) => {

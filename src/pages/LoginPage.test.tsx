@@ -4,9 +4,97 @@ import { screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { server } from '../test/server'
 import { renderWithProviders } from '../test/renderWithProviders'
+import { useAuthStore } from '../store/authStore'
 import { LoginPage } from './LoginPage'
 
+const LOGIN = 'http://localhost:8081/api/auth/login'
+
+async function submit(user: ReturnType<typeof userEvent.setup>) {
+  await user.type(screen.getByLabelText('Nickname'), 'someone')
+  await user.type(screen.getByLabelText('Password'), 'wrong{Enter}')
+}
+
 describe('LoginPage', () => {
+  beforeEach(() => useAuthStore.setState({ token: null, claims: null, sessionExpired: false }))
+
+  describe('failed sign-in', () => {
+    const INCORRECT = 'Nickname or password is incorrect. After several failed tries the account is locked for a while.'
+
+    it.each([
+      ['wrong password, unknown nickname or locked account (one 401 from Meishi)', 401, 'invalid credentials', INCORRECT],
+      ['frozen account', 403, 'account is frozen', 'This account is frozen. Ask an admin to reactivate it.'],
+      ['rate limit', 429, 'too many login attempts', 'Too many sign-in attempts. Wait a few minutes, then try again.'],
+      ['server error', 500, 'Internal Server Error', 'The server ran into a problem. Please try again in a moment.'],
+      ['bad gateway', 502, 'Bad Gateway', 'The server ran into a problem. Please try again in a moment.'],
+      ['other client error', 400, 'nickname must not be blank', INCORRECT],
+    ])('%s: shows a clear message', async (_name, status, error, message) => {
+      server.use(http.post(LOGIN, () => HttpResponse.json({ error }, { status })))
+      const user = userEvent.setup()
+      renderWithProviders(<LoginPage />)
+
+      await submit(user)
+
+      expect(await screen.findByRole('alert')).toHaveTextContent(message)
+    })
+
+    it('says the server cannot be reached when the request fails', async () => {
+      server.use(http.post(LOGIN, () => HttpResponse.error()))
+      const user = userEvent.setup()
+      renderWithProviders(<LoginPage />)
+
+      await submit(user)
+
+      expect(await screen.findByRole('alert')).toHaveTextContent('Could not reach the server. Check your connection and try again.')
+    })
+
+    it('moves focus to the error so it is seen and read', async () => {
+      server.use(http.post(LOGIN, () => HttpResponse.json({ error: 'invalid credentials' }, { status: 401 })))
+      const user = userEvent.setup()
+      renderWithProviders(<LoginPage />)
+
+      await submit(user)
+
+      const alert = await screen.findByRole('alert')
+      await waitFor(() => expect(alert).toHaveFocus())
+    })
+
+    it('replaces the session-expired notice with the new error', async () => {
+      useAuthStore.setState({ sessionExpired: true })
+      server.use(http.post(LOGIN, () => HttpResponse.json({ error: 'invalid credentials' }, { status: 401 })))
+      const user = userEvent.setup()
+      renderWithProviders(<LoginPage />)
+      expect(screen.getByRole('alert')).toHaveTextContent('Session expired')
+
+      await submit(user)
+
+      await waitFor(() => expect(screen.getAllByRole('alert')).toHaveLength(1))
+      expect(screen.getByRole('alert')).toHaveTextContent(INCORRECT)
+    })
+
+    it('disables the button while signing in and submits on Enter', async () => {
+      let release = () => {}
+      server.use(http.post(LOGIN, () => new Promise<Response>((resolve) => {
+        release = () => resolve(HttpResponse.json({ error: 'invalid credentials' }, { status: 401 }))
+      })))
+      const user = userEvent.setup()
+      renderWithProviders(<LoginPage />)
+
+      await submit(user)
+
+      const button = await screen.findByRole('button', { name: /Signing in/ })
+      expect(button).toBeDisabled()
+      release()
+      expect(await screen.findByRole('button', { name: 'Sign in' })).toBeEnabled()
+    })
+
+    it('marks the fields for password managers', () => {
+      renderWithProviders(<LoginPage />)
+
+      expect(screen.getByLabelText('Nickname')).toHaveAttribute('autocomplete', 'username')
+      expect(screen.getByLabelText('Password')).toHaveAttribute('autocomplete', 'current-password')
+    })
+  })
+
   it('announces empty-field errors and links them to the inputs', async () => {
     const user = userEvent.setup()
     renderWithProviders(<LoginPage />)

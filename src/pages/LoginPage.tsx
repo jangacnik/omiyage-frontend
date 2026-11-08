@@ -1,6 +1,6 @@
 import { Navigate } from 'react-router-dom'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 import { useLogin } from '../api/auth'
@@ -19,17 +19,34 @@ const loginSchema = z.object({
 
 type LoginForm = z.infer<typeof loginSchema>
 
+/** One message per failure kind. MeishiApi answers the same 401 for a wrong password, an unknown
+ *  nickname and a locked account on purpose, so the page must not tell them apart either. */
+function loginErrorMessage(error: Error): string {
+  if (!(error instanceof ApiError)) return 'Could not reach the server. Check your connection and try again.'
+  if (error.status === 403) return 'This account is frozen. Ask an admin to reactivate it.'
+  if (error.status === 429) return 'Too many sign-in attempts. Wait a few minutes, then try again.'
+  if (error.status >= 500) return 'The server ran into a problem. Please try again in a moment.'
+  return 'Nickname or password is incorrect. After several failed tries the account is locked for a while.'
+}
+
 export function LoginPage() {
   const token = useAuthStore((s) => s.token)
   const sessionExpired = useAuthStore((s) => s.sessionExpired)
   const login = useLogin()
   const sso = useMeishiSsoConfig()
   const [ssoStatus, setSsoStatus] = useState<'idle' | 'redirecting' | 'failed'>('idle')
+  const errorRef = useRef<HTMLParagraphElement>(null)
   const {
     register,
     handleSubmit,
     formState: { errors },
   } = useForm<LoginForm>({ resolver: zodResolver(loginSchema) })
+
+  const errorMessage = login.error ? loginErrorMessage(login.error) : null
+
+  useEffect(() => {
+    if (login.error) errorRef.current?.focus()
+  }, [login.error])
 
   if (token) return <Navigate to="/" replace />
 
@@ -46,12 +63,6 @@ export function LoginPage() {
       setSsoStatus('failed')
     }
   }
-
-  const errorMessage = login.isError
-    ? login.error instanceof ApiError
-      ? login.error.message
-      : 'Could not reach the server. Please try again.'
-    : null
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-paper px-4">
@@ -73,8 +84,12 @@ export function LoginPage() {
             <input type="password" className="field-input" autoComplete="current-password" {...register('password')} />
           </Field>
 
-          {sessionExpired && <p role="alert" className="error-text">Session expired, please sign in again.</p>}
-          {errorMessage && <p role="alert" className="error-text">{errorMessage}</p>}
+          {sessionExpired && !errorMessage && <p role="alert" className="error-text">Session expired, please sign in again.</p>}
+          {errorMessage && (
+            <p ref={errorRef} tabIndex={-1} role="alert" className="error-text">
+              {errorMessage}
+            </p>
+          )}
 
           <button type="submit" className="btn-primary w-full" disabled={login.isPending}>
             {login.isPending ? (

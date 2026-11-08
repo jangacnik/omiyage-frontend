@@ -12,25 +12,25 @@ interface AuthState {
   expireSession: () => void
 }
 
-function loadInitialState(): Pick<AuthState, 'token' | 'claims'> {
+function loadInitialState(): Pick<AuthState, 'token' | 'claims' | 'sessionExpired'> {
+  const signedOut = { token: null, claims: null, sessionExpired: false }
   const token = localStorage.getItem(TOKEN_KEY)
-  if (!token) return { token: null, claims: null }
+  if (!token) return signedOut
   try {
     const claims = decodeJwt(token)
     if (isExpired(claims)) {
       localStorage.removeItem(TOKEN_KEY)
-      return { token: null, claims: null }
+      return { ...signedOut, sessionExpired: true }
     }
-    return { token, claims }
+    return { token, claims, sessionExpired: false }
   } catch {
     localStorage.removeItem(TOKEN_KEY)
-    return { token: null, claims: null }
+    return signedOut
   }
 }
 
 export const useAuthStore = create<AuthState>((set) => ({
   ...loadInitialState(),
-  sessionExpired: false,
   login: (token: string) => {
     const claims = decodeJwt(token)
     if (isExpired(claims)) throw new Error('JWT is expired or has no exp claim')

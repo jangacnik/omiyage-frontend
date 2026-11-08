@@ -42,6 +42,12 @@ describe('router', () => {
     queryClient.clear()
   })
 
+  it('shows a loading state while the first lazy page loads', () => {
+    render(<>{router.routes[0].hydrateFallbackElement}</>)
+
+    expect(screen.getByRole('status')).toHaveTextContent('Loading')
+  })
+
   it('sends an unauthenticated visitor to the login page', async () => {
     await router.navigate('/cart')
     renderApp()

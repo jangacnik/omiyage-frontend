@@ -1,5 +1,6 @@
 import { createBrowserRouter, Navigate } from 'react-router-dom'
 import { Layout } from '../components/Layout'
+import { Spinner } from '../components/Spinner'
 import { RouteTitle } from './RouteTitle'
 import { RequireAdmin, RequireAuth } from './guards'
 
@@ -11,6 +12,8 @@ function page<M extends Record<string, React.ComponentType>>(load: () => Promise
 export const router = createBrowserRouter([
   {
     element: <RouteTitle />,
+    // Every page is lazy, so the first load has nothing to render until its chunk arrives.
+    HydrateFallback: () => <Spinner fullPage />,
     children: [
       { path: '/auth/callback', ...page(() => import('../pages/AuthCallbackPage'), 'AuthCallbackPage', 'Signing in') },
       { path: '/login', ...page(() => import('../pages/LoginPage'), 'LoginPage', 'Sign in') },
