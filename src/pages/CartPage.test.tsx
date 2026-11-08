@@ -133,6 +133,27 @@ describe('CartPage', () => {
     expect(capturedBody.nickname).toBeUndefined()
   })
 
+  it('explains a rejected order with the server message and keeps the cart', async () => {
+    useCartStore.setState({ items: [kitKat] })
+    server.use(
+      http.post(`${BASE}/api/orders`, () =>
+        HttpResponse.json(
+          { error: 'items[0].inventoryItemId is not a valid id', code: 'bad_request', field: 'items[0].inventoryItemId' },
+          { status: 400 },
+        ),
+      ),
+    )
+    const user = userEvent.setup()
+    renderPage()
+
+    await user.click(screen.getByRole('button', { name: 'Submit order' }))
+
+    const alert = await screen.findByRole('alert')
+    expect(alert).toHaveTextContent('items[0].inventoryItemId is not a valid id')
+    expect(alert).toHaveTextContent('Remove the item and add it again')
+    expect(useCartStore.getState().items).toHaveLength(1)
+  })
+
   it('keeps the cart and shows the error when submitting fails', async () => {
     const user = userEvent.setup()
     server.use(http.post(`${BASE}/api/orders`, () => HttpResponse.json({ error: 'Item sold out.' }, { status: 409 })))

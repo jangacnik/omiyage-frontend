@@ -34,11 +34,15 @@ interface CartState {
   clear: () => void
 }
 
+// The API binds inventoryItemId to a UUID and answers 400 for anything else.
+const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+
 function isCartItem(value: unknown): value is CartItem {
   if (typeof value !== 'object' || value === null) return false
   const { inventoryItemId, title, priceAmount, currency, quantity } = value as Record<string, unknown>
   return (
     typeof inventoryItemId === 'string' &&
+    UUID_PATTERN.test(inventoryItemId) &&
     typeof title === 'string' &&
     Number.isFinite(priceAmount) &&
     (currency === 'EUR' || currency === 'JPY') &&
