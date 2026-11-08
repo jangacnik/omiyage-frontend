@@ -3,12 +3,15 @@ import { test, fc } from '@fast-check/vitest'
 import { MAX_ITEM_QUANTITY, cartItemCount, useCartStore } from './cartStore'
 import type { CartItem } from './cartStore'
 
+// The store only restores lines whose id is a UUID, like the API requires.
+const IDS = [1, 2, 3, 4].map((n) => `0b9f8e7d-6c5b-4a39-8271-00000000000${n}`)
+
 const STORAGE_KEY = 'omiyage.cart'
 
 type Snapshot = Omit<CartItem, 'quantity'>
 
 const snapshot: fc.Arbitrary<Snapshot> = fc.record({
-  inventoryItemId: fc.constantFrom('a', 'b', 'c', 'd'),
+  inventoryItemId: fc.constantFrom(...IDS),
   title: fc.string(),
   priceAmount: fc.integer({ min: 0, max: 1_000_000 }),
   currency: fc.constantFrom('EUR' as const, 'JPY' as const),

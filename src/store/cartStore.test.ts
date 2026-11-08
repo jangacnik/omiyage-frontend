@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 const STORAGE_KEY = 'omiyage.cart'
-const validLine = { inventoryItemId: 'a', title: 'Mochi', priceAmount: 500, currency: 'JPY', quantity: 2 }
+const validLine = { inventoryItemId: '0b9f8e7d-6c5b-4a39-8271-605f4e3d2c1b', title: 'Mochi', priceAmount: 500, currency: 'JPY', quantity: 2 }
 
 async function storeLoadedFrom(raw: string) {
   localStorage.setItem(STORAGE_KEY, raw)
@@ -38,6 +38,9 @@ describe('cart store initial load', () => {
 
   it.each([
     ['missing id', { ...validLine, inventoryItemId: undefined }],
+    ['an id that is not a uuid (the API answers 400 for it)', { ...validLine, inventoryItemId: '12345' }],
+    ['a numeric id', { ...validLine, inventoryItemId: 12345 }],
+    ['a uuid with trailing text', { ...validLine, inventoryItemId: `${validLine.inventoryItemId}x` }],
     ['missing title', { ...validLine, title: undefined }],
     ['non-numeric price', { ...validLine, priceAmount: '500' }],
     ['unknown currency', { ...validLine, currency: 'USD' }],
@@ -50,6 +53,14 @@ describe('cart store initial load', () => {
     const store = await storeLoadedFrom(JSON.stringify([bad, validLine]))
 
     expect(store.getState().items).toEqual([validLine])
+  })
+
+  it('accepts an upper-case uuid', async () => {
+    const line = { ...validLine, inventoryItemId: validLine.inventoryItemId.toUpperCase() }
+
+    const store = await storeLoadedFrom(JSON.stringify([line]))
+
+    expect(store.getState().items).toEqual([line])
   })
 
   it('keeps a line at the backend maximum', async () => {

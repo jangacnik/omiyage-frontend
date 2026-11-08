@@ -9,7 +9,7 @@ import { ButtonSpinner } from '../components/Spinner'
 import { ThumbnailImage } from '../components/ThumbnailImage'
 import { IconButton } from '../components/IconButton'
 import { TrashIcon } from '../components/icons'
-import { errorMessage } from '../lib/apiClient'
+import { ApiError, errorMessage } from '../lib/apiClient'
 import { formatMoney } from '../lib/currency'
 
 export function CartPage() {
@@ -116,8 +116,11 @@ export function CartPage() {
         </button>
       </div>
       {createOrder.isError && (
-        <p className="error-text mt-2">
+        <p role="alert" className="error-text mt-2">
           {errorMessage(createOrder.error, 'Could not submit order. Please try again.')}
+          {createOrder.error instanceof ApiError && createOrder.error.status === 400 && (
+            <> Remove the item and add it again, or clear the cart.</>
+          )}
         </p>
       )}
     </div>
