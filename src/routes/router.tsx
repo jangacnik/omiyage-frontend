@@ -1,4 +1,5 @@
-import { createBrowserRouter, Navigate } from 'react-router-dom'
+import { createBrowserRouter, Navigate, type RouteObject } from 'react-router-dom'
+import { NotFoundPage, RouteErrorPage } from './ErrorPages'
 import { Layout } from '../components/Layout'
 import { Spinner } from '../components/Spinner'
 import { RouteTitle } from './RouteTitle'
@@ -9,14 +10,16 @@ function page<M extends Record<string, React.ComponentType>>(load: () => Promise
   return { handle: { title }, lazy: async () => ({ Component: (await load())[name] }) }
 }
 
-export const router = createBrowserRouter([
+export const routes: RouteObject[] = [
   {
     element: <RouteTitle />,
     // Every page is lazy, so the first load has nothing to render until its chunk arrives.
     HydrateFallback: () => <Spinner fullPage />,
+    errorElement: <RouteErrorPage />,
     children: [
       { path: '/auth/callback', ...page(() => import('../pages/AuthCallbackPage'), 'AuthCallbackPage', 'Signing in') },
       { path: '/login', ...page(() => import('../pages/LoginPage'), 'LoginPage', 'Sign in') },
+      { path: '*', element: <NotFoundPage />, handle: { title: 'Page not found' } },
       {
         element: <RequireAuth />,
         children: [
@@ -66,4 +69,6 @@ export const router = createBrowserRouter([
       },
     ],
   },
-])
+]
+
+export const router = createBrowserRouter(routes)
