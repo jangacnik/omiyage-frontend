@@ -49,7 +49,21 @@ describe('meishiSso', () => {
     it('accepts a matching state and hands back the code and verifier', async () => {
       const { state, verifier } = await startLogin()
 
-      expect(checkCallback(new URLSearchParams({ code: 'abc', state }))).toEqual({ ok: true, code: 'abc', verifier })
+      expect(checkCallback(new URLSearchParams({ code: 'abc', state }))).toEqual({ ok: true, code: 'abc', verifier, returnTo: '/' })
+    })
+
+    it('hands back the requested path kept from before the redirect', async () => {
+      await buildAuthorizeUrl('https://meishi.example/oauth/authorize', 'omiyage', '/orders/42?tab=items')
+      const { state } = pending()
+
+      expect(checkCallback(new URLSearchParams({ code: 'abc', state }))).toMatchObject({ ok: true, returnTo: '/orders/42?tab=items' })
+    })
+
+    it('ignores a stored return path that points off-site', async () => {
+      await buildAuthorizeUrl('https://meishi.example/oauth/authorize', 'omiyage', 'https://evil.example')
+      const { state } = pending()
+
+      expect(checkCallback(new URLSearchParams({ code: 'abc', state }))).toMatchObject({ ok: true, returnTo: '/' })
     })
 
     it('can only be used once', async () => {

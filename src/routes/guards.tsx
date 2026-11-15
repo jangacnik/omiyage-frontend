@@ -1,9 +1,11 @@
-import { Navigate, Outlet } from 'react-router-dom'
+import { Navigate, Outlet, useLocation } from 'react-router-dom'
+import { loginPathFor } from '../lib/returnPath'
 import { useAuthStore } from '../store/authStore'
 
 export function RequireAuth() {
   const token = useAuthStore((s) => s.token)
-  if (!token) return <Navigate to="/login" replace />
+  const { pathname, search, hash } = useLocation()
+  if (!token) return <Navigate to={loginPathFor(pathname + search + hash)} replace />
   return <Outlet />
 }
 

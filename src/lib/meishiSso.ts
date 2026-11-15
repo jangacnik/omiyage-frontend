@@ -1,8 +1,11 @@
+import { safeReturnPath } from './returnPath'
+
 const PENDING_KEY = 'omiyage.meishiSso'
 
 interface PendingLogin {
   state: string
   verifier: string
+  returnTo?: string
 }
 
 function base64Url(bytes: Uint8Array): string {
@@ -23,8 +26,8 @@ export function callbackUri(): string {
 }
 
 /** Builds the Meishi hosted-login URL (authorization code with PKCE) and keeps state and verifier for the callback. */
-export async function buildAuthorizeUrl(authorizeUrl: string, clientId: string): Promise<string> {
-  const pending: PendingLogin = { state: randomString(), verifier: randomString() }
+export async function buildAuthorizeUrl(authorizeUrl: string, clientId: string, returnTo?: string): Promise<string> {
+  const pending: PendingLogin = { state: randomString(), verifier: randomString(), returnTo }
   sessionStorage.setItem(PENDING_KEY, JSON.stringify(pending))
   const params = new URLSearchParams({
     response_type: 'code',
@@ -38,7 +41,7 @@ export async function buildAuthorizeUrl(authorizeUrl: string, clientId: string):
 }
 
 export type CallbackCheck =
-  | { ok: true; code: string; verifier: string }
+  | { ok: true; code: string; verifier: string; returnTo: string }
   | { ok: false; reason: 'denied' | 'invalid' }
 
 /** Checks the redirect from Meishi against the pending login. The pending login is single use, even when the check fails. */
@@ -49,7 +52,7 @@ export function checkCallback(params: URLSearchParams): CallbackCheck {
   const pending = parsePending(raw)
   const code = params.get('code')
   if (!pending || !code || params.get('state') !== pending.state) return { ok: false, reason: 'invalid' }
-  return { ok: true, code, verifier: pending.verifier }
+  return { ok: true, code, verifier: pending.verifier, returnTo: safeReturnPath(pending.returnTo) }
 }
 
 function parsePending(raw: string | null): PendingLogin | null {

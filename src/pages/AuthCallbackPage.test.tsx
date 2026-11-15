@@ -15,14 +15,15 @@ function renderCallback(query: string) {
     <Routes>
       <Route path="/auth/callback" element={<AuthCallbackPage />} />
       <Route path="/" element={<p>home</p>} />
+      <Route path="/orders" element={<p>orders</p>} />
       <Route path="/login" element={<p>login</p>} />
     </Routes>,
     [`/auth/callback${query}`],
   )
 }
 
-function startLogin() {
-  sessionStorage.setItem('omiyage.meishiSso', JSON.stringify({ state: 'state-1', verifier: 'v'.repeat(43) }))
+function startLogin(returnTo?: string) {
+  sessionStorage.setItem('omiyage.meishiSso', JSON.stringify({ state: 'state-1', verifier: 'v'.repeat(43), returnTo }))
 }
 
 function token(exp = Math.floor(Date.now() / 1000) + 3600) {
@@ -51,6 +52,15 @@ describe('AuthCallbackPage', () => {
     expect(await screen.findByText('home')).toBeInTheDocument()
     expect(body).toEqual({ code: 'the-code', codeVerifier: 'v'.repeat(43), redirectUri: `${window.location.origin}/auth/callback` })
     expect(useAuthStore.getState().token).not.toBeNull()
+  })
+
+  it('returns to the page that was requested before sign-in', async () => {
+    startLogin('/orders')
+    server.use(http.post(EXCHANGE, () => HttpResponse.json({ token: token() })))
+
+    renderCallback('?code=the-code&state=state-1')
+
+    expect(await screen.findByText('orders')).toBeInTheDocument()
   })
 
   it('refuses a response whose state does not match and never calls the server', async () => {

@@ -50,7 +50,7 @@ export function AuthCallbackPage() {
         onSuccess: ({ token }) => {
           try {
             login(token)
-            navigate('/', { replace: true })
+            navigate(check.returnTo, { replace: true })
           } catch {
             setError(MESSAGES.failed)
           }
