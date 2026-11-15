@@ -63,6 +63,18 @@ describe('AuthCallbackPage', () => {
     expect(await screen.findByText('orders')).toBeInTheDocument()
   })
 
+  it.each(['/.//evil.example', '/..//evil.example', '//evil.example', 'https://evil.example'])(
+    'ignores a stored return path that would leave the site (%s)',
+    async (returnTo) => {
+      startLogin(returnTo)
+      server.use(http.post(EXCHANGE, () => HttpResponse.json({ token: token() })))
+
+      renderCallback('?code=the-code&state=state-1')
+
+      expect(await screen.findByText('home')).toBeInTheDocument()
+    },
+  )
+
   it('refuses a response whose state does not match and never calls the server', async () => {
     startLogin()
     server.use(http.post(EXCHANGE, () => HttpResponse.json({ token: token() })))

@@ -8,6 +8,15 @@ describe('safeReturnPath (properties)', () => {
   test.prop([fc.string({ unit: 'binary' })])('never leaves the origin, whatever the input', (candidate) => {
     const result = safeReturnPath(candidate)
     expect(result.startsWith('/')).toBe(true)
+    expect(result.startsWith('//')).toBe(false)
+    expect(result).not.toContain('\\')
+    expect(new URL(result, window.location.origin).origin).toBe(window.location.origin)
+  })
+
+  const dotSegments = fc.array(fc.constantFrom('.', '..', '%2e', '%2E', '.%2e', ''), { minLength: 1, maxLength: 5 })
+  test.prop([dotSegments, fc.webSegment()])('never turns dot segments into a protocol-relative path', (dots, host) => {
+    const result = safeReturnPath(`/${dots.join('/')}//${host}`)
+    expect(result.startsWith('//')).toBe(false)
     expect(new URL(result, window.location.origin).origin).toBe(window.location.origin)
   })
 

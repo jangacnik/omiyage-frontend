@@ -38,6 +38,8 @@ describe('LoginPage', () => {
       ['the home page without a redirect', '/login', 'home page'],
       ['the home page for an off-site redirect', '/login?redirect=https%3A%2F%2Fevil.example', 'home page'],
       ['the home page for a protocol-relative redirect', '/login?redirect=%2F%2Fevil.example', 'home page'],
+      ['the home page for a dot-segment redirect', '/login?redirect=%2F.%2F%2Fevil.example', 'home page'],
+      ['the home page for a double-dot-segment redirect', '/login?redirect=%2F..%2F%2Fevil.example', 'home page'],
     ])('after password sign-in lands on %s', async (_name, entry, landing) => {
       server.use(http.post(LOGIN, TOKEN_RESPONSE))
       const user = userEvent.setup()
