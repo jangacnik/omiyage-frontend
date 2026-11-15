@@ -1,10 +1,12 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { http, HttpResponse } from 'msw'
 import { screen, waitFor } from '@testing-library/react'
+import { Route, Routes } from 'react-router-dom'
 import userEvent from '@testing-library/user-event'
 import { server } from '../test/server'
 import { renderWithProviders } from '../test/renderWithProviders'
 import { useAuthStore } from '../store/authStore'
+import { makeFakeToken } from '../test/fakeJwt'
 import { LoginPage } from './LoginPage'
 
 const LOGIN = 'http://localhost:8081/api/auth/login'
@@ -14,8 +16,48 @@ async function submit(user: ReturnType<typeof userEvent.setup>) {
   await user.type(screen.getByLabelText('Password'), 'wrong{Enter}')
 }
 
+function renderLoginAt(entry: string) {
+  return renderWithProviders(
+    <Routes>
+      <Route path="/login" element={<LoginPage />} />
+      <Route path="/" element={<p>home page</p>} />
+      <Route path="/orders" element={<p>orders page</p>} />
+    </Routes>,
+    [entry],
+  )
+}
+
 describe('LoginPage', () => {
   beforeEach(() => useAuthStore.setState({ token: null, claims: null, sessionExpired: false }))
+
+  describe('return to the requested page', () => {
+    const TOKEN_RESPONSE = () => HttpResponse.json({ token: makeFakeToken({ sub: 'u1', nickname: 'bob', role: 'USER', exp: Math.floor(Date.now() / 1000) + 3600 }) })
+
+    it.each([
+      ['the requested page', '/login?redirect=%2Forders', 'orders page'],
+      ['the home page without a redirect', '/login', 'home page'],
+      ['the home page for an off-site redirect', '/login?redirect=https%3A%2F%2Fevil.example', 'home page'],
+      ['the home page for a protocol-relative redirect', '/login?redirect=%2F%2Fevil.example', 'home page'],
+      ['the home page for a dot-segment redirect', '/login?redirect=%2F.%2F%2Fevil.example', 'home page'],
+      ['the home page for a double-dot-segment redirect', '/login?redirect=%2F..%2F%2Fevil.example', 'home page'],
+    ])('after password sign-in lands on %s', async (_name, entry, landing) => {
+      server.use(http.post(LOGIN, TOKEN_RESPONSE))
+      const user = userEvent.setup()
+      renderLoginAt(entry)
+
+      await user.type(screen.getByLabelText('Nickname'), 'bob')
+      await user.type(screen.getByLabelText('Password'), 'secret{Enter}')
+
+      expect(await screen.findByText(landing)).toBeInTheDocument()
+    })
+
+    it('sends an already signed-in visitor to the requested page', () => {
+      useAuthStore.getState().login(makeFakeToken({ sub: 'u1', nickname: 'bob', role: 'USER', exp: Math.floor(Date.now() / 1000) + 3600 }))
+      renderLoginAt('/login?redirect=%2Forders')
+
+      expect(screen.getByText('orders page')).toBeInTheDocument()
+    })
+  })
 
   describe('failed sign-in', () => {
     const INCORRECT = 'Nickname or password is incorrect. After several failed tries the account is locked for a while.'
@@ -190,6 +232,21 @@ describe('LoginPage', () => {
       expect(assign).not.toHaveBeenCalled()
       expect(screen.getByRole('button', { name: 'Continue with Meishi' })).toBeEnabled()
       digest.mockRestore()
+    })
+
+    it('keeps the requested page for after the hosted login', async () => {
+      server.use(
+        http.get(CONFIG, () =>
+          HttpResponse.json({ meishiSso: { enabled: true, authorizeUrl: 'https://meishi.example/oauth/authorize', clientId: 'omiyage' } }),
+        ),
+      )
+      const user = userEvent.setup()
+      renderWithProviders(<LoginPage />, ['/login?redirect=%2Forders%2F42'])
+
+      await user.click(await screen.findByRole('button', { name: 'Continue with Meishi' }))
+
+      await waitFor(() => expect(assign).toHaveBeenCalledTimes(1))
+      expect(JSON.parse(sessionStorage.getItem('omiyage.meishiSso') as string).returnTo).toBe('/orders/42')
     })
 
     it('sends the browser to the hosted login with state and a PKCE challenge', async () => {

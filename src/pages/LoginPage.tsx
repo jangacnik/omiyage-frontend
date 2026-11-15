@@ -1,4 +1,4 @@
-import { Navigate } from 'react-router-dom'
+import { Navigate, useSearchParams } from 'react-router-dom'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useEffect, useRef, useState } from 'react'
 import { useForm } from 'react-hook-form'
@@ -6,6 +6,7 @@ import { z } from 'zod'
 import { useLogin } from '../api/auth'
 import { useMeishiSsoConfig } from '../api/meishiSso'
 import { buildAuthorizeUrl } from '../lib/meishiSso'
+import { RETURN_PARAM, safeReturnPath } from '../lib/returnPath'
 import { useAuthStore } from '../store/authStore'
 import { ApiError } from '../lib/apiClient'
 import { Field } from '../components/Field'
@@ -32,6 +33,7 @@ function loginErrorMessage(error: Error): string {
 export function LoginPage() {
   const token = useAuthStore((s) => s.token)
   const sessionExpired = useAuthStore((s) => s.sessionExpired)
+  const returnTo = safeReturnPath(useSearchParams()[0].get(RETURN_PARAM))
   const login = useLogin()
   const sso = useMeishiSsoConfig()
   const [ssoStatus, setSsoStatus] = useState<'idle' | 'redirecting' | 'failed'>('idle')
@@ -48,7 +50,7 @@ export function LoginPage() {
     if (login.error) errorRef.current?.focus()
   }, [login.error])
 
-  if (token) return <Navigate to="/" replace />
+  if (token) return <Navigate to={returnTo} replace />
 
   function onSubmit(data: LoginForm) {
     login.mutate(data)
@@ -58,7 +60,7 @@ export function LoginPage() {
     if (!sso || ssoStatus === 'redirecting') return
     setSsoStatus('redirecting')
     try {
-      window.location.assign(await buildAuthorizeUrl(sso.authorizeUrl, sso.clientId))
+      window.location.assign(await buildAuthorizeUrl(sso.authorizeUrl, sso.clientId, returnTo))
     } catch {
       setSsoStatus('failed')
     }

@@ -1,6 +1,6 @@
 import type { ReactElement } from 'react'
 import { render, screen } from '@testing-library/react'
-import { createMemoryRouter, RouterProvider } from 'react-router-dom'
+import { createMemoryRouter, RouterProvider, useLocation } from 'react-router-dom'
 import { beforeEach, describe, expect, it } from 'vitest'
 import { RequireAdmin, RequireAuth } from './guards'
 import { useAuthStore } from '../store/authStore'
@@ -8,10 +8,15 @@ import { makeFakeToken } from '../test/fakeJwt'
 
 const futureExp = Math.floor(Date.now() / 1000) + 3600
 
+function LoginProbe() {
+  const { search } = useLocation()
+  return <div>login page {search}</div>
+}
+
 function renderWithGuard(guard: () => ReactElement, initialPath: string) {
   const router = createMemoryRouter(
     [
-      { path: '/login', element: <div>login page</div> },
+      { path: '/login', element: <LoginProbe /> },
       { path: '/inventory', element: <div>inventory page</div> },
       {
         element: guard(),
@@ -31,7 +36,12 @@ describe('RequireAuth', () => {
 
   it('redirects to /login when there is no token', () => {
     renderWithGuard(() => <RequireAuth />, '/protected')
-    expect(screen.getByText('login page')).toBeInTheDocument()
+    expect(screen.getByText(/login page/)).toBeInTheDocument()
+  })
+
+  it('carries the requested path, query and hash to the login page', () => {
+    renderWithGuard(() => <RequireAuth />, '/protected?tab=2#top')
+    expect(screen.getByText('login page ?redirect=%2Fprotected%3Ftab%3D2%23top')).toBeInTheDocument()
   })
 
   it('renders the protected route when a token is present', () => {
